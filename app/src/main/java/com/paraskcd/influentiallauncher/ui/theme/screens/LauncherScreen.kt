@@ -12,15 +12,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -66,8 +70,12 @@ fun LauncherScreen() {
         .asPaddingValues()
         .calculateTopPadding()
 
+    var hiddenDockThisDrag by remember { mutableStateOf(false) }
+
     Scaffold(
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets.safeDrawing
+            .only(WindowInsetsSides.Horizontal)
     ) { inner ->
         Box(
             modifier = Modifier
@@ -153,7 +161,7 @@ fun LauncherScreen() {
 
             // Tu contenido principal debajo
             Column(
-                modifier = Modifier.padding(top = statusBarTop, start = 24.dp, end = 24.dp)
+                modifier = Modifier.padding(top = statusBarTop + 16.dp, start = 24.dp, end = 24.dp)
             ) {
                 ClockHeader()
             }

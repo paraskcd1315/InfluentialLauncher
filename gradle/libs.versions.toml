@@ -49,7 +49,6 @@ androidx-foundation-layout = { group = "androidx.compose.foundation", name = "fo
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-com-github-dimezis-blurview = { group = "com.github.Dimezis", name = "BlurView", version.ref = "blurView" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

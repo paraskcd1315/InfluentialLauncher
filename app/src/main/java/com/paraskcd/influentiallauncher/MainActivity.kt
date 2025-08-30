@@ -31,4 +31,9 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        DockDialog.ensureShown(this)
+    }
 }
