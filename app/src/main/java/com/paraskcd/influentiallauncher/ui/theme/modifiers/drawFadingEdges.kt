@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 
 fun Modifier.drawFadingEdges(
     scrollableState: ScrollableState,
-    topEdgeHeight: Dp = 18.dp,
+    topEdgeHeight: Dp = 64.dp,
     bottomEdgeHeight: Dp = 18.dp,
     fadeColor: Color = Color.Black,
     alwaysShowBoth: Boolean = true,

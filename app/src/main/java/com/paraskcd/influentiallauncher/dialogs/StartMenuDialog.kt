@@ -169,9 +169,18 @@ object StartMenuDialog {
     }
 
     private fun getStatusBarInsetTopPx(activity: ComponentActivity): Int {
-        val view = activity.window?.decorView ?: return 0
+        val view = activity.window?.decorView ?: return guessStatusBarHeight(activity)
         val insets = ViewCompat.getRootWindowInsets(view)
-        return insets?.getInsets(WindowInsetsCompat.Type.statusBars())?.top ?: 0
+        val top = insets
+            ?.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.statusBars())
+            ?.top
+        return top ?: guessStatusBarHeight(activity)
+    }
+
+    // 3) Añade este \`fallback\` para casos donde no se puedan leer insets aún:
+    private fun guessStatusBarHeight(ctx: Context): Int {
+        val resId = ctx.resources.getIdentifier("status_bar_height", "dimen", "android")
+        return if (resId > 0) ctx.resources.getDimensionPixelSize(resId) else 0
     }
 
     private fun setWindowBlur(radius: Int) {

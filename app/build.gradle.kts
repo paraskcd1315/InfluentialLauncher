@@ -67,6 +67,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.appcompat)
     implementation(libs.accompanist.drawablepainter)
+    implementation(libs.com.github.dimezis.blurview)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
