@@ -30,8 +30,8 @@ fun BatteryIcon(context: Context, viewModel: LauncherItemsViewModel) {
         }),
         contentDescription = null,
         modifier = Modifier
-            .width(48.dp)
-            .height(48.dp)
+            .width(36.dp)
+            .height(36.dp)
             .padding(6.dp)
     )
 }
