@@ -111,7 +111,7 @@ object DockDialog {
 
                 window?.let {
                     val dm: DisplayMetrics = activity.resources.displayMetrics
-                    val desiredWidth = (dm.widthPixels * 0.75f).toInt()
+                    val desiredWidth = (dm.widthPixels * 0.8f).toInt()
                     val offset = (dm.density * FLOAT_DISTANCE_DP).toInt()
 
                     it.setLayout(desiredWidth, ViewGroup.LayoutParams.WRAP_CONTENT)

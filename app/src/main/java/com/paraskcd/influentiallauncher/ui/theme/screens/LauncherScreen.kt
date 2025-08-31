@@ -3,47 +3,75 @@ package com.paraskcd.influentiallauncher.ui.theme.screens
 import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.drawable.Drawable
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import com.microsoft.fluent.mobile.icons.R
 import com.paraskcd.influentiallauncher.dialogs.DockDialog
 import com.paraskcd.influentiallauncher.services.SystemActionsService
 import com.paraskcd.influentiallauncher.ui.theme.components.ClockHeader
+import com.paraskcd.influentiallauncher.ui.theme.components.Statusbar.Statusbar
+import com.paraskcd.influentiallauncher.ui.theme.viewmodels.LauncherItemsViewModel
+import com.paraskcd.influentiallauncher.ui.theme.viewmodels.StartMenuViewModel
 import com.paraskcd.influentiallauncher.utls.openAccessibilityServiceSettings
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.text.toFloat
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun LauncherScreen() {
+fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val activity = LocalActivity.current
     val scope = rememberCoroutineScope()
@@ -62,6 +90,9 @@ fun LauncherScreen() {
     val triggerDownPx = with(density) { 220.dp.toPx() }
     val triggerUpPx = with(density) { 220.dp.toPx() }
 
+    val dockHeightPx = DockDialog.getDockHeight()?.toFloat() ?: 0f
+    val dockHeightDp = with(density) { dockHeightPx.toDp() }
+
     var downAccum by remember { mutableFloatStateOf(0f) }
     var upAccum by remember { mutableFloatStateOf(0f) }
 
@@ -71,6 +102,13 @@ fun LauncherScreen() {
         .calculateTopPadding()
 
     var hiddenDockThisDrag by remember { mutableStateOf(false) }
+
+    val progress by remember { derivedStateOf { (blur.value / 100f).coerceIn(0f, 1f) } }
+    val animatedProgress by animateFloatAsState(targetValue = progress)
+    val minScale = 0.92f
+    val minAlpha = 0.6f
+    val scale = 1f + (minScale - 1f) * animatedProgress
+    val contentAlpha = 1f + (minAlpha - 1f) * animatedProgress
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -161,9 +199,18 @@ fun LauncherScreen() {
 
             // Tu contenido principal debajo
             Column(
-                modifier = Modifier.padding(top = statusBarTop + 16.dp, start = 24.dp, end = 24.dp)
+                modifier = Modifier
+                    .padding(top = statusBarTop + 32.dp, start = 48.dp, end = 48.dp, bottom = dockHeightDp + 64.dp)
+                    .fillMaxSize()
+                    .scale(scale),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 ClockHeader()
+                Column {  }
+                Statusbar(
+                    context = context,
+                    viewModel = viewModel
+                )
             }
         }
     }

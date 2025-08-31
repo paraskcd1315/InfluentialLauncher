@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.data.db.entities.AppShortcutEntity
 import com.paraskcd.influentiallauncher.data.db.repositories.AppShortcutRepository
+import com.paraskcd.influentiallauncher.data.managers.BatteryStatusManager
+import com.paraskcd.influentiallauncher.data.managers.CellularStatusManager
+import com.paraskcd.influentiallauncher.data.managers.WifiStatusManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,8 +16,19 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LauncherItemsViewModel @Inject constructor(
-    private val repo: AppShortcutRepository
+    private val repo: AppShortcutRepository,
+    private val batteryStatusManager: BatteryStatusManager,
+    private val cellularStatusManager: CellularStatusManager,
+    private val wifiStatusManager: WifiStatusManager
 ): ViewModel() {
+    val wifiLevel = wifiStatusManager.level.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+    val cellularLevel: StateFlow<Int> = cellularStatusManager.level.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+    val cellularNetworkType: StateFlow<String> = cellularStatusManager.networkType.stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
+    val batteryLevel: StateFlow<Int> = batteryStatusManager.level.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+    val isCharging: StateFlow<Boolean> = batteryStatusManager.isCharging.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val isFullCharge: StateFlow<Boolean> = batteryStatusManager.isFullCharge.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val dock: StateFlow<List<AppShortcutEntity>> = repo.dock.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val home: StateFlow<List<AppShortcutEntity>> = repo.home.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -31,4 +45,9 @@ class LauncherItemsViewModel @Inject constructor(
     fun clearDock() = viewModelScope.launch { repo.clearDock() }
 
     fun clearHome() = viewModelScope.launch { repo.clearHome() }
+
+    fun getBatteryDrawable(levelBucket: Int, charging: Boolean, isFullCharge: Boolean): Int = batteryStatusManager.getBatteryDrawable(levelBucket, charging, isFullCharge)
+    fun getCellularDrawable(level: Int): Int = cellularStatusManager.getCellularDrawableForLevel(level)
+
+    fun getWifiDrawable(level: Int): Int = wifiStatusManager.getWifiDrawableForLevel(level)
 }

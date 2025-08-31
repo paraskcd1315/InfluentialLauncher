@@ -1,0 +1,37 @@
+package com.paraskcd.influentiallauncher.ui.theme.components.Statusbar
+
+import android.content.Context
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import com.paraskcd.influentiallauncher.ui.theme.viewmodels.LauncherItemsViewModel
+
+@Composable
+fun BatteryIcon(context: Context, viewModel: LauncherItemsViewModel) {
+    val batteryLevel = viewModel.batteryLevel.collectAsState()
+    val isCharging = viewModel.isCharging.collectAsState()
+    val isFullCharge = viewModel.isFullCharge.collectAsState()
+    val batteryDrawable = viewModel.getBatteryDrawable(batteryLevel.value, isCharging.value, isFullCharge.value)
+
+    Image(
+        painter = rememberDrawablePainter(drawable = ContextCompat.getDrawable(context, batteryDrawable)?.mutate()?.apply {
+            colorFilter = PorterDuffColorFilter(MaterialTheme.colorScheme.onSurface.toArgb(), PorterDuff.Mode.SRC_IN)
+        }),
+        contentDescription = null,
+        modifier = Modifier
+            .width(48.dp)
+            .height(48.dp)
+            .padding(6.dp)
+    )
+}

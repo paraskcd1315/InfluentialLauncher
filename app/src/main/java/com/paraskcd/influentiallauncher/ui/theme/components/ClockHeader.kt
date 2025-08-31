@@ -20,6 +20,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun ClockHeader(
@@ -41,7 +42,7 @@ fun ClockHeader(
     Column(modifier = modifier) {
         Text(
             text = now.format(timeFormatter),
-            style = MaterialTheme.typography.displayLarge,
+            style = MaterialTheme.typography.displayLarge.copy(fontSize = 72.sp),
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold
         )
