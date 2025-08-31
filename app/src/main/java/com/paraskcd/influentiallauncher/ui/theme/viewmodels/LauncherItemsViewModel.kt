@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.data.db.entities.AppShortcutEntity
 import com.paraskcd.influentiallauncher.data.db.repositories.AppShortcutRepository
+import com.paraskcd.influentiallauncher.data.managers.AppRepositoryManager
 import com.paraskcd.influentiallauncher.data.managers.BatteryStatusManager
 import com.paraskcd.influentiallauncher.data.managers.CellularStatusManager
 import com.paraskcd.influentiallauncher.data.managers.WifiStatusManager
+import com.paraskcd.influentiallauncher.services.SystemActionsService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,10 +18,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LauncherItemsViewModel @Inject constructor(
+    private val appRepositoryManager: AppRepositoryManager,
     private val repo: AppShortcutRepository,
     private val batteryStatusManager: BatteryStatusManager,
     private val cellularStatusManager: CellularStatusManager,
-    private val wifiStatusManager: WifiStatusManager
+    private val wifiStatusManager: WifiStatusManager,
+    private val systemActionsService: SystemActionsService
 ): ViewModel() {
     val wifiLevel = wifiStatusManager.level.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
     val cellularLevel: StateFlow<Int> = cellularStatusManager.level.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
@@ -31,10 +35,6 @@ class LauncherItemsViewModel @Inject constructor(
 
     val dock: StateFlow<List<AppShortcutEntity>> = repo.dock.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val home: StateFlow<List<AppShortcutEntity>> = repo.home.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    fun pinDock(pkg: String, activity: String?, label: String, rank: Int) = viewModelScope.launch { repo.pinToDock(pkg, activity, label, rank) }
-
-    fun placeHome(pkg: String, activity: String?, label: String, screen: Int, row: Int, column: Int) = viewModelScope.launch { repo.placeOnHome(pkg, activity, label, screen, row, column) }
 
     fun moveDock(id: Long, newRank: Int) = viewModelScope.launch { repo.moveDock(id, newRank) }
 
@@ -50,4 +50,8 @@ class LauncherItemsViewModel @Inject constructor(
     fun getCellularDrawable(level: Int): Int = cellularStatusManager.getCellularDrawableForLevel(level)
 
     fun getWifiDrawable(level: Int): Int = wifiStatusManager.getWifiDrawableForLevel(level)
+
+    fun openNotifications(): Boolean = systemActionsService.openNotifications()
+
+    fun getAppIcons(pkg: String) = appRepositoryManager.getAppIcon(packageName = pkg)
 }

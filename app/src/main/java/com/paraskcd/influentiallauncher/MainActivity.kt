@@ -2,6 +2,7 @@ package com.paraskcd.influentiallauncher
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
@@ -28,6 +29,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             InfluentialLauncherTheme {
                 LauncherScreen()
+            }
+        }
+
+        onBackPressedDispatcher.addCallback(this) {
+            if (DockDialog.isShowing()) {
+                return@addCallback
+            } else {
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
             }
         }
     }

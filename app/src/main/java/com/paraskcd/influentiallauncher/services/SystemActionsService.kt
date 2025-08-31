@@ -1,36 +1,25 @@
 package com.paraskcd.influentiallauncher.services
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Context
 import android.view.accessibility.AccessibilityEvent
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SystemActionsService : AccessibilityService() {
-    override fun onServiceConnected() {
-        super.onServiceConnected()
-        instance = this
-    }
-
-    override fun onUnbind(intent: android.content.Intent?): Boolean {
-        instance = null
-        return super.onUnbind(intent)
-    }
-
-    override fun onInterrupt() { /* no-op */ }
-
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) { /* no-op */ }
-
-    companion object {
-        @Volatile private var instance: SystemActionsService? = null
-
-        fun isEnabled(): Boolean = instance != null
-
-        fun openNotifications(): Boolean {
-            val ok = instance?.performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS) ?: false
-            return ok
-        }
-
-        fun openQuickSettings(): Boolean {
-            val ok = instance?.performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS) ?: false
-            return ok
+@Singleton
+class SystemActionsService @Inject constructor(
+    @param:ApplicationContext private val context: Context
+) {
+    fun openNotifications(): Boolean {
+        return try {
+            val sbservice = context.getSystemService("statusbar")
+            val statusbarManager = Class.forName("android.app.StatusBarManager")
+            val showsb = statusbarManager.getMethod("expandNotificationsPanel")
+            showsb.invoke(sbservice)
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 }

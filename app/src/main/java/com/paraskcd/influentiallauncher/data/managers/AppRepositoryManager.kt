@@ -25,7 +25,6 @@ class AppRepositoryManager @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _apps = MutableStateFlow(loadInstalledApps())
     val apps: StateFlow<List<AppEntry>> = _apps.asStateFlow()
-
     private val packageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             _apps.value = loadInstalledApps()
@@ -73,6 +72,15 @@ class AppRepositoryManager @Inject constructor(
         }
         .sortedBy {
             it.label.lowercase()
+        }
+    }
+
+    fun getAppIcon(packageName: String): Drawable? {
+        return try {
+            val appInfo = packageManager.getApplicationInfo(packageName, 0)
+            packageManager.getApplicationIcon(appInfo)
+        } catch (e: PackageManager.NameNotFoundException) {
+            null
         }
     }
 }
