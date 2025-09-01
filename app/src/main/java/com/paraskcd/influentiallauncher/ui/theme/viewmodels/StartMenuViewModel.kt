@@ -22,11 +22,11 @@ import javax.inject.Inject
 @HiltViewModel
 class StartMenuViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    repo: AppRepositoryManager,
-    private val persistenceRepo: AppShortcutRepository,
+    private val appRepositoryManager: AppRepositoryManager,
+    private val repo: AppShortcutRepository,
 ): ViewModel() {
     val query = MutableStateFlow("")
-    private val apps = repo.apps
+    private val apps = appRepositoryManager.apps
 
     val filteredApps = combine(query, apps) { q, list ->
         val trim = q.trim()
@@ -34,31 +34,11 @@ class StartMenuViewModel @Inject constructor(
         else list.filter { it.label.contains(trim, ignoreCase = true) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun pinDock(pkg: String, activity: String?, label: String, rank: Int) = viewModelScope.launch { persistenceRepo.pinToDock(pkg, activity, label, rank) }
+    fun pinDock(pkg: String, activity: String?, label: String, rank: Int) = viewModelScope.launch { repo.pinToDock(pkg, activity, label, rank) }
 
-    fun placeHome(pkg: String, activity: String?, label: String, screen: Int, row: Int, column: Int) = viewModelScope.launch { persistenceRepo.placeOnHome(pkg, activity, label, screen, row, column) }
+    fun placeHome(pkg: String, activity: String?, label: String, screen: Int, row: Int, column: Int) = viewModelScope.launch { repo.placeOnHome(pkg, activity, label, screen, row, column) }
 
-    fun openAppInfo(pkg: String) {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = "package:${pkg}".toUri()
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        try {
-            context.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "Opening App info not available", Toast.LENGTH_SHORT).show()
-        }
-    }
+    fun openAppInfo(pkg: String) = appRepositoryManager.openAppInfo(pkg)
 
-    fun uninstallApp(pkg: String) {
-        val intent = Intent(Intent.ACTION_DELETE).apply {
-            data = "package:${pkg}".toUri()
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        try {
-            context.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "Uninstall not available", Toast.LENGTH_SHORT).show()
-        }
-    }
+    fun uninstallApp(pkg: String) = appRepositoryManager.uninstallApp(pkg)
 }

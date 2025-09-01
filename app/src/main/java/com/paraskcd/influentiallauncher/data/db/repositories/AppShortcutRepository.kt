@@ -69,4 +69,9 @@ class AppShortcutRepository @Inject constructor(
     suspend fun clearHome() {
         dao.clearArea(ShortcutArea.HOME)
     }
+
+    suspend fun updateDockOrder(newOrdered: List<AppShortcutEntity>) {
+        val ranked = newOrdered.mapIndexed { index, it -> it.copy(rank = index) }
+        dao.upsertAll(ranked)
+    }
 }

@@ -245,7 +245,7 @@ fun StartMenu(modifier: Modifier = Modifier, viewModel: StartMenuViewModel = hil
                                     onDismissRequest = { expandedAppMenu = null }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("AppInfo") },
+                                        text = { Text("App Info") },
                                         onClick = {
                                             viewModel.openAppInfo(pkg = app.packageName)
                                             expandedAppMenu = null

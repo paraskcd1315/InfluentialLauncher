@@ -68,3 +68,61 @@ fun Modifier.drawFadingEdges(
             }
         }
 )
+
+fun Modifier.drawHorizontalFadingEdges(
+    scrollableState: ScrollableState,
+    leftEdgeWidth: Dp = 64.dp,
+    rightEdgeWidth: Dp = 18.dp,
+    fadeColor: Color = Color.Black,
+    alwaysShowBoth: Boolean = false,
+    keepLeftAtStart: Boolean = false,
+    keepRightAtEnd: Boolean = false
+) = then(
+    Modifier
+        .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+        .drawWithContent {
+            drawContent()
+
+            val leftW = leftEdgeWidth.toPx()
+            val rightW = rightEdgeWidth.toPx()
+            if (leftW < 1f && rightW < 1f) return@drawWithContent
+
+            val atLeft = !scrollableState.canScrollBackward
+            val atRight = !scrollableState.canScrollForward
+            val hasScrollableContent = !atLeft || !atRight
+
+            var drawLeft: Boolean
+            var drawRight: Boolean
+
+            if (alwaysShowBoth) {
+                drawLeft = hasScrollableContent && leftW >= 1f
+                drawRight = hasScrollableContent && rightW >= 1f
+            } else {
+                drawLeft = (( !atLeft ) || keepLeftAtStart) && leftW >= 1f
+                drawRight = (( !atRight ) || keepRightAtEnd) && rightW >= 1f
+            }
+
+            val w = size.width
+
+            if (drawLeft) {
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        listOf(Color.Transparent, fadeColor),
+                        startX = 0f,
+                        endX = leftW
+                    ),
+                    blendMode = BlendMode.DstIn
+                )
+            }
+            if (drawRight) {
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        listOf(fadeColor, Color.Transparent),
+                        startX = w - leftW,
+                        endX = w
+                    ),
+                    blendMode = BlendMode.DstIn
+                )
+            }
+        }
+)

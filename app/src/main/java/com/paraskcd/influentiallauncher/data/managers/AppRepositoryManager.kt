@@ -1,11 +1,16 @@
 package com.paraskcd.influentiallauncher.data.managers
 
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.provider.Settings
+import android.util.Log
+import android.widget.Toast
+import androidx.core.net.toUri
 import com.paraskcd.influentiallauncher.data.types.AppEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -64,7 +69,12 @@ class AppRepositoryManager @Inject constructor(
                             setClassName(packageName, activityName)
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
                         }
-                        context.startActivity(explicit)
+                        try {
+                            context.startActivity(explicit)
+                        } catch (e: Exception) {
+                            Log.e("AppRepositoryManager", "Error launching app $packageName", e)
+                            Toast.makeText(context, "Could not open app", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 )
             }
@@ -81,6 +91,56 @@ class AppRepositoryManager @Inject constructor(
             packageManager.getApplicationIcon(appInfo)
         } catch (e: PackageManager.NameNotFoundException) {
             null
+        }
+    }
+
+    fun launchApp(packageName: String) {
+        val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+
+        if (launchIntent?.component == null) {
+            Toast.makeText(context, "App not found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val activityInfo = packageManager.getActivityInfo(launchIntent.component!!, 0)
+
+        val explicit = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+            setClassName(packageName, activityInfo.name)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+        }
+
+        try {
+            context.startActivity(explicit)
+        } catch (e: Exception) {
+            Log.e("AppRepositoryManager", "Error launching app $packageName", e)
+            Toast.makeText(context, "Could not open app", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun openAppInfo(packageName: String) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = "package:${packageName}".toUri()
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        try {
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("AppRepositoryManager", "Error launching app info $packageName", e)
+            Toast.makeText(context, "Opening App info not available", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun uninstallApp(packageName: String) {
+        val intent = Intent(Intent.ACTION_DELETE).apply {
+            data = "package:${packageName}".toUri()
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        try {
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("AppRepositoryManager", "Error launching app info $packageName", e)
+            Toast.makeText(context, "Uninstall not available", Toast.LENGTH_SHORT).show()
         }
     }
 }

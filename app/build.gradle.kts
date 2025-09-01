@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.accompanist.drawablepainter)
     implementation(libs.fluent.system.icons)
+    implementation(libs.reorderable)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

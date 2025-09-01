@@ -10,6 +10,7 @@ import com.paraskcd.influentiallauncher.data.managers.CellularStatusManager
 import com.paraskcd.influentiallauncher.data.managers.WifiStatusManager
 import com.paraskcd.influentiallauncher.services.SystemActionsService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -25,6 +26,8 @@ class LauncherItemsViewModel @Inject constructor(
     private val wifiStatusManager: WifiStatusManager,
     private val systemActionsService: SystemActionsService
 ): ViewModel() {
+    private val _dockEditMode = MutableStateFlow(false)
+    val dockEditMode: StateFlow<Boolean> = _dockEditMode
     val wifiLevel = wifiStatusManager.level.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
     val cellularLevel: StateFlow<Int> = cellularStatusManager.level.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
     val cellularNetworkType: StateFlow<String> = cellularStatusManager.networkType.stateIn(viewModelScope, SharingStarted.Eagerly, "")
@@ -54,4 +57,20 @@ class LauncherItemsViewModel @Inject constructor(
     fun openNotifications(): Boolean = systemActionsService.openNotifications()
 
     fun getAppIcons(pkg: String) = appRepositoryManager.getAppIcon(packageName = pkg)
+
+    fun launchApp(pkg: String) = appRepositoryManager.launchApp(pkg)
+
+    fun openAppInfo(pkg: String) = appRepositoryManager.openAppInfo(pkg)
+
+    fun uninstallApp(pkg: String) = appRepositoryManager.uninstallApp(pkg)
+
+    fun updateDockOrder(newOrder: List<AppShortcutEntity>) {
+        viewModelScope.launch {
+            repo.updateDockOrder(newOrder)
+        }
+    }
+
+    fun setDockEditMode(enabled: Boolean) {
+        _dockEditMode.value = enabled
+    }
 }
