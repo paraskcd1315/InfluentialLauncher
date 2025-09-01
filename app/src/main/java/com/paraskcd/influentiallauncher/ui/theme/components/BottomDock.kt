@@ -121,26 +121,24 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
         Modifier
     }
 
-    val multipleClicksModifier: Modifier = if (!editMode) {
-        Modifier.combinedClickable(
-            onClick = {
-                if (isOpen) {
-                    StartMenuDialog.close()
-                } else {
-                    StartMenuDialog.showOrUpdate(context)
-                }
-            },
-            onLongClick = {
-                viewModel.setDockEditMode(true)
-            }
-        )
-    } else {
-        Modifier.semantics {
-            customActions = listOf(
-                CustomAccessibilityAction("Disable Edit Mode") {
-                    viewModel.setDockEditMode(false); true
+    val multipleClicksModifier: (app: AppShortcutEntity) -> Modifier = { app ->
+        if (!editMode) {
+            Modifier.combinedClickable(
+                onClick = {
+                    viewModel.launchApp(app.packageName)
+                },
+                onLongClick = {
+                    expandedAppMenu = app
                 }
             )
+        } else {
+            Modifier.semantics {
+                customActions = listOf(
+                    CustomAccessibilityAction("Disable Edit Mode") {
+                        viewModel.setDockEditMode(false); true
+                    }
+                )
+            }
         }
     }
 
@@ -174,10 +172,11 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
                     .border(
                         width = 1.dp,
                         color = if (isOpen)
-                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
-                                else
-                                    Color.Transparent,
-                        shape = RoundedCornerShape(16.dp))
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                        else
+                            Color.Transparent,
+                        shape = RoundedCornerShape(16.dp)
+                    )
             ) {
                 Icon(
                     imageVector =
@@ -240,7 +239,7 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
                                 .background(draggingBg, RoundedCornerShape(14.dp))
                         ) {
                             Column(
-                                modifier = multipleClicksModifier
+                                modifier = multipleClicksModifier(app)
                                     .clip(RoundedCornerShape(14.dp))
                                     .semantics {
                                         customActions = listOf(
