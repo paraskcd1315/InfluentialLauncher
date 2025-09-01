@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.text.SimpleDateFormat
+import java.util.Date
 
 plugins {
     alias(libs.plugins.android.application)
@@ -20,6 +22,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    applicationVariants.all {
+        val variant = this
+        outputs.all {
+            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
+            val appName = variant.applicationId
+            val formatter = SimpleDateFormat("yyyy-MM-dd-HH'h'mm'm'")
+            val timestamp = formatter.format(Date())
+
+            output.outputFileName = "$appName-v-$timestamp.apk"
+        }
     }
 
     buildTypes {
