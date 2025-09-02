@@ -12,7 +12,7 @@ interface AppShortcutDao {
     @Query("SELECT * FROM app_shortcuts WHERE area = 'DOCK' ORDER BY COALESCE(rank, 0), id")
     fun observeDock(): Flow<List<AppShortcutEntity>>
 
-    @Query("SELECT * FROM app_shortcuts WHERE area = 'DOCK' ORDER BY COALESCE(screen, 0), COALESCE(`row`, 0), COALESCE(`column`, 0), id")
+    @Query("SELECT * FROM app_shortcuts WHERE area = 'HOME' ORDER BY COALESCE(screen, 0), COALESCE(`row`, 0), COALESCE(`column`, 0), id")
     fun observeHome(): Flow<List<AppShortcutEntity>>
 
     @Upsert

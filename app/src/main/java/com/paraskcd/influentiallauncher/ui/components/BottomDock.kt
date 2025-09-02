@@ -59,8 +59,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.paraskcd.influentiallauncher.data.db.entities.AppShortcutEntity
 import com.paraskcd.influentiallauncher.dialogs.StartMenuDialog
-import com.paraskcd.influentiallauncher.ui.theme.icons.WindowsIcon
-import com.paraskcd.influentiallauncher.ui.theme.icons.WindowsOpenedIcon
+import com.paraskcd.influentiallauncher.ui.icons.WindowsIcon
+import com.paraskcd.influentiallauncher.ui.icons.WindowsOpenedIcon
 import com.paraskcd.influentiallauncher.ui.modifiers.drawHorizontalFadingEdges
 import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 import org.burnoutcrew.reorderable.ReorderableItem

@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.theme.icons
+package com.paraskcd.influentiallauncher.ui.icons
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor

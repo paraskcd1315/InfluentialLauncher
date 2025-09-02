@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.paraskcd.influentiallauncher.data.enums.ShortcutArea
+import com.paraskcd.influentiallauncher.data.enums.ShortcutType
 
 @Entity(
     tableName = "app_shortcuts",
@@ -24,5 +25,11 @@ data class AppShortcutEntity(
     val column: Int? = null,
 
     // For DOCK
-    val rank: Int? = null
+    val rank: Int? = null,
+
+    // For WIDGETS
+    val type: ShortcutType = ShortcutType.APP,
+    val spanColumns: Int? = 1,
+    val spanRows: Int? = 1,
+    val appWidgetId: Int? = null
 )
