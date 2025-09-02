@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.theme.components
+package com.paraskcd.influentiallauncher.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

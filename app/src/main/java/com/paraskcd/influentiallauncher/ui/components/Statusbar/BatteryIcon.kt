@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.theme.components.Statusbar
+package com.paraskcd.influentiallauncher.ui.components.Statusbar
 
 import android.content.Context
 import android.graphics.PorterDuff
@@ -15,14 +15,17 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import com.paraskcd.influentiallauncher.ui.theme.viewmodels.LauncherItemsViewModel
+import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 
 @Composable
-fun WifiIcon(context: Context, viewModel: LauncherItemsViewModel) {
-    val wifiLevel = viewModel.wifiLevel.collectAsState()
-    val wifiDrawable = viewModel.getWifiDrawable(wifiLevel.value)
+fun BatteryIcon(context: Context, viewModel: LauncherItemsViewModel) {
+    val batteryLevel = viewModel.batteryLevel.collectAsState()
+    val isCharging = viewModel.isCharging.collectAsState()
+    val isFullCharge = viewModel.isFullCharge.collectAsState()
+    val batteryDrawable = viewModel.getBatteryDrawable(batteryLevel.value, isCharging.value, isFullCharge.value)
+
     Image(
-        painter = rememberDrawablePainter(drawable = ContextCompat.getDrawable(context, wifiDrawable)?.mutate()?.apply {
+        painter = rememberDrawablePainter(drawable = ContextCompat.getDrawable(context, batteryDrawable)?.mutate()?.apply {
             colorFilter = PorterDuffColorFilter(MaterialTheme.colorScheme.onSurface.toArgb(), PorterDuff.Mode.SRC_IN)
         }),
         contentDescription = null,

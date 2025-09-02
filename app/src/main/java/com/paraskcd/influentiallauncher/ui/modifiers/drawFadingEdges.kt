@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.theme.modifiers
+package com.paraskcd.influentiallauncher.ui.modifiers
 
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.ui.Modifier

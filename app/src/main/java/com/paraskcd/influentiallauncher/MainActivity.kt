@@ -11,7 +11,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.paraskcd.influentiallauncher.dialogs.DockDialog
 import com.paraskcd.influentiallauncher.dialogs.StartMenuDialog
 import com.paraskcd.influentiallauncher.ui.theme.InfluentialLauncherTheme
-import com.paraskcd.influentiallauncher.ui.theme.screens.LauncherScreen
+import com.paraskcd.influentiallauncher.ui.screens.LauncherScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

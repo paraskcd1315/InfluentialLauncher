@@ -29,13 +29,11 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.paraskcd.influentiallauncher.R
 import com.paraskcd.influentiallauncher.ui.theme.InfluentialLauncherTheme
-import com.paraskcd.influentiallauncher.ui.theme.components.BottomDock
+import com.paraskcd.influentiallauncher.ui.components.BottomDock
 import com.paraskcd.influentiallauncher.utls.isWindowBlurSupported
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlin.text.toInt
-import kotlin.times
 
 object DockDialog {
     private var dialog: Dialog? = null

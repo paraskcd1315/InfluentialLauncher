@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.theme.screens
+package com.paraskcd.influentiallauncher.ui.screens
 
 import android.app.ActivityOptions
 import android.content.Intent
@@ -39,9 +39,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.paraskcd.influentiallauncher.dialogs.DockDialog
-import com.paraskcd.influentiallauncher.ui.theme.components.ClockHeader
-import com.paraskcd.influentiallauncher.ui.theme.components.Statusbar.Statusbar
-import com.paraskcd.influentiallauncher.ui.theme.viewmodels.LauncherItemsViewModel
+import com.paraskcd.influentiallauncher.ui.components.ClockHeader
+import com.paraskcd.influentiallauncher.ui.components.Statusbar.Statusbar
+import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

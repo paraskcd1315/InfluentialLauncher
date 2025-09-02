@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.theme.components
+package com.paraskcd.influentiallauncher.ui.components
 
 import android.content.Context
 import androidx.compose.animation.core.LinearEasing
@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -59,18 +58,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.paraskcd.influentiallauncher.data.db.entities.AppShortcutEntity
-import com.paraskcd.influentiallauncher.data.types.AppEntry
 import com.paraskcd.influentiallauncher.dialogs.StartMenuDialog
 import com.paraskcd.influentiallauncher.ui.theme.icons.WindowsIcon
 import com.paraskcd.influentiallauncher.ui.theme.icons.WindowsOpenedIcon
-import com.paraskcd.influentiallauncher.ui.theme.modifiers.drawHorizontalFadingEdges
-import com.paraskcd.influentiallauncher.ui.theme.viewmodels.LauncherItemsViewModel
+import com.paraskcd.influentiallauncher.ui.modifiers.drawHorizontalFadingEdges
+import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableState
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
-import org.burnoutcrew.reorderable.detectReorder
 import java.util.Random
 import kotlin.math.sin
 
@@ -192,11 +189,13 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
             }
             LazyRow(
                 state = reorderState.listState,
-                modifier = dragRowModifier.drawHorizontalFadingEdges(
-                    scrollableState = reorderState.listState,
-                    leftEdgeWidth = 32.dp,
-                    rightEdgeWidth = 32.dp
-                )
+                modifier = dragRowModifier
+                    .drawHorizontalFadingEdges(
+                        scrollableState = reorderState.listState,
+                        leftEdgeWidth = 32.dp,
+                        rightEdgeWidth = 32.dp
+                    ),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(dockOrder, key = { it.id }) { app ->
                     ReorderableItemCustom(

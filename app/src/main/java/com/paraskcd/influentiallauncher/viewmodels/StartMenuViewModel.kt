@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.theme.viewmodels
+package com.paraskcd.influentiallauncher.viewmodels
 
 import android.content.ActivityNotFoundException
 import android.content.Context

@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.theme.components.Statusbar
+package com.paraskcd.influentiallauncher.ui.components.Statusbar
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.paraskcd.influentiallauncher.ui.theme.viewmodels.LauncherItemsViewModel
+import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 
 @Composable
 fun Statusbar(context: Context, viewModel: LauncherItemsViewModel) {

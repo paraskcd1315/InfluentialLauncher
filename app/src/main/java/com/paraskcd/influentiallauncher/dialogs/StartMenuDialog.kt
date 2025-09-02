@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.Context
-import android.os.Build
 import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.ViewGroup
@@ -15,7 +14,6 @@ import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -38,7 +36,7 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.paraskcd.influentiallauncher.R
 import com.paraskcd.influentiallauncher.ui.theme.InfluentialLauncherTheme
-import com.paraskcd.influentiallauncher.ui.theme.components.StartMenu
+import com.paraskcd.influentiallauncher.ui.components.StartMenu
 import com.paraskcd.influentiallauncher.utls.isWindowBlurSupported
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

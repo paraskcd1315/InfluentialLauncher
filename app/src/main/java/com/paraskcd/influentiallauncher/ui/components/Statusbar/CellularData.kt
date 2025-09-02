@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.theme.components.Statusbar
+package com.paraskcd.influentiallauncher.ui.components.Statusbar
 
 import android.content.Context
 import android.graphics.PorterDuff
@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import com.paraskcd.influentiallauncher.ui.theme.viewmodels.LauncherItemsViewModel
+import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 
 @Composable
 fun CellularData(context: Context, viewModel: LauncherItemsViewModel) {
