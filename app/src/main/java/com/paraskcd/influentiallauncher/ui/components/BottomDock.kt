@@ -62,6 +62,7 @@ import com.paraskcd.influentiallauncher.dialogs.StartMenuDialog
 import com.paraskcd.influentiallauncher.ui.icons.WindowsIcon
 import com.paraskcd.influentiallauncher.ui.icons.WindowsOpenedIcon
 import com.paraskcd.influentiallauncher.ui.modifiers.drawHorizontalFadingEdges
+import com.paraskcd.influentiallauncher.utls.ReorderableItemCustom
 import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableState
@@ -385,14 +386,3 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
         }
     }
 }
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun LazyItemScope.ReorderableItemCustom(
-    reorderableState: ReorderableState<*>,
-    key: Any?,
-    modifier: Modifier = Modifier,
-    index: Int? = null,
-    orientationLocked: Boolean = true,
-    content: @Composable BoxScope.(isDragging: Boolean) -> Unit,
-) = ReorderableItem(reorderableState, key, modifier, Modifier.animateItem(), orientationLocked, index, content)

@@ -33,7 +33,7 @@ class AppShortcutRepository @Inject constructor(
         packageName: String,
         activityName: String?,
         label: String,
-        screen: Int,
+        screenId: Long?,
         row: Int,
         column: Int
     ): Long {
@@ -43,7 +43,7 @@ class AppShortcutRepository @Inject constructor(
                 activityName = activityName,
                 label = label,
                 area = ShortcutArea.HOME,
-                screen = screen,
+                screenId = screenId,
                 row = row,
                 column = column
             )
@@ -54,8 +54,8 @@ class AppShortcutRepository @Inject constructor(
         dao.updateRank(id, newRank)
     }
 
-    suspend fun moveHome(id: Long, screen: Int, row: Int, column: Int) {
-        dao.updateGridPosition(id, screen, row, column)
+    suspend fun moveHome(id: Long, screenId: Long, row: Int, column: Int) {
+        dao.updateGridPosition(id, screenId, row, column)
     }
 
     suspend fun remove(id: Long) {
@@ -73,5 +73,17 @@ class AppShortcutRepository @Inject constructor(
     suspend fun updateDockOrder(newOrdered: List<AppShortcutEntity>) {
         val ranked = newOrdered.mapIndexed { index, it -> it.copy(rank = index) }
         dao.upsertAll(ranked)
+    }
+
+    suspend fun swapHomeItems(
+        screenId: Long,
+        fromApp: AppShortcutEntity?,
+        fromRow: Int,
+        fromCol: Int,
+        toApp: AppShortcutEntity?,
+        toRow: Int,
+        toCol: Int
+    ) {
+        dao.swapHomeItems(screenId, fromApp, fromRow, fromCol, toApp, toRow, toCol)
     }
 }

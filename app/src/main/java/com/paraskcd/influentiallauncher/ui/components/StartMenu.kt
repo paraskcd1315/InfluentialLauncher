@@ -196,7 +196,7 @@ fun StartMenu(modifier: Modifier = Modifier, viewModel: StartMenuViewModel = hil
                                                     viewModel.pinDock(pkg = app.packageName, activity = app.activityName, label = app.label, rank = 0); true
                                                 },
                                                 CustomAccessibilityAction("Pin to Home") {
-                                                    viewModel.placeHome(pkg = app.packageName, activity = app.activityName, label = app.label, screen = 0, row = 0, column = 0); true
+                                                    viewModel.placeHome(pkg = app.packageName, activity = app.activityName, label = app.label); true
                                                 },
                                                 CustomAccessibilityAction("Uninstall") {
                                                     showUninstallConfirmationDialog = app;
@@ -255,7 +255,7 @@ fun StartMenu(modifier: Modifier = Modifier, viewModel: StartMenuViewModel = hil
                                     DropdownMenuItem(
                                         text = { Text("Pin to Home") },
                                         onClick = {
-                                            viewModel.placeHome(pkg = app.packageName, activity = app.activityName, label = app.label, screen = 0, row = 0, column = 0)
+                                            viewModel.placeHome(pkg = app.packageName, activity = app.activityName, label = app.label)
                                             expandedAppMenu = null
                                         }
                                     )

@@ -1,6 +1,7 @@
 package com.paraskcd.influentiallauncher.data.db.entities
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.paraskcd.influentiallauncher.data.enums.ShortcutArea
@@ -9,7 +10,16 @@ import com.paraskcd.influentiallauncher.data.enums.ShortcutType
 @Entity(
     tableName = "app_shortcuts",
     indices = [
-        Index(value = ["packageName", "activityName", "area"], unique = true)
+        Index(value = ["packageName", "activityName", "area"], unique = true),
+        Index(value = ["screenId"]),
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = LauncherScreenEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["screenId"],
+            onDelete = ForeignKey.CASCADE,
+        )
     ]
 )
 data class AppShortcutEntity(
@@ -20,7 +30,7 @@ data class AppShortcutEntity(
     val area: ShortcutArea,
 
     // For HOME
-    val screen: Int? = null,
+    val screenId: Long? = null,
     val row: Int? = null,
     val column: Int? = null,
 

@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.accompanist.drawablepainter)
     implementation(libs.fluent.system.icons)
     implementation(libs.reorderable)
+    implementation(libs.calvin.reorderable)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

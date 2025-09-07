@@ -12,17 +12,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -30,6 +37,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -40,9 +49,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.paraskcd.influentiallauncher.dialogs.DockDialog
 import com.paraskcd.influentiallauncher.ui.components.ClockHeader
+import com.paraskcd.influentiallauncher.ui.components.HomeGrid
 import com.paraskcd.influentiallauncher.ui.components.Statusbar.Statusbar
 import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -82,9 +95,34 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
     val progress by remember { derivedStateOf { (blur.value / 100f).coerceIn(0f, 1f) } }
     val animatedProgress by animateFloatAsState(targetValue = progress)
     val minScale = 0.92f
-    val minAlpha = 0.6f
     val scale = 1f + (minScale - 1f) * animatedProgress
-    val contentAlpha = 1f + (minAlpha - 1f) * animatedProgress
+
+    val activeScreenId by viewModel.activeScreenId.collectAsState()
+    val homeItems by viewModel.home.collectAsState()
+    val screens by viewModel.screens.collectAsState()
+    val homeEditMode by viewModel.homeEditMode.collectAsState()
+
+    val initialIndex = remember(screens, activeScreenId) {
+        val idx = screens.indexOfFirst { it.id == activeScreenId }
+        if (idx >= 0) idx else 0
+    }
+    val pagerState = rememberPagerState(initialPage = initialIndex, pageCount = { screens.size.coerceAtLeast(1) })
+
+    LaunchedEffect(screens, activeScreenId) {
+        val idx = screens.indexOfFirst { it.id == activeScreenId }
+        if (idx >= 0 && idx != pagerState.currentPage) {
+            pagerState.scrollToPage(idx)
+        }
+    }
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .map { page -> screens.getOrNull(page)?.id }
+            .filter { it != null }
+            .collectLatest { id -> viewModel.setActiveScreen(id!!) }
+    }
+
+    val commonPaddingModifier = Modifier.padding(start = 48.dp, end = 48.dp)
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -95,74 +133,73 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
             modifier = Modifier
                 .padding(inner)
                 .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectVerticalDragGestures(
-                        onDragStart = {
-                            downAccum = 0f
-                            upAccum = 0f
-                        },
-                        onVerticalDrag = { _, dy ->
-                            if (dy > 0f) {
-                                // Deslizar hacia abajo -> notificaciones
-                                downAccum = (downAccum + dy).coerceAtLeast(0f)
-                                upAccum = 0f
-                            } else if (dy < 0f) {
-                                // Deslizar hacia arriba -> SpotlightSearch
-                                upAccum = (upAccum + -dy).coerceAtLeast(0f)
-                                downAccum = 0f
-                            }
-                            val pDown = (downAccum / triggerDownPx).coerceIn(0f, 1f)
-                            val pUp = (upAccum / triggerUpPx).coerceIn(0f, 1f)
-                            val p = maxOf(pDown, pUp)
-                            scope.launch { blur.snapTo(p * 100f) }
-                        },
-                        onDragEnd = {
-                            val pDown = (downAccum / triggerDownPx).coerceIn(0f, 1f)
-                            val pUp = (upAccum / triggerUpPx).coerceIn(0f, 1f)
-
-                            when {
-                                // Abrir SpotlightSearch al deslizar hacia arriba
-                                pUp >= 0.7f -> scope.launch {
-                                    blur.animateTo(100f, tween(120))
-                                    val intent = Intent().apply {
-                                        setClassName(
-                                            "com.paraskcd.spotlightsearch",
-                                            "com.paraskcd.spotlightsearch.MainActivity"
-                                        )
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .then(
+                    if (!homeEditMode) {
+                        Modifier.pointerInput(Unit) {
+                            detectVerticalDragGestures(
+                                onDragStart = {
+                                    downAccum = 0f
+                                    upAccum = 0f
+                                },
+                                onVerticalDrag = { _, dy ->
+                                    if (dy > 0f) {
+                                        downAccum = (downAccum + dy).coerceAtLeast(0f)
+                                        upAccum = 0f
+                                    } else if (dy < 0f) {
+                                        upAccum = (upAccum + -dy).coerceAtLeast(0f)
+                                        downAccum = 0f
                                     }
-                                    // Suaviza la transición: fade mientras mantenemos el blur
-                                    val opts = ActivityOptions.makeCustomAnimation(
-                                        context,
-                                        android.R.anim.fade_in,
-                                        android.R.anim.fade_out
-                                    )
-                                    context.startActivity(intent, opts.toBundle())
-                                    // Mantener blur un instante para evitar el “salto”
-                                    delay(220)
-                                    blur.snapTo(0f)
-                                    activity?.window?.setBackgroundBlurRadius(0)
-                                }
+                                    val pDown = (downAccum / triggerDownPx).coerceIn(0f, 1f)
+                                    val pUp = (upAccum / triggerUpPx).coerceIn(0f, 1f)
+                                    val p = maxOf(pDown, pUp)
+                                    scope.launch { blur.snapTo(p * 100f) }
+                                },
+                                onDragEnd = {
+                                    val pDown = (downAccum / triggerDownPx).coerceIn(0f, 1f)
+                                    val pUp = (upAccum / triggerUpPx).coerceIn(0f, 1f)
 
-                                // Intentar expandir notificaciones al deslizar hacia abajo
-                                pDown >= 0.7f -> scope.launch {
-                                    blur.animateTo(100f, tween(100))
-                                    val opened = viewModel.openNotifications()
-                                    delay(if (opened) 220 else 120)
-                                    blur.animateTo(0f, tween(150))
-                                    activity?.window?.setBackgroundBlurRadius(0)
-                                }
+                                    when {
+                                        pUp >= 0.7f -> scope.launch {
+                                            blur.animateTo(100f, tween(120))
+                                            val intent = Intent().apply {
+                                                setClassName(
+                                                    "com.paraskcd.spotlightsearch",
+                                                    "com.paraskcd.spotlightsearch.MainActivity"
+                                                )
+                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            }
+                                            val opts = ActivityOptions.makeCustomAnimation(
+                                                context,
+                                                android.R.anim.fade_in,
+                                                android.R.anim.fade_out
+                                            )
+                                            context.startActivity(intent, opts.toBundle())
+                                            delay(220)
+                                            blur.snapTo(0f)
+                                            activity?.window?.setBackgroundBlurRadius(0)
+                                        }
 
-                                else -> scope.launch { blur.animateTo(0f, tween(150)) }
-                            }
-                        },
-                        onDragCancel = {
-                            scope.launch { blur.animateTo(0f, tween(150)) }
+                                        pDown >= 0.7f -> scope.launch {
+                                            blur.animateTo(100f, tween(100))
+                                            val opened = viewModel.openNotifications()
+                                            delay(if (opened) 220 else 120)
+                                            blur.animateTo(0f, tween(150))
+                                            activity?.window?.setBackgroundBlurRadius(0)
+                                        }
+
+                                        else -> scope.launch { blur.animateTo(0f, tween(150)) }
+                                    }
+                                },
+                                onDragCancel = {
+                                    scope.launch { blur.animateTo(0f, tween(150)) }
+                                }
+                            )
                         }
-                    )
-                }
+                    } else {
+                        Modifier
+                    }
+                )
         ) {
-            // Scrim sutil ligado al blur (opcional)
             val scrimAlpha = (blur.value / 100f) * 0.15f
             Box(
                 Modifier
@@ -170,19 +207,46 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
                     .background(Color.Black.copy(alpha = scrimAlpha))
             )
 
-            // Tu contenido principal debajo
             Column(
                 modifier = Modifier
-                    .padding(top = statusBarTop + 32.dp, start = 48.dp, end = 48.dp, bottom = dockHeightDp + 64.dp)
+                    .padding(top = statusBarTop + 32.dp, bottom = dockHeightDp + 64.dp)
                     .fillMaxSize()
                     .scale(scale),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                ClockHeader()
-                Column {  }
+                Row(
+                    modifier = commonPaddingModifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ClockHeader()
+                    if (homeEditMode) {
+                        Button(onClick = { viewModel.setHomeEditMode(false) }) {
+                            Text("Done")
+                        }
+                    }
+                }
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f, fill = false),
+                    userScrollEnabled = !homeEditMode
+                ) { page ->
+                    val screenId = screens.getOrNull(page)?.id
+                    HomeGrid(
+                        rows = 5,
+                        columns = 4,
+                        items = homeItems,
+                        currentScreenId = screenId,
+                        viewModel = viewModel,
+                        modifier = commonPaddingModifier
+                    )
+                }
                 Statusbar(
                     context = context,
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    modifier = commonPaddingModifier
                 )
             }
         }

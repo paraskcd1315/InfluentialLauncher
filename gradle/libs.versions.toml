@@ -20,6 +20,7 @@ foundationLayout = "1.9.0"
 room = "2.7.2"
 fluentSystemIcons = "1.1.307"
 reorderable = "0.9.6"
+reorderableCalvin = "3.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +53,7 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 fluent-system-icons = { group = "com.microsoft.design", name = "fluent-system-icons", version.ref = "fluentSystemIcons" }
 reorderable = { group = "org.burnoutcrew.composereorderable", name = "reorderable", version.ref = "reorderable" }
+calvin-reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.ref = "reorderableCalvin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

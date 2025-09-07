@@ -10,9 +10,9 @@ import androidx.compose.ui.Modifier
 import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 
 @Composable
-fun Statusbar(context: Context, viewModel: LauncherItemsViewModel) {
+fun Statusbar(context: Context, viewModel: LauncherItemsViewModel, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End
     ) {
