@@ -25,6 +25,10 @@ class MainActivity : ComponentActivity() {
         }
 
         super.onCreate(savedInstanceState)
+
+        window.allowEnterTransitionOverlap = true
+        window.allowReturnTransitionOverlap = true
+
         enableEdgeToEdge()
         setContent {
             InfluentialLauncherTheme {

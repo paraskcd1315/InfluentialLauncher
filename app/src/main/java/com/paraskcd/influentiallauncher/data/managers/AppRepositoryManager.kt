@@ -213,18 +213,8 @@ class AppRepositoryManager @Inject constructor(
         val themedBitmap = createBitmap(size, size)
         val canvas = Canvas(themedBitmap)
 
-        val gradient = RadialGradient(
-            size / 2f, size / 2f, size / 2f,
-            intArrayOf(
-                color and 0x00FFFFFF or 0x30000000,
-                color and 0x00FFFFFF or 0x60000000
-            ),
-            floatArrayOf(0f, 1f),
-            android.graphics.Shader.TileMode.CLAMP
-        )
-
         val backgroundPaint = Paint().apply {
-            shader = gradient
+            shader = getBgGradiant(color, size)
             isAntiAlias = true
         }
 
@@ -250,18 +240,8 @@ class AppRepositoryManager @Inject constructor(
         val themedBitmap = createBitmap(size, size)
         val canvas = Canvas(themedBitmap)
 
-        val gradient = RadialGradient(
-            size / 2f, size / 2f, size / 2f,
-            intArrayOf(
-                themeColor and 0x00FFFFFF or 0x10000000,
-                themeColor and 0x00FFFFFF or 0x20000000
-            ),
-            floatArrayOf(0f, 1f),
-            Shader.TileMode.CLAMP
-        )
-
         val backgroundPaint = Paint().apply {
-            shader = gradient
+            shader = getBgGradiant(themeColor, size)
             isAntiAlias = true
         }
 
@@ -298,6 +278,17 @@ class AppRepositoryManager @Inject constructor(
         return themedBitmap.toDrawable(context.resources)
     }
 
+    private fun getBgGradiant(color: Int, size: Int): RadialGradient {
+        return  RadialGradient(
+                size / 2f, size / 2f, size / 2f,
+        intArrayOf(
+            color and 0x00FFFFFF or 0x30000000,
+            color and 0x00FFFFFF or 0x60000000
+        ),
+        floatArrayOf(0f, 1f),
+        android.graphics.Shader.TileMode.CLAMP
+        )
+    }
 
     private fun drawableToBitmap(drawable: Drawable): android.graphics.Bitmap {
         if (drawable is BitmapDrawable) {
