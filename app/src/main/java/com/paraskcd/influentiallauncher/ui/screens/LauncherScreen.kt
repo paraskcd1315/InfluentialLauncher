@@ -41,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -100,8 +99,6 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
 
     val progress by remember { derivedStateOf { (blur.value / 100f).coerceIn(0f, 1f) } }
     val animatedProgress by animateFloatAsState(targetValue = progress)
-    val minScale = 0.92f
-    val scale = 1f + (minScale - 1f) * animatedProgress
 
     val activeScreenId by viewModel.activeScreenId.collectAsState()
     val homeItems by viewModel.home.collectAsState()
@@ -216,8 +213,7 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
             Column(
                 modifier = Modifier
                     .padding(top = statusBarTop + 32.dp, bottom = dockHeightDp + 50.dp)
-                    .fillMaxSize()
-                    .scale(scale),
+                    .fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(

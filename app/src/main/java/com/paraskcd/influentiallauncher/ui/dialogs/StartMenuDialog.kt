@@ -45,7 +45,7 @@ import kotlinx.coroutines.flow.asStateFlow
 object StartMenuDialog {
     private var dialog: Dialog? = null
     private val CORNER = RoundedCornerShape(24.dp)
-    private const val GAP_PX = 64
+    private const val GAP_PX = 120
 
     private var blurAnimator: ValueAnimator? = null
     private var currentBlurRadius: Int = 0
