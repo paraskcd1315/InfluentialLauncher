@@ -286,7 +286,7 @@ class AppRepositoryManager @Inject constructor(
             color and 0x00FFFFFF or 0x60000000
         ),
         floatArrayOf(0f, 1f),
-        android.graphics.Shader.TileMode.CLAMP
+        Shader.TileMode.CLAMP
         )
     }
 
