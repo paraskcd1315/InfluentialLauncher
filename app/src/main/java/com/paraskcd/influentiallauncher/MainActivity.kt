@@ -8,8 +8,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.paraskcd.influentiallauncher.dialogs.DockDialog
-import com.paraskcd.influentiallauncher.dialogs.StartMenuDialog
+import com.paraskcd.influentiallauncher.ui.dialogs.DockDialog
+import com.paraskcd.influentiallauncher.ui.dialogs.WeatherMediaDialog
 import com.paraskcd.influentiallauncher.ui.theme.InfluentialLauncherTheme
 import com.paraskcd.influentiallauncher.ui.screens.LauncherScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,5 +49,6 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         DockDialog.ensureShown(this)
+        WeatherMediaDialog.ensureShown(this)
     }
 }

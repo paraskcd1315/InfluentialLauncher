@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -47,7 +48,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.paraskcd.influentiallauncher.dialogs.DockDialog
+import com.paraskcd.influentiallauncher.ui.dialogs.DockDialog
+import com.paraskcd.influentiallauncher.ui.dialogs.WeatherMediaDialog
 import com.paraskcd.influentiallauncher.ui.components.ClockHeader
 import com.paraskcd.influentiallauncher.ui.components.HomeGrid
 import com.paraskcd.influentiallauncher.ui.components.Statusbar.Statusbar
@@ -68,12 +70,16 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
 
     val blur = remember { Animatable(0f) }
 
+    val weatherDialogHeight by WeatherMediaDialog.dialogHeightFlow.collectAsState()
+    val weatherDialogHeightDp = with(density) { weatherDialogHeight.toDp() }
+
     LaunchedEffect(blur.value) {
         activity?.window?.setBackgroundBlurRadius(blur.value.toInt())
     }
 
     LaunchedEffect(Unit) {
         DockDialog.showOrUpdate(context = context)
+        WeatherMediaDialog.showOrUpdate(context = context)
     }
 
     val triggerDownPx = with(density) { 220.dp.toPx() }
@@ -209,7 +215,7 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
 
             Column(
                 modifier = Modifier
-                    .padding(top = statusBarTop + 32.dp, bottom = dockHeightDp + 64.dp)
+                    .padding(top = statusBarTop + 32.dp, bottom = dockHeightDp + 50.dp)
                     .fillMaxSize()
                     .scale(scale),
                 verticalArrangement = Arrangement.SpaceBetween
@@ -243,6 +249,7 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
                         modifier = commonPaddingModifier
                     )
                 }
+                Spacer(modifier = Modifier.padding(top = weatherDialogHeightDp))
                 Statusbar(
                     context = context,
                     viewModel = viewModel,

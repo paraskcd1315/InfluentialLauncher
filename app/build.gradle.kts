@@ -84,6 +84,9 @@ dependencies {
     implementation(libs.fluent.system.icons)
     implementation(libs.reorderable)
     implementation(libs.calvin.reorderable)
+    implementation(libs.play.services.location)
+    implementation(libs.okhttp3)
+    implementation(libs.gson)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

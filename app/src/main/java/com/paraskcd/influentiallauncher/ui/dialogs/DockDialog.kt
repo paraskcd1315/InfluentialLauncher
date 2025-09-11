@@ -1,12 +1,14 @@
-package com.paraskcd.influentiallauncher.dialogs
+package com.paraskcd.influentiallauncher.ui.dialogs
 
 import android.app.Dialog
 import android.content.Context
 import android.os.Build
 import android.util.DisplayMetrics
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -113,15 +115,15 @@ object DockDialog {
                     it.setLayout(desiredWidth, ViewGroup.LayoutParams.WRAP_CONTENT)
                     it.setGravity(Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL)
                     it.setBackgroundDrawableResource(R.drawable.dock_window_bg)
-                    it.clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-                    it.addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
+                    it.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                    it.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
                     it.attributes.apply { y = offset }
                     it.decorView.post { runCatching { it.setBackgroundBlurRadius(100) } }
                 }
 
                 setCancelable(false)
                 setOnKeyListener { _, keyCode, _ ->
-                    keyCode == android.view.KeyEvent.KEYCODE_BACK // Ignora el botón atrás
+                    keyCode == KeyEvent.KEYCODE_BACK // Ignora el botón atrás
                 }
                 show()
             }

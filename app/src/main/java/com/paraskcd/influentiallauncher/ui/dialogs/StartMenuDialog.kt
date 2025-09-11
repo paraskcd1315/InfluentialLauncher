@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.dialogs
+package com.paraskcd.influentiallauncher.ui.dialogs
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -99,7 +99,7 @@ object StartMenuDialog {
                     it.setLayout(desiredWidth, ViewGroup.LayoutParams.WRAP_CONTENT)
                     it.setGravity(Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL)
                     it.setBackgroundDrawableResource(R.drawable.dock_window_bg)
-                    it.clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                    it.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
                     it.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                     setWindowBlur(0)
                     ensureYOffsetWithDock(it, activity)

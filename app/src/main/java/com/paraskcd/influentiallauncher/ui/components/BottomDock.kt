@@ -7,7 +7,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,7 +14,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -59,14 +56,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.paraskcd.influentiallauncher.data.db.entities.AppShortcutEntity
-import com.paraskcd.influentiallauncher.dialogs.StartMenuDialog
+import com.paraskcd.influentiallauncher.ui.dialogs.StartMenuDialog
 import com.paraskcd.influentiallauncher.ui.icons.WindowsIcon
 import com.paraskcd.influentiallauncher.ui.icons.WindowsOpenedIcon
 import com.paraskcd.influentiallauncher.ui.modifiers.drawHorizontalFadingEdges
 import com.paraskcd.influentiallauncher.utls.ReorderableItemCustom
 import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
-import org.burnoutcrew.reorderable.ReorderableItem
-import org.burnoutcrew.reorderable.ReorderableState
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
