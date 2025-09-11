@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
@@ -140,6 +141,9 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
         }
     }
 
+    val iconTintColorCompose = MaterialTheme.colorScheme.primary
+    val iconTintColorArgb = remember(iconTintColorCompose) { iconTintColorCompose.toArgb() }
+
     Box(
         modifier = modifier
             .fillMaxWidth(),
@@ -184,7 +188,7 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
                             WindowsIcon
                         },
                     contentDescription = "Menú",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -258,11 +262,10 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
                                     }
                             ) {
                                 Image(
-                                    painter = rememberDrawablePainter(viewModel.getAppIcons(app.packageName)),
+                                    painter = rememberDrawablePainter(viewModel.getAppIcons(app.packageName, iconTintColorArgb)),
                                     contentDescription = app.label,
                                     modifier = Modifier
                                         .size(54.dp)
-                                        .padding(6.dp)
                                         .border(
                                             1.dp,
                                             MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),

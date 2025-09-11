@@ -46,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,9 @@ fun HomeGrid(
     val screenItems = remember(items, currentScreenId) { items.filter { it.screenId == currentScreenId } }
     val occupied = remember(screenItems) { screenItems.associateBy { it.row to it.column } }
     val total = rows * columns
+
+    val iconTintColorCompose = MaterialTheme.colorScheme.primary
+    val iconTintColorArgb = remember(iconTintColorCompose) { iconTintColorCompose.toArgb() }
 
     fun buildCells(): List<UiCell> {
         val sid = currentScreenId ?: -1L
@@ -167,7 +171,7 @@ fun HomeGrid(
                                 expanded = expandedAppMenu?.id == cell.entity.id,
                                 onExpand = { expandedAppMenu = cell.entity },
                                 onDismissMenu = { expandedAppMenu = null },
-                                icon = viewModel.getAppIcons(cell.entity.packageName)
+                                icon = viewModel.getAppIcons(cell.entity.packageName, iconTintColorArgb)
                             )
                             GridCell.Empty -> EmptyCell(editMode = editMode)
                         }
@@ -252,7 +256,6 @@ private fun AppCell(
                 contentDescription = entity.label,
                 modifier = Modifier
                     .size(54.dp)
-                    .padding(4.dp)
                     .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), CircleShape)
                     .clip(CircleShape)
             )

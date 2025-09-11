@@ -89,4 +89,6 @@ class StartMenuViewModel @Inject constructor(
     fun openAppInfo(pkg: String) = appRepositoryManager.openAppInfo(pkg)
 
     fun uninstallApp(pkg: String) = appRepositoryManager.uninstallApp(pkg)
+
+    fun getAppIcons(pkg: String, dynamicColor: Int? = null) = appRepositoryManager.getAppIcon(packageName = pkg, applyDynamicColoring = true, dynamicColor = dynamicColor)
 }

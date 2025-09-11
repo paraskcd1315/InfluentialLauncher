@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -55,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
@@ -108,6 +110,9 @@ fun StartMenu(modifier: Modifier = Modifier, viewModel: StartMenuViewModel = hil
 
     val availableLetters: Set<Char> = remember(sections) { sections.map { it.letter }.toSet() }
     var showAlphabet by rememberSaveable { mutableStateOf(false) }
+
+    val iconTintColorCompose = MaterialTheme.colorScheme.primary
+    val iconTintColorArgb = remember(iconTintColorCompose) { iconTintColorCompose.toArgb() }
 
     Box(modifier = modifier
         .fillMaxWidth()
@@ -212,12 +217,10 @@ fun StartMenu(modifier: Modifier = Modifier, viewModel: StartMenuViewModel = hil
                                             .padding(16.dp)
                                     ) {
                                         Image(
-                                            painter = rememberDrawablePainter(app.icon),
+                                            painter = rememberDrawablePainter(viewModel.getAppIcons(app.packageName, iconTintColorArgb)),
                                             contentDescription = app.label,
                                             modifier = Modifier
-                                                .width(54.dp)
-                                                .height(54.dp)
-                                                .padding(6.dp)
+                                                .size(54.dp)
                                                 .border(
                                                     1.dp,
                                                     MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),

@@ -90,7 +90,7 @@ class LauncherItemsViewModel @Inject constructor(
 
     fun openNotifications(): Boolean = systemActionsService.openNotifications()
 
-    fun getAppIcons(pkg: String) = appRepositoryManager.getAppIcon(packageName = pkg)
+    fun getAppIcons(pkg: String, dynamicColor: Int? = null) = appRepositoryManager.getAppIcon(packageName = pkg, applyDynamicColoring = true, dynamicColor = dynamicColor)
 
     fun launchApp(pkg: String) = appRepositoryManager.launchApp(pkg)
 
