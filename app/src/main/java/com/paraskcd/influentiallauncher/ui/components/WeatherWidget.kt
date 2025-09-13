@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,6 +44,7 @@ fun WeatherWidget(
     modifier: Modifier = Modifier,
     weatherViewModel: WeatherViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val weatherState by weatherViewModel.weatherState.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -55,6 +57,18 @@ fun WeatherWidget(
         }
     }
 
+    val refreshAndOpenExternal: () -> Unit = remember(weatherViewModel, context) {
+        {
+            weatherViewModel.refreshWeather()
+            runCatching {
+                val intent = context.packageManager
+                    .getLaunchIntentForPackage("com.google.android.apps.weather")
+                if (intent != null) {
+                    context.startActivity(intent)
+                }
+            }
+        }
+    }
 
     when (val state = weatherState) { // Crear variable local para smart cast
         is WeatherState.Loading -> {
@@ -74,13 +88,13 @@ fun WeatherWidget(
             Surface(
                 modifier = modifier
                     .fillMaxWidth()
-                    .height(148.dp)
-                    .padding(24.dp),
+                    .height(148.dp),
                 color = Color.Transparent,
-                onClick = { weatherViewModel.refreshWeather() }
+                onClick = refreshAndOpenExternal
             ) {
                 Row(
-                    modifier = Modifier,
+                    modifier = Modifier
+                        .padding(24.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
