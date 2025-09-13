@@ -1,5 +1,6 @@
 package com.paraskcd.influentiallauncher.ui.components
 
+import android.graphics.Rect
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -48,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,13 +59,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.paraskcd.influentiallauncher.data.types.AppEntry
+import com.paraskcd.influentiallauncher.data.types.AppMenuAction
 import com.paraskcd.influentiallauncher.data.types.SectionEntry
+import com.paraskcd.influentiallauncher.ui.dialogs.AppContextMenuDialog
+import com.paraskcd.influentiallauncher.ui.dialogs.DockDialog
+import com.paraskcd.influentiallauncher.ui.dialogs.StartMenuDialog
 import com.paraskcd.influentiallauncher.ui.modifiers.drawFadingEdges
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -71,6 +80,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun StartMenu(modifier: Modifier = Modifier, viewModel: StartMenuViewModel = hiltViewModel()) {
+    val context = LocalContext.current
     val query by viewModel.query.collectAsState()
     val apps by viewModel.filteredApps.collectAsState()
     val listState: LazyListState = rememberLazyListState()
@@ -172,11 +182,28 @@ fun StartMenu(modifier: Modifier = Modifier, viewModel: StartMenuViewModel = hil
 
                                 else -> RoundedCornerShape(8.dp)
                             }
+                            var iconBounds by remember { mutableStateOf<Rect?>(null) }
+
                             Box {
                                 Surface(
                                     color = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.65f),
                                     shape = shape,
                                     modifier = Modifier
+                                        .onGloballyPositioned { lc ->
+                                            val b = lc.boundsInWindow()
+                                            val dockLoc = IntArray(2)
+                                            StartMenuDialog
+                                                .getDecorView()
+                                                ?.getLocationOnScreen(dockLoc)
+                                            val winX = dockLoc.getOrNull(0) ?: 0
+                                            val winY = dockLoc.getOrNull(1) ?: 0
+                                            iconBounds = android.graphics.Rect(
+                                                (b.left + winX).toInt(),
+                                                (b.top + winY).toInt(),
+                                                (b.right + winX).toInt(),
+                                                (b.bottom + winY).toInt()
+                                            )
+                                        }
                                         .padding(vertical = 1.dp)
                                         .fillMaxWidth()
                                         .border(
@@ -237,38 +264,23 @@ fun StartMenu(modifier: Modifier = Modifier, viewModel: StartMenuViewModel = hil
                                     }
                                 }
 
-                                DropdownMenu(
-                                    expanded = expandedAppMenu == app,
-                                    onDismissRequest = { expandedAppMenu = null }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("App Info") },
-                                        onClick = {
-                                            viewModel.openAppInfo(pkg = app.packageName)
-                                            expandedAppMenu = null
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text("Pin to Dock") },
-                                        onClick = {
-                                            viewModel.pinDock(pkg = app.packageName, activity = app.activityName, label = app.label, rank = 0)
-                                            expandedAppMenu = null
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text("Pin to Home") },
-                                        onClick = {
-                                            viewModel.placeHome(pkg = app.packageName, activity = app.activityName, label = app.label)
-                                            expandedAppMenu = null
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text("Uninstall") },
-                                        onClick = {
-                                            showUninstallConfirmationDialog = app
-                                            expandedAppMenu = null
-                                        }
-                                    )
+                                LaunchedEffect(expandedAppMenu) {
+                                    if (expandedAppMenu == app && iconBounds != null) {
+                                        AppContextMenuDialog.show(
+                                            context = context,
+                                            anchorRect = iconBounds!!,
+                                            appLabel = app.label,
+                                            appIcon = viewModel.getAppIcons(app.packageName, iconTintColorArgb),
+                                            onOpenApp = { app.onClick() },
+                                            actions = buildList {
+                                                add(AppMenuAction("App Info") { viewModel.openAppInfo(app.packageName) })
+                                                add(AppMenuAction("Pin to Dock") { viewModel.pinDock(pkg = app.packageName, activity = app.activityName, label = app.label, rank = 0) })
+                                                add(AppMenuAction("Pin to Home") { viewModel.placeHome(pkg = app.packageName, activity = app.activityName, label = app.label) })
+                                                add(AppMenuAction("Uninstall", destructive = true) { showUninstallConfirmationDialog = app })
+                                            }
+                                        )
+                                        expandedAppMenu = null
+                                    }
                                 }
                             }
                         }

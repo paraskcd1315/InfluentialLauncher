@@ -55,129 +55,113 @@ fun WeatherWidget(
         }
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(24.dp)
-    ) {
-        when (val state = weatherState) { // Crear variable local para smart cast
-            is WeatherState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(90.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+
+    when (val state = weatherState) { // Crear variable local para smart cast
+        is WeatherState.Loading -> {
+            Box(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(148.dp)
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
-            is WeatherState.Success -> {
-                val weather = state.weather
-                val cityName = state.cityName
-                Surface(
-                    color = Color.Transparent,
-                    onClick = { weatherViewModel.refreshWeather() }
+        }
+        is WeatherState.Success -> {
+            val weather = state.weather
+            val cityName = state.cityName
+            Surface(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(148.dp)
+                    .padding(24.dp),
+                color = Color.Transparent,
+                onClick = { weatherViewModel.refreshWeather() }
+            ) {
+                Row(
+                    modifier = Modifier,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(90.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(getWeatherIcon(weather.current.weather_code)),
-                                contentDescription = getWeatherDescription(weather.current.weather_code),
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Column {
-                                cityName?.let {
-                                    Text(
-                                        text = it,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                                    )
-                                    Text(
-                                        text = getWeatherDescription(weather.current.weather_code),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                                    )
-                                }
+                        Icon(
+                            painter = painterResource(getWeatherIcon(weather.current.weather_code)),
+                            contentDescription = getWeatherDescription(weather.current.weather_code),
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Column {
+                            cityName?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                                Text(
+                                    text = getWeatherDescription(weather.current.weather_code),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
                             }
                         }
-                        Column {
-                            Text(
-                                text = "${weather.current.temperature_2m.toInt()}°C",
-                                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 64.sp),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
                     }
-                }
-            }
-            is WeatherState.Error -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(90.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Error: ${state.message}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { weatherViewModel.refreshWeather() }) {
-                        Text("Retry")
-                    }
-                }
-            }
-            is WeatherState.PermissionRequired -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(90.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Location permission required",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { permissionLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    Column {
+                        Text(
+                            text = "${weather.current.temperature_2m.toInt()}°C",
+                            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 64.sp),
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                    ) }) {
-                        Text("Grant Permission")
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun WeatherInfoItem(label: String, value: String) {
-    Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        is WeatherState.Error -> {
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(148.dp)
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Error: ${state.message}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = { weatherViewModel.refreshWeather() }) {
+                    Text("Retry")
+                }
+            }
+        }
+        is WeatherState.PermissionRequired -> {
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(148.dp)
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Location permission required",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = { permissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                ) }) {
+                    Text("Grant Permission")
+                }
+            }
+        }
     }
 }
 

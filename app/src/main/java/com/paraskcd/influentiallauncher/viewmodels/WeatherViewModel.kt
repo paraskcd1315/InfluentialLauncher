@@ -21,7 +21,6 @@ class WeatherViewModel @Inject constructor(
     val weatherState: StateFlow<WeatherState> = _weatherState.asStateFlow()
 
     private val _hasLocationPermission = MutableStateFlow(false)
-    val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
 
     init {
         checkPermissionAndLoadWeather()

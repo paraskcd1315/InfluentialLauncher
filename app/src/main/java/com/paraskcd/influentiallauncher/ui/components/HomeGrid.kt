@@ -1,5 +1,6 @@
 package com.paraskcd.influentiallauncher.ui.components
 
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -47,13 +48,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.paraskcd.influentiallauncher.data.db.entities.AppShortcutEntity
 import com.paraskcd.influentiallauncher.data.interfaces.GridCell
+import com.paraskcd.influentiallauncher.data.types.AppMenuAction
 import com.paraskcd.influentiallauncher.data.types.UiCell
+import com.paraskcd.influentiallauncher.ui.dialogs.AppContextMenuDialog
 import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -206,6 +212,7 @@ private fun AppCell(
     onDismissMenu: () -> Unit,
     icon: Drawable?
 ) {
+    val context = LocalContext.current
     val infinite = rememberInfiniteTransition(label = "home-wiggle")
     val baseAngle by infinite.animateFloat(
         initialValue = -3f,
@@ -227,11 +234,15 @@ private fun AppCell(
     )
     val rotationZVal = if (editMode) baseAngle else 0f
     val translationYVal = if (editMode) (bob - 0.5f) * 5f else 0f
-
+    var bounds by remember { mutableStateOf<Rect?>(null) }
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .aspectRatio(1f)
+            .onGloballyPositioned { lc ->
+                val b = lc.boundsInWindow()
+                bounds = Rect(b.left.toInt(), b.top.toInt(), b.right.toInt(), b.bottom.toInt())
+            }
             .graphicsLayer {
                 rotationZ = rotationZVal
                 translationY = translationYVal
@@ -268,13 +279,23 @@ private fun AppCell(
             )
         }
 
-        if (!editMode && showMenu) {
-            DropdownMenu(expanded = expanded, onDismissRequest = onDismissMenu) {
-                DropdownMenuItem(text = { Text("Open") }, onClick = { onDismissMenu(); onOpen() })
-                DropdownMenuItem(text = { Text("Enable Edit Mode") }, onClick = { onDismissMenu(); toggleEditMode() })
-                DropdownMenuItem(text = { Text("App Info") }, onClick = { onDismissMenu(); onAppInfo() })
-                DropdownMenuItem(text = { Text("Remove from Home") }, onClick = { onDismissMenu(); onRemoveFromHome() })
-                DropdownMenuItem(text = { Text("Uninstall") }, onClick = { onDismissMenu(); onUninstall() })
+        LaunchedEffect(expanded, editMode) {
+            if (expanded && !editMode && bounds != null) {
+                AppContextMenuDialog.show(
+                    context = context,
+                    anchorRect = bounds!!,
+                    appLabel = entity.label,
+                    appIcon = icon,
+                    onOpenApp = { onOpen() },
+                    actions = listOf(
+                        AppMenuAction("Open") { onOpen() },
+                        AppMenuAction("Enable Edit Mode") { toggleEditMode() },
+                        AppMenuAction("App Info") { onAppInfo() },
+                        AppMenuAction("Remove from Home") { onRemoveFromHome() },
+                        AppMenuAction("Uninstall", destructive = true) { onUninstall() }
+                    )
+                )
+                onDismissMenu()
             }
         }
     }

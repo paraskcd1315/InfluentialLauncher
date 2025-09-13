@@ -46,9 +46,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import android.graphics.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
@@ -56,6 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.paraskcd.influentiallauncher.data.db.entities.AppShortcutEntity
+import com.paraskcd.influentiallauncher.data.types.AppMenuAction
+import com.paraskcd.influentiallauncher.ui.dialogs.AppContextMenuDialog
+import com.paraskcd.influentiallauncher.ui.dialogs.DockDialog
 import com.paraskcd.influentiallauncher.ui.dialogs.StartMenuDialog
 import com.paraskcd.influentiallauncher.ui.icons.WindowsIcon
 import com.paraskcd.influentiallauncher.ui.icons.WindowsOpenedIcon
@@ -67,6 +73,7 @@ import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import java.util.Random
 import kotlin.math.sin
+import kotlin.text.toInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -227,6 +234,7 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
                         val rotationZVal = if (editMode) baseAngle * (0.7f + phase * 0.6f) else 0f
                         val verticalOffset = if (editMode) (sin(bobAngle + phase * 6f) * 2.5f).toFloat() else 0f
                         val draggingBg = if (dragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f) else Color.Transparent
+                        var iconBounds by remember { mutableStateOf<Rect?>(null) }
 
                         Box(
                             modifier = Modifier
@@ -239,6 +247,21 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
                         ) {
                             Column(
                                 modifier = multipleClicksModifier(app)
+                                    .onGloballyPositioned { lc ->
+                                        val b = lc.boundsInWindow()
+                                        val dockLoc = IntArray(2)
+                                        DockDialog
+                                            .getDecorView()
+                                            ?.getLocationOnScreen(dockLoc)
+                                        val winX = dockLoc.getOrNull(0) ?: 0
+                                        val winY = dockLoc.getOrNull(1) ?: 0
+                                        iconBounds = android.graphics.Rect(
+                                            (b.left + winX).toInt(),
+                                            (b.top + winY).toInt(),
+                                            (b.right + winX).toInt(),
+                                            (b.bottom + winY).toInt()
+                                        )
+                                    }
                                     .clip(RoundedCornerShape(14.dp))
                                     .semantics {
                                         customActions = listOf(
@@ -299,48 +322,30 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
                                 }
                             }
 
-                            DropdownMenu(
-                                expanded = expandedAppMenu == app,
-                                onDismissRequest = { expandedAppMenu = null }
-                            ) {
-                                if (!editMode) {
-                                    DropdownMenuItem(
-                                        text = { Text("Enable Edit Mode") },
-                                        onClick = {
-                                            viewModel.setDockEditMode(true)
-                                            expandedAppMenu = null
+                            LaunchedEffect(expandedAppMenu) {
+                                if (expandedAppMenu == app && iconBounds != null) {
+                                    AppContextMenuDialog.show(
+                                        context = context,
+                                        anchorRect = iconBounds!!,
+                                        appLabel = app.label,
+                                        appIcon = viewModel.getAppIcons(app.packageName, iconTintColorArgb),
+                                        onOpenApp = { viewModel.launchApp(app.packageName) },
+                                        actions = buildList {
+                                            if (!editMode) add(AppMenuAction("Enable Edit Mode") {
+                                                viewModel.setDockEditMode(
+                                                    true
+                                                )
+                                            })
+                                            else add(AppMenuAction("Disable Edit Mode") { viewModel.setDockEditMode(false) })
+                                            add(AppMenuAction("App Info") { viewModel.openAppInfo(app.packageName) })
+                                            add(AppMenuAction("Unpin from Dock") { viewModel.remove(app.id) })
+                                            add(AppMenuAction("Uninstall", destructive = true) {
+                                                showUninstallConfirmationDialog = app
+                                            })
                                         }
                                     )
-                                } else {
-                                    DropdownMenuItem(
-                                        text = { Text("Disable Edit Mode") },
-                                        onClick = {
-                                            viewModel.setDockEditMode(false)
-                                            expandedAppMenu = null
-                                        }
-                                    )
+                                    expandedAppMenu = null
                                 }
-                                DropdownMenuItem(
-                                    text = { Text("App Info") },
-                                    onClick = {
-                                        viewModel.openAppInfo(pkg = app.packageName)
-                                        expandedAppMenu = null
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Unpin from Dock") },
-                                    onClick = {
-                                        viewModel.remove(id = app.id)
-                                        expandedAppMenu = null
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Uninstall") },
-                                    onClick = {
-                                        showUninstallConfirmationDialog = app
-                                        expandedAppMenu = null
-                                    }
-                                )
                             }
                         }
                     }
