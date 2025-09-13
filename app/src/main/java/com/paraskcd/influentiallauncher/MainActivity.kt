@@ -5,13 +5,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.DisposableEffect
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.paraskcd.influentiallauncher.ui.dialogs.DockDialog
 import com.paraskcd.influentiallauncher.ui.dialogs.WeatherMediaDialog
 import com.paraskcd.influentiallauncher.ui.theme.InfluentialLauncherTheme
 import com.paraskcd.influentiallauncher.ui.screens.LauncherScreen
+import com.paraskcd.influentiallauncher.viewmodels.WeatherViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -31,6 +34,13 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
+            val weatherViewModel: WeatherViewModel = hiltViewModel()
+            DisposableEffect(Unit) {
+                weatherViewModel.startPassiveLoop(isLauncherVisible = true)
+                onDispose {
+                    weatherViewModel.startPassiveLoop(isLauncherVisible = false)
+                }
+            }
             InfluentialLauncherTheme {
                 LauncherScreen()
             }
@@ -50,5 +60,6 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         DockDialog.ensureShown(this)
         WeatherMediaDialog.ensureShown(this)
+
     }
 }
