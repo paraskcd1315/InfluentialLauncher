@@ -20,6 +20,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.microsoft.fluent.mobile.icons.R
 import com.paraskcd.influentiallauncher.data.types.MediaState
 import com.paraskcd.influentiallauncher.viewmodels.MediaViewModel
@@ -32,6 +35,18 @@ fun MediaWidget(
     val ctx = LocalContext.current
     val state by vm.state.collectAsState()
     val artShape = RoundedCornerShape(12.dp)
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                vm.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     when (val s = state) {
         is MediaState.Loading -> {
