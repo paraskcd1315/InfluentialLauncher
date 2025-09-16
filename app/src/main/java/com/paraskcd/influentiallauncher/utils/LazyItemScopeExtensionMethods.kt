@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.utls
+package com.paraskcd.influentiallauncher.utils
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.BoxScope

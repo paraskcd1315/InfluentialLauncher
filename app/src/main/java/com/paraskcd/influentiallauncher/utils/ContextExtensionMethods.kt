@@ -1,14 +1,12 @@
-package com.paraskcd.influentiallauncher.utls
+package com.paraskcd.influentiallauncher.utils
 
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.Uri
 import android.os.PowerManager
 import android.provider.Settings
 import android.view.WindowManager
-import androidx.core.net.toUri
 
 fun Context.isWindowBlurSupported(): Boolean {
     val wm = getSystemService(WindowManager::class.java) ?: return false

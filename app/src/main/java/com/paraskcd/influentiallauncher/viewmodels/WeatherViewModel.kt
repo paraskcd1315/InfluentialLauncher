@@ -1,7 +1,6 @@
 package com.paraskcd.influentiallauncher.viewmodels
 
 import android.Manifest
-import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
@@ -13,7 +12,7 @@ import com.paraskcd.influentiallauncher.data.managers.LocationManager
 import com.paraskcd.influentiallauncher.data.repositories.WeatherRepository
 import com.paraskcd.influentiallauncher.data.types.WeatherState
 import com.paraskcd.influentiallauncher.services.WeatherService
-import com.paraskcd.influentiallauncher.utls.shouldAttemptWeather
+import com.paraskcd.influentiallauncher.utils.shouldAttemptWeather
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job

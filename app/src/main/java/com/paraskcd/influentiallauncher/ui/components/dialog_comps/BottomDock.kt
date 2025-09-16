@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.components
+package com.paraskcd.influentiallauncher.ui.components.dialog_comps
 
 import android.content.Context
 import androidx.compose.animation.core.LinearEasing
@@ -27,8 +27,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -66,14 +64,13 @@ import com.paraskcd.influentiallauncher.ui.dialogs.StartMenuDialog
 import com.paraskcd.influentiallauncher.ui.icons.WindowsIcon
 import com.paraskcd.influentiallauncher.ui.icons.WindowsOpenedIcon
 import com.paraskcd.influentiallauncher.ui.modifiers.drawHorizontalFadingEdges
-import com.paraskcd.influentiallauncher.utls.ReorderableItemCustom
+import com.paraskcd.influentiallauncher.utils.ReorderableItemCustom
 import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import java.util.Random
 import kotlin.math.sin
-import kotlin.text.toInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -255,7 +252,7 @@ fun BottomDock(modifier: Modifier = Modifier, context: Context, viewModel: Launc
                                             ?.getLocationOnScreen(dockLoc)
                                         val winX = dockLoc.getOrNull(0) ?: 0
                                         val winY = dockLoc.getOrNull(1) ?: 0
-                                        iconBounds = android.graphics.Rect(
+                                        iconBounds = Rect(
                                             (b.left + winX).toInt(),
                                             (b.top + winY).toInt(),
                                             (b.right + winX).toInt(),

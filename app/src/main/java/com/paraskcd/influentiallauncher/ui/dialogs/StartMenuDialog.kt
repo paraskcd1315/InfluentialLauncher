@@ -37,8 +37,8 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.paraskcd.influentiallauncher.R
 import com.paraskcd.influentiallauncher.ui.theme.InfluentialLauncherTheme
-import com.paraskcd.influentiallauncher.ui.components.StartMenu
-import com.paraskcd.influentiallauncher.utls.isWindowBlurSupported
+import com.paraskcd.influentiallauncher.ui.components.dialog_comps.StartMenu
+import com.paraskcd.influentiallauncher.utils.isWindowBlurSupported
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

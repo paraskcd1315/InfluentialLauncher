@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.ui.components
+package com.paraskcd.influentiallauncher.ui.components.dialog_comps
 
 import android.graphics.Rect
 import androidx.compose.animation.AnimatedVisibility
@@ -38,8 +38,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,8 +68,8 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.paraskcd.influentiallauncher.data.types.AppEntry
 import com.paraskcd.influentiallauncher.data.types.AppMenuAction
 import com.paraskcd.influentiallauncher.data.types.SectionEntry
+import com.paraskcd.influentiallauncher.ui.components.AlphabetOverlay
 import com.paraskcd.influentiallauncher.ui.dialogs.AppContextMenuDialog
-import com.paraskcd.influentiallauncher.ui.dialogs.DockDialog
 import com.paraskcd.influentiallauncher.ui.dialogs.StartMenuDialog
 import com.paraskcd.influentiallauncher.ui.modifiers.drawFadingEdges
 import kotlinx.coroutines.delay
@@ -197,7 +195,7 @@ fun StartMenu(modifier: Modifier = Modifier, viewModel: StartMenuViewModel = hil
                                                 ?.getLocationOnScreen(dockLoc)
                                             val winX = dockLoc.getOrNull(0) ?: 0
                                             val winY = dockLoc.getOrNull(1) ?: 0
-                                            iconBounds = android.graphics.Rect(
+                                            iconBounds = Rect(
                                                 (b.left + winX).toInt(),
                                                 (b.top + winY).toInt(),
                                                 (b.right + winX).toInt(),

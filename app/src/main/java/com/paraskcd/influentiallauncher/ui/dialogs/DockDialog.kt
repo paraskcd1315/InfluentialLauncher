@@ -2,7 +2,6 @@ package com.paraskcd.influentiallauncher.ui.dialogs
 
 import android.app.Dialog
 import android.content.Context
-import android.os.Build
 import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.KeyEvent
@@ -23,8 +22,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.setViewTreeLifecycleOwner
@@ -32,8 +29,8 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.paraskcd.influentiallauncher.R
 import com.paraskcd.influentiallauncher.ui.theme.InfluentialLauncherTheme
-import com.paraskcd.influentiallauncher.ui.components.BottomDock
-import com.paraskcd.influentiallauncher.utls.isWindowBlurSupported
+import com.paraskcd.influentiallauncher.ui.components.dialog_comps.BottomDock
+import com.paraskcd.influentiallauncher.utils.isWindowBlurSupported
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

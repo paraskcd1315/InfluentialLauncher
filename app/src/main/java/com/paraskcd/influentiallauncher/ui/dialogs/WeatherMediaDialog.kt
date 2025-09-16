@@ -1,6 +1,5 @@
 package com.paraskcd.influentiallauncher.ui.dialogs
 
-import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.util.DisplayMetrics
@@ -27,21 +26,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.paraskcd.influentiallauncher.R
-import com.paraskcd.influentiallauncher.ui.components.WeatherMediaWidget
+import com.paraskcd.influentiallauncher.ui.components.dialog_comps.WeatherMediaWidget
 import com.paraskcd.influentiallauncher.ui.theme.InfluentialLauncherTheme
-import com.paraskcd.influentiallauncher.utls.isWindowBlurSupported
+import com.paraskcd.influentiallauncher.utils.isWindowBlurSupported
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlin.compareTo
-import kotlin.text.toInt
-import kotlin.times
 
 object WeatherMediaDialog {
     private var dialog: Dialog? = null
