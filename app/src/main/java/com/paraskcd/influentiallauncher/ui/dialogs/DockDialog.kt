@@ -117,12 +117,14 @@ object DockDialog {
                     it.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
                     it.attributes.apply { y = offset }
                     it.decorView.post { runCatching { it.setBackgroundBlurRadius(100) } }
+
+                    it.decorView.viewTreeObserver.addOnGlobalLayoutListener {
+                        updateDialogHeight()
+                    }
                 }
 
                 setCancelable(false)
-                setOnKeyListener { _, keyCode, _ ->
-                    keyCode == KeyEvent.KEYCODE_BACK // Ignora el botón atrás
-                }
+                setOnKeyListener { _, _, _ -> false }
                 show()
             }
         }
@@ -132,6 +134,13 @@ object DockDialog {
         dialog?.setOnDismissListener(null)
         dialog?.dismiss()
         dialog = null
+    }
+
+    private val _dialogHeight = MutableStateFlow(0)
+    val dialogHeightFlow: StateFlow<Int> = _dialogHeight.asStateFlow()
+
+    private fun updateDialogHeight() {
+        _dialogHeight.value = getDockHeight() ?: 0
     }
 
     fun getDockHeight(): Int? = dialog?.window?.decorView?.height?.takeIf { it > 0 }

@@ -2,11 +2,14 @@ package com.paraskcd.influentiallauncher.ui.screens
 
 import android.app.ActivityOptions
 import android.content.Intent
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +22,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -46,13 +50,15 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.paraskcd.influentiallauncher.ui.dialogs.DockDialog
 import com.paraskcd.influentiallauncher.ui.dialogs.WeatherMediaDialog
 import com.paraskcd.influentiallauncher.ui.components.ClockHeader
 import com.paraskcd.influentiallauncher.ui.components.HomeGrid
 import com.paraskcd.influentiallauncher.ui.components.Statusbar.Statusbar
 import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
+import com.paraskcd.influentiallauncher.viewmodels.LauncherStateViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
@@ -61,7 +67,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
+fun LauncherScreen(navController: NavController, launcherState: LauncherStateViewModel, viewModel: LauncherItemsViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val activity = LocalActivity.current
     val scope = rememberCoroutineScope()
@@ -69,8 +75,9 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
 
     val blur = remember { Animatable(0f) }
 
-    val weatherDialogHeight by WeatherMediaDialog.dialogHeightFlow.collectAsState()
-    val weatherDialogHeightDp = with(density) { weatherDialogHeight.toDp() }
+    val weatherDialogHeightPx by WeatherMediaDialog.dialogHeightFlow.collectAsState(0)
+    val weatherDialogHeightDp = with(density) { weatherDialogHeightPx.toDp() }
+    val spacerHeight by animateDpAsState(targetValue = weatherDialogHeightDp, label = "wm-spacer")
 
     LaunchedEffect(blur.value) {
         activity?.window?.setBackgroundBlurRadius(blur.value.toInt())
@@ -84,8 +91,9 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
     val triggerDownPx = with(density) { 220.dp.toPx() }
     val triggerUpPx = with(density) { 220.dp.toPx() }
 
-    val dockHeightPx = DockDialog.getDockHeight()?.toFloat() ?: 0f
+    val dockHeightPx by DockDialog.dialogHeightFlow.collectAsState(0)
     val dockHeightDp = with(density) { dockHeightPx.toDp() }
+    val dockAnimatedHeight by animateDpAsState(targetValue = dockHeightDp, label = "dock-height")
 
     var downAccum by remember { mutableFloatStateOf(0f) }
     var upAccum by remember { mutableFloatStateOf(0f) }
@@ -94,38 +102,33 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
         .statusBarsIgnoringVisibility
         .asPaddingValues()
         .calculateTopPadding()
-
-    var hiddenDockThisDrag by remember { mutableStateOf(false) }
-
-    val progress by remember { derivedStateOf { (blur.value / 100f).coerceIn(0f, 1f) } }
-    val animatedProgress by animateFloatAsState(targetValue = progress)
-
-    val activeScreenId by viewModel.activeScreenId.collectAsState()
     val homeItems by viewModel.home.collectAsState()
-    val screens by viewModel.screens.collectAsState()
+    val screens by launcherState.screens.collectAsState()
+    val activeIndex by launcherState.activeScreenIndex.collectAsState()
+
+    val pagerState = rememberPagerState(
+        initialPage = activeIndex.coerceAtLeast(0),
+        pageCount = { screens.size.coerceAtLeast(1) }
+    )
     val homeEditMode by viewModel.homeEditMode.collectAsState()
 
-    val initialIndex = remember(screens, activeScreenId) {
-        val idx = screens.indexOfFirst { it.id == activeScreenId }
-        if (idx >= 0) idx else 0
-    }
-    val pagerState = rememberPagerState(initialPage = initialIndex, pageCount = { screens.size.coerceAtLeast(1) })
-
-    LaunchedEffect(screens, activeScreenId) {
-        val idx = screens.indexOfFirst { it.id == activeScreenId }
-        if (idx >= 0 && idx != pagerState.currentPage) {
-            pagerState.scrollToPage(idx)
+    LaunchedEffect(activeIndex, screens.size) {
+        val target = activeIndex.coerceIn(0, (screens.size - 1).coerceAtLeast(0))
+        if (pagerState.currentPage != target && target >= 0) {
+            pagerState.scrollToPage(target)
         }
     }
 
-    LaunchedEffect(pagerState) {
+    LaunchedEffect(pagerState, screens) {
         snapshotFlow { pagerState.currentPage }
-            .map { page -> screens.getOrNull(page)?.id }
-            .filter { it != null }
-            .collectLatest { id -> viewModel.setActiveScreen(id!!) }
+            .collectLatest { page ->
+                launcherState.setActiveScreenByIndex(page, persistAsDefault = false)
+            }
     }
 
     val commonPaddingModifier = Modifier.padding(start = 48.dp, end = 48.dp)
+
+    BackHandler(enabled = true) { }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -208,11 +211,23 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
                 Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = scrimAlpha))
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onLongPress = {
+                                navController.navigate("screen_manager") {
+                                    launchSingleTop = true
+                                }
+                                WeatherMediaDialog.close()
+                                DockDialog.close()
+                                activity?.window?.setBackgroundBlurRadius(100)
+                            }
+                        )
+                    }
             )
 
             Column(
                 modifier = Modifier
-                    .padding(top = statusBarTop + 32.dp, bottom = dockHeightDp + 50.dp)
+                    .padding(top = statusBarTop + 32.dp, bottom = dockAnimatedHeight + 50.dp)
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
@@ -245,7 +260,7 @@ fun LauncherScreen(viewModel: LauncherItemsViewModel = hiltViewModel()) {
                         modifier = commonPaddingModifier
                     )
                 }
-                Spacer(modifier = Modifier.padding(top = weatherDialogHeightDp))
+                Spacer(modifier = Modifier.height(spacerHeight))
                 Statusbar(
                     context = context,
                     viewModel = viewModel,

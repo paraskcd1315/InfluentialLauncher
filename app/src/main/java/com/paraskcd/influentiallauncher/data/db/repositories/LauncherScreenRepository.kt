@@ -29,4 +29,10 @@ class LauncherScreenRepository @Inject constructor(
     suspend fun setDefault(id: Long) {
         dao.setDefault(id)
     }
+
+    suspend fun reorder(idsInOrder: List<Long>) {
+        idsInOrder.forEachIndexed { idx, id ->
+            dao.updateRank(id, idx)
+        }
+    }
 }

@@ -6,14 +6,21 @@ import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
 import com.paraskcd.influentiallauncher.ui.dialogs.DockDialog
 import com.paraskcd.influentiallauncher.ui.dialogs.WeatherMediaDialog
 import com.paraskcd.influentiallauncher.ui.theme.InfluentialLauncherTheme
 import com.paraskcd.influentiallauncher.ui.screens.LauncherScreen
+import com.paraskcd.influentiallauncher.ui.screens.ScreenManagerScreen
+import com.paraskcd.influentiallauncher.viewmodels.LauncherStateViewModel
 import com.paraskcd.influentiallauncher.viewmodels.WeatherViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -42,16 +49,31 @@ class MainActivity : ComponentActivity() {
                 }
             }
             InfluentialLauncherTheme {
-                LauncherScreen()
-            }
-        }
+                val navController = rememberNavController()
+                val launcherState: LauncherStateViewModel = hiltViewModel()
+                NavHost(
+                    navController = navController,
+                    startDestination = "root"
+                ) {
+                    navigation(
+                        startDestination = "home",
+                        route = "root"
+                    ) {
+                        composable("home") {
+                            LauncherScreen(
+                                navController = navController,
+                                launcherState = launcherState
+                            )
+                        }
 
-        onBackPressedDispatcher.addCallback(this) {
-            if (DockDialog.isShowing()) {
-                return@addCallback
-            } else {
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
+                        composable("screen_manager") {
+                            ScreenManagerScreen(
+                                onBack = { navController.popBackStack() },
+                                launcherState = launcherState
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -60,6 +82,5 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         DockDialog.ensureShown(this)
         WeatherMediaDialog.ensureShown(this)
-
     }
 }

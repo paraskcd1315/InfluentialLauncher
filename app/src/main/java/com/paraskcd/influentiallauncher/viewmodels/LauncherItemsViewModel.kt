@@ -3,6 +3,7 @@ package com.paraskcd.influentiallauncher.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.data.db.entities.AppShortcutEntity
+import com.paraskcd.influentiallauncher.data.db.entities.LauncherScreenEntity
 import com.paraskcd.influentiallauncher.data.db.repositories.AppShortcutRepository
 import com.paraskcd.influentiallauncher.data.db.repositories.LauncherScreenRepository
 import com.paraskcd.influentiallauncher.data.interfaces.GridCell
@@ -17,9 +18,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.text.insert
 
 @HiltViewModel
 class LauncherItemsViewModel @Inject constructor(
@@ -110,5 +113,34 @@ class LauncherItemsViewModel @Inject constructor(
 
     fun setHomeEditMode(enabled: Boolean) {
         _homeEditMode.value = enabled
+    }
+
+    suspend fun addScreen(): Long {
+        val current = screens.first()
+        val nextRank = (current.maxOfOrNull { it.rank } ?: -1) + 1
+        val id = launcherScreenRepository.insert(
+            LauncherScreenEntity(rank = nextRank, isDefault = current.isEmpty())
+        )
+        activeScreenId.value = id
+        return id
+    }
+
+    fun deleteScreen(id: Long) = viewModelScope.launch {
+        val current = screens.first()
+        if (current.size <= 1) return@launch
+        val wasActive = activeScreenId.value == id
+        val wasDefault = current.firstOrNull { it.id == id }?.isDefault == true
+
+        launcherScreenRepository.deleteById(id)
+
+        val remaining = screens.first()
+        val fallbackId = remaining.firstOrNull { it.isDefault }?.id
+            ?: remaining.firstOrNull()?.id
+        if (wasActive) fallbackId?.let { activeScreenId.value = it }
+        if (wasDefault && fallbackId != null) launcherScreenRepository.setDefault(fallbackId)
+    }
+
+    fun setDefaultScreen(id: Long) = viewModelScope.launch {
+        launcherScreenRepository.setDefault(id)
     }
 }

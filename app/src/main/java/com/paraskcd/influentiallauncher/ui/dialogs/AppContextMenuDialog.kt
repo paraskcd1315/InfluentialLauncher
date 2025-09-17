@@ -331,7 +331,7 @@ object AppContextMenuDialog {
             modifier = Modifier
                 .clip(RoundedCornerShape(14.dp))
                 .clickable(onClick = onClick)
-                .padding(horizontal = 4.dp)
+                .padding(8.dp)
         ) {
             Text(
                 text = label,

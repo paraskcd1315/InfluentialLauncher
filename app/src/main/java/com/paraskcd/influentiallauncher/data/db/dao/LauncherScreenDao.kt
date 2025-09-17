@@ -21,6 +21,9 @@ interface LauncherScreenDao {
     @Query("UPDATE launcher_screens SET isDefault = (id = :id)")
     suspend fun setDefault(id: Long)
 
+    @Query("UPDATE launcher_screens SET rank = :rank WHERE id = :id")
+    suspend fun updateRank(id: Long, rank: Int)
+
     @Query("SELECT COUNT(*) FROM launcher_screens")
     suspend fun count(): Int
 }

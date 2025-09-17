@@ -121,9 +121,7 @@ object WeatherMediaDialog {
                 }
 
                 setCancelable(false)
-                setOnKeyListener { _, keyCode, _ ->
-                    keyCode == KeyEvent.KEYCODE_BACK
-                }
+                setOnKeyListener { _, _, _ -> false }
                 show()
             }
         }
