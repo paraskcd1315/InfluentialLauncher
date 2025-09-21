@@ -1,6 +1,7 @@
 package com.paraskcd.influentiallauncher.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -13,13 +14,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.AssistChip
@@ -37,8 +42,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.microsoft.fluent.mobile.icons.R
 import com.paraskcd.influentiallauncher.ui.components.HomeGrid
 import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 import com.paraskcd.influentiallauncher.viewmodels.LauncherStateViewModel
@@ -76,101 +83,142 @@ fun ScreenManagerScreen(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background.copy(0.5f)
     ) { inner ->
-        Box(modifier = Modifier
-            .padding(inner)
-            .fillMaxSize()
-        ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .fillMaxSize()
-            ) { page ->
-                if (page == screens.size) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(9f / 16f)
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Surface(
-                            shape = MaterialTheme.shapes.large,
-                            color = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            onClick = {
-                                scope.launch {
-                                    val newId = screenVm.addScreen()
-                                    launcherState.setActiveScreen(newId, persistAsDefault = false)
-                                }
-                            }
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(24.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Add,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
-                    return@HorizontalPager
-                }
-                val screen = screens[page]
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(inner)
+        ) { page ->
+            if (page == screens.size) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(9f / 16f)
-                        .padding(16.dp),
-                    contentAlignment = Alignment.TopCenter
+                        .padding(horizontal = 16.dp, 32.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Surface(
                         shape = MaterialTheme.shapes.large,
-                        color = MaterialTheme.colorScheme.surface.copy(0.5f),
+                        color = MaterialTheme.colorScheme.surface.copy(0.65f),
                         onClick = {
-                            launcherState.setActiveScreenByIndex(page, persistAsDefault = false)
-                            onBack()
+                            scope.launch {
+                                val newId = screenVm.addScreen()
+                                launcherState.setActiveScreen(newId, persistAsDefault = false)
+                            }
                         }
                     ) {
-                        BoxWithConstraints(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            val rows = 5
-                            val columns = 4
-                            val idealGridHeight = maxWidth / columns * rows
-                            val targetWidth =
-                                if (idealGridHeight > maxHeight) {
-                                    (maxHeight * columns) / rows
-                                } else {
-                                    maxWidth
-                                }
-
-                            HomeGrid(
-                                rows = rows,
-                                columns = columns,
-                                items = homeItems,
-                                currentScreenId = screen.id,
-                                viewModel = launcherVm,
-                                modifier = Modifier.width(targetWidth)
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_fluent_add_24_filled),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                        AssistChip(
-                            onClick = { screenVm.setDefault(screen.id) },
-                            label = { Text(if (screen.isDefault) "Home" else "Mark as home") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = if (screen.isDefault) Icons.Filled.Home else Icons.Outlined.Home,
-                                    contentDescription = null
-                                )
-                            },
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .align(Alignment.TopStart)
+                    }
+                }
+                return@HorizontalPager
+            }
+            val screen = screens[page]
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
+            ) {
+                Surface(
+                    onClick = {
+                        screenVm.setDefault(screen.id)
+                    },
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(0.65f)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(100.dp)
+                            )
+                            .padding(8.dp)
+                            .size(40.dp)
+                    ) {
+                        val homeIconRes =
+                            if (screen.isDefault)
+                                R.drawable.ic_fluent_home_24_filled
+                            else
+                                R.drawable.ic_fluent_home_24_regular
+                        Icon(
+                            painter = painterResource(id = homeIconRes),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                Surface(
+                    modifier = Modifier.fillMaxWidth()
+                        .aspectRatio(9f / 16f)
+                        .padding(16.dp),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.surface.copy(0.65f),
+                    onClick = {
+                        launcherState.setActiveScreenByIndex(page, persistAsDefault = false)
+                        onBack()
+                    }
+                ) {
+                    BoxWithConstraints(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val rows = 5
+                        val columns = 4
+                        val idealGridHeight = maxWidth / columns * rows
+                        val targetWidth =
+                            if (idealGridHeight > maxHeight) {
+                                (maxHeight * columns) / rows
+                            } else {
+                                maxWidth
+                            }
+
+                        HomeGrid(
+                            rows = rows,
+                            columns = columns,
+                            items = homeItems,
+                            currentScreenId = screen.id,
+                            viewModel = launcherVm,
+                            modifier = Modifier.width(targetWidth)
+                        )
+                    }
+                }
+                Surface(
+                    onClick = {
+                        screenVm.deleteScreen(screen.id)
+                    },
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(0.65f)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(100.dp)
+                            )
+                            .padding(8.dp)
+                            .size(40.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_fluent_delete_24_regular),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }

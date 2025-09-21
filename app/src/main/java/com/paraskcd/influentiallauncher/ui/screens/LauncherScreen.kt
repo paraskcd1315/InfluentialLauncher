@@ -6,11 +6,12 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -59,10 +60,9 @@ import com.paraskcd.influentiallauncher.ui.components.HomeGrid
 import com.paraskcd.influentiallauncher.ui.components.Statusbar.Statusbar
 import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 import com.paraskcd.influentiallauncher.viewmodels.LauncherStateViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -72,12 +72,15 @@ fun LauncherScreen(navController: NavController, launcherState: LauncherStateVie
     val activity = LocalActivity.current
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
 
     val blur = remember { Animatable(0f) }
 
     val weatherDialogHeightPx by WeatherMediaDialog.dialogHeightFlow.collectAsState(0)
     val weatherDialogHeightDp = with(density) { weatherDialogHeightPx.toDp() }
     val spacerHeight by animateDpAsState(targetValue = weatherDialogHeightDp, label = "wm-spacer")
+
+    var autoPageConsumed by remember { mutableStateOf(false) }
 
     LaunchedEffect(blur.value) {
         activity?.window?.setBackgroundBlurRadius(blur.value.toInt())
@@ -122,11 +125,85 @@ fun LauncherScreen(navController: NavController, launcherState: LauncherStateVie
     LaunchedEffect(pagerState, screens) {
         snapshotFlow { pagerState.currentPage }
             .collectLatest { page ->
-                launcherState.setActiveScreenByIndex(page, persistAsDefault = false)
+                val id = screens.getOrNull(page)?.id ?: return@collectLatest
+                launcherState.setActiveScreen(id, persistAsDefault = false)
             }
     }
 
     val commonPaddingModifier = Modifier.padding(start = 48.dp, end = 48.dp)
+    var isDragging by remember { mutableStateOf(false) }
+    var draggingItemId by remember { mutableStateOf<Long?>(null) }
+    var edgeJob by remember { mutableStateOf<Job?>(null) }
+    val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
+    val edgeThresholdPx = with(density) { 48.dp.toPx() }
+    var dragSession by remember { mutableStateOf(0) }
+
+    fun findFirstEmptyCell(screenId: Long?): Pair<Int, Int>? {
+        val itemsForScreen = homeItems.filter { it.screenId == screenId }
+        val occupied = itemsForScreen.mapNotNull { e ->
+            val r = e.row; val c = e.column
+            if (r != null && c != null) r to c else null
+        }.toSet()
+        val rows = 5; val cols = 4
+        for (r in 0 until rows) for (c in 0 until cols) {
+            if ((r to c) !in occupied) return r to c
+        }
+        return null
+    }
+
+    fun scheduleAutoPage(xOnScreen: Float) {
+        val id = draggingItemId ?: return
+        if (!homeEditMode || screens.isEmpty()) return
+
+        // Si ya saltó, solo cancela si sales del borde
+        if (autoPageConsumed) {
+            val neutral = xOnScreen > edgeThresholdPx && xOnScreen < screenWidthPx - edgeThresholdPx
+            if (neutral) {
+                edgeJob?.cancel()
+                edgeJob = null
+            }
+            return
+        }
+
+        val cur = pagerState.currentPage
+        val goLeft = xOnScreen <= edgeThresholdPx && cur > 0
+        val goRight = xOnScreen >= screenWidthPx - edgeThresholdPx && cur < screens.lastIndex
+
+        // No en borde: cancela
+        if (!goLeft && !goRight) {
+            edgeJob?.cancel()
+            edgeJob = null
+            return
+        }
+        if (edgeJob?.isActive == true) return
+
+        val mySession = dragSession
+        edgeJob = scope.launch {
+            // Dwell para evitar falsos positivos
+            delay(250)
+            // Si cambió la sesión o ya se consumió, aborta
+            if (dragSession != mySession || autoPageConsumed) return@launch
+
+            val targetPage = if (goLeft) cur - 1 else cur + 1
+            val targetScreen = screens.getOrNull(targetPage) ?: return@launch
+
+            // Coloca provisionalmente en la primera celda libre de la página destino
+            val empty = findFirstEmptyCell(targetScreen.id) ?: (0 to 0)
+            viewModel.moveHome(id, targetScreen.id, empty.first, empty.second)
+
+            // Marca como consumido y navega una sola página
+            autoPageConsumed = true
+            pagerState.animateScrollToPage(targetPage)
+            edgeJob = null
+        }
+    }
+
+    LaunchedEffect(homeEditMode) {
+        if (!homeEditMode) {
+            draggingItemId = null
+            isDragging = false
+        }
+    }
 
     BackHandler(enabled = true) { }
 
@@ -247,8 +324,19 @@ fun LauncherScreen(navController: NavController, launcherState: LauncherStateVie
                     state = pagerState,
                     modifier = Modifier
                         .fillMaxSize()
-                        .weight(1f, fill = false),
-                    userScrollEnabled = !homeEditMode
+                        .weight(1f, fill = false)
+                        .combinedClickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onLongClick = {
+                                navController.navigate("screen_manager") { launchSingleTop = true }
+                                WeatherMediaDialog.close()
+                                DockDialog.close()
+                                activity?.window?.setBackgroundBlurRadius(100)
+                            },
+                            onClick = {} // evita click normal
+                        ),
+                    userScrollEnabled = !isDragging
                 ) { page ->
                     val screenId = screens.getOrNull(page)?.id
                     HomeGrid(
@@ -257,7 +345,24 @@ fun LauncherScreen(navController: NavController, launcherState: LauncherStateVie
                         items = homeItems,
                         currentScreenId = screenId,
                         viewModel = viewModel,
-                        modifier = commonPaddingModifier
+                        modifier = commonPaddingModifier,
+                        onDragStart = {
+                            draggingItemId = it
+                            isDragging = true
+                            autoPageConsumed = false
+                            dragSession += 1
+                            edgeJob?.cancel()
+                            edgeJob = null
+                        },
+                        onDragMoveXInWindow = { x -> scheduleAutoPage(x) },
+                        onDropOnCell = { itemId, r, c ->
+                            val screenId = screens.getOrNull(pagerState.currentPage)?.id ?: return@HomeGrid
+                            viewModel.moveHome(itemId, screenId, r, c)
+                            draggingItemId = null
+                            autoPageConsumed = false
+                            edgeJob?.cancel()
+                            edgeJob = null
+                        }
                     )
                 }
                 Spacer(modifier = Modifier.height(spacerHeight))
@@ -267,6 +372,7 @@ fun LauncherScreen(navController: NavController, launcherState: LauncherStateVie
                     modifier = commonPaddingModifier
                 )
             }
+
         }
     }
 }

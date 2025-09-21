@@ -29,8 +29,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,12 +40,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -64,8 +65,15 @@ import com.paraskcd.influentiallauncher.viewmodels.LauncherItemsViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
+import kotlin.compareTo
+import kotlin.div
+import kotlin.rem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -75,7 +83,10 @@ fun HomeGrid(
     items: List<AppShortcutEntity>,
     currentScreenId: Long?,
     viewModel: LauncherItemsViewModel,
-    modifier: Modifier
+    modifier: Modifier,
+    onDragStart: (itemId: Long) -> Unit = {},
+    onDragMoveXInWindow: (Float) -> Unit = {},
+    onDropOnCell: (itemId: Long, row: Int, col: Int) -> Unit = { _, _, _ -> }
 ) {
     val editMode by viewModel.homeEditMode.collectAsState()
     val screenItems = remember(items, currentScreenId) { items.filter { it.screenId == currentScreenId } }
@@ -86,7 +97,6 @@ fun HomeGrid(
     val iconTintColorArgb = remember(iconTintColorCompose) { iconTintColorCompose.toArgb() }
 
     fun buildCells(): List<UiCell> {
-        val sid = currentScreenId ?: -1L
         return List(total) { idx ->
             val r = idx / columns
             val c = idx % columns
@@ -121,6 +131,9 @@ fun HomeGrid(
         }
     }
 
+    var gridBounds by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
+    var draggingItemId by remember { mutableStateOf<Long?>(null) }
+
     val lazyGridState = rememberLazyGridState()
     val reorderableState = rememberReorderableLazyGridState(lazyGridState) { from, to ->
         if (!editMode) return@rememberReorderableLazyGridState
@@ -129,7 +142,6 @@ fun HomeGrid(
         list.add(to.index, item)
         cells = list
 
-        // Debounce persistence so it runs once shortly after you stop moving
         persistJob?.cancel()
         persistJob = scope.launch {
             delay(180)
@@ -145,7 +157,26 @@ fun HomeGrid(
         if (!editMode) persistCurrentOrder()
     }
 
-    BoxWithConstraints(modifier = modifier) {
+    val pointerObserver = Modifier.pointerInput(editMode, gridBounds) {
+        if (!editMode) return@pointerInput
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(pass = PointerEventPass.Initial)
+                val change = event.changes.firstOrNull() ?: continue
+                val localX = change.position.x
+                val leftInWindow = gridBounds?.left ?: 0f
+                onDragMoveXInWindow(leftInWindow + localX)
+            }
+        }
+    }
+
+    BoxWithConstraints(
+        modifier = modifier
+            .onGloballyPositioned { layout ->
+                gridBounds = layout.boundsInWindow()
+            }
+            .then(pointerObserver)
+    ) {
         val gridHeight = maxWidth / columns * rows
 
         LazyVerticalGrid(
@@ -159,12 +190,29 @@ fun HomeGrid(
         ) {
             itemsIndexed(
                 items = cells,
-                key = { _, it -> it.id!! }
-            ) { index, ui ->
-                ReorderableItem(reorderableState, key = ui.id!!) {
+                key = { index, cell -> cell.id ?: "empty-$index" }
+            ) { index, cell ->
+                ReorderableItem(reorderableState, key = cell.id ?: "empty-$index") { isDragging ->
+                    val appId = (cell.cell as? GridCell.App)?.entity?.id
+
+                    LaunchedEffect(isDragging, appId) {
+                        if (isDragging && appId != null) {
+                            draggingItemId = appId
+                            onDragStart(appId)
+                        } else if (!isDragging && draggingItemId == appId && appId != null) {
+                            draggingItemId = null
+                            val newIndex = cells.indexOfFirst { (it.cell as? GridCell.App)?.entity?.id == appId }
+                            if (newIndex >= 0) {
+                                val r = newIndex / columns
+                                val c = newIndex % columns
+                                onDropOnCell(appId, r, c)
+                            }
+                        }
+                    }
+
                     val interactionSource = remember { MutableInteractionSource() }
                     Box {
-                        when (val cell = ui.cell) {
+                        when (val cell = cell.cell) {
                             is GridCell.App -> AppCell(
                                 entity = cell.entity,
                                 editMode = editMode,
@@ -217,19 +265,13 @@ private fun AppCell(
     val baseAngle by infinite.animateFloat(
         initialValue = -3f,
         targetValue = 3f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(300, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
+        animationSpec = infiniteRepeatable(animation = tween(300, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
         label = "angle"
     )
     val bob by infinite.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(300, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
+        animationSpec = infiniteRepeatable(animation = tween(300, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
         label = "bob"
     )
     val rotationZVal = if (editMode) baseAngle else 0f
@@ -249,13 +291,8 @@ private fun AppCell(
             }
             .then(
                 if (!editMode && showMenu) {
-                    Modifier.combinedClickable(
-                        onClick = onOpen,
-                        onLongClick = onExpand
-                    )
-                } else {
-                    Modifier
-                }
+                    Modifier.combinedClickable(onClick = onOpen, onLongClick = onExpand)
+                } else Modifier
             )
     ) {
         Column(
@@ -306,10 +343,7 @@ private fun EmptyCell(editMode: Boolean) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .background(
-                color = Color.Transparent,
-                shape = MaterialTheme.shapes.small
-            )
+            .background(color = Color.Transparent, shape = MaterialTheme.shapes.small)
             .then(
                 if (editMode) {
                     Modifier.border(

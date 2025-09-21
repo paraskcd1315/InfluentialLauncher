@@ -66,25 +66,9 @@ class LauncherItemsViewModel @Inject constructor(
         }
     }
 
-    fun setActiveScreen(id: Long) { activeScreenId.value = id }
-
-    fun moveDock(id: Long, newRank: Int) = viewModelScope.launch { repo.moveDock(id, newRank) }
-
     fun moveHome(id: Long, screenId: Long, row: Int, column: Int) = viewModelScope.launch { repo.moveHome(id, screenId, row, column) }
 
-    fun swapHomeItems(screenId: Long, from: UiCell, fromRow: Int, fromCol: Int, to: UiCell, toRow: Int, toCol: Int) = viewModelScope.launch {
-        val fromApp = (from.cell as? GridCell.App)?.entity
-        val toApp = (to.cell as? GridCell.App)?.entity
-
-        repo.swapHomeItems(screenId, fromApp, fromRow, fromCol, toApp, toRow, toCol)
-    }
-
-
     fun remove(id: Long) = viewModelScope.launch { repo.remove(id) }
-
-    fun clearDock() = viewModelScope.launch { repo.clearDock() }
-
-    fun clearHome() = viewModelScope.launch { repo.clearHome() }
 
     fun getBatteryDrawable(levelBucket: Int, charging: Boolean, isFullCharge: Boolean): Int = batteryStatusManager.getBatteryDrawable(levelBucket, charging, isFullCharge)
     fun getCellularDrawable(level: Int): Int = cellularStatusManager.getCellularDrawableForLevel(level)
@@ -113,34 +97,5 @@ class LauncherItemsViewModel @Inject constructor(
 
     fun setHomeEditMode(enabled: Boolean) {
         _homeEditMode.value = enabled
-    }
-
-    suspend fun addScreen(): Long {
-        val current = screens.first()
-        val nextRank = (current.maxOfOrNull { it.rank } ?: -1) + 1
-        val id = launcherScreenRepository.insert(
-            LauncherScreenEntity(rank = nextRank, isDefault = current.isEmpty())
-        )
-        activeScreenId.value = id
-        return id
-    }
-
-    fun deleteScreen(id: Long) = viewModelScope.launch {
-        val current = screens.first()
-        if (current.size <= 1) return@launch
-        val wasActive = activeScreenId.value == id
-        val wasDefault = current.firstOrNull { it.id == id }?.isDefault == true
-
-        launcherScreenRepository.deleteById(id)
-
-        val remaining = screens.first()
-        val fallbackId = remaining.firstOrNull { it.isDefault }?.id
-            ?: remaining.firstOrNull()?.id
-        if (wasActive) fallbackId?.let { activeScreenId.value = it }
-        if (wasDefault && fallbackId != null) launcherScreenRepository.setDefault(fallbackId)
-    }
-
-    fun setDefaultScreen(id: Long) = viewModelScope.launch {
-        launcherScreenRepository.setDefault(id)
     }
 }
