@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -264,6 +265,7 @@ object AppContextMenuDialog {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
+                            .fillMaxWidth()
                             .clickable { onOpenHeader() }
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -329,6 +331,7 @@ object AppContextMenuDialog {
 
         Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .clip(RoundedCornerShape(14.dp))
                 .clickable(onClick = onClick)
                 .padding(8.dp)
