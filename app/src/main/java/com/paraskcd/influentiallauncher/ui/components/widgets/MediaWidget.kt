@@ -1,7 +1,9 @@
 package com.paraskcd.influentiallauncher.ui.components.widgets
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -117,7 +119,24 @@ fun MediaWidget(
         }
         is MediaState.Ready -> {
             val info = s.info
-            Box(modifier = modifier.fillMaxWidth().height(148.dp).clip(RoundedCornerShape(24.dp))) {
+            val openPlayerApp = remember(info.packageName) {
+                {
+                    val pkg = info.packageName
+                    if (pkg.isNullOrBlank()) { return@remember }
+                    val launch = ctx.packageManager.getLaunchIntentForPackage(pkg)
+                    if (launch != null) {
+                        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        ctx.startActivity(launch)
+                    }
+                }
+            }
+            Box(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(148.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .clickable(onClick = openPlayerApp)
+            ) {
                 info.artwork?.let { bmp ->
                     Image(
                         bitmap = bmp.asImageBitmap(),
