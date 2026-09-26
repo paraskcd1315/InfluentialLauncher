@@ -55,7 +55,12 @@ fun ContactsTab(
     )
 
     LaunchedEffect(open) {
-        if (open) viewModel.refreshPermission() else viewModel.setQuery("")
+        if (open) {
+            viewModel.refreshPermission()
+            listState.scrollToItem(0)
+        } else {
+            viewModel.setQuery("")
+        }
     }
     LaunchedEffect(query) { listState.scrollToItem(0) }
 

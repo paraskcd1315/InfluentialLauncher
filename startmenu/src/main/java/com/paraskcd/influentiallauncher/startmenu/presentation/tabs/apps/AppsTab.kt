@@ -58,7 +58,9 @@ fun AppsTab(
     val listTop = StartMenuMetrics.searchTop + DsMetrics.searchHeight + StartMenuMetrics.searchContentGap
 
     LaunchedEffect(open) {
-        if (!open) {
+        if (open) {
+            listState.scrollToItem(0)
+        } else {
             viewModel.setQuery("")
             expandedKey = null
         }
