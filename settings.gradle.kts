@@ -22,3 +22,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "InfluentialLauncher"
 include(":app")
+include(":designsystem")
+include(":windowing")
