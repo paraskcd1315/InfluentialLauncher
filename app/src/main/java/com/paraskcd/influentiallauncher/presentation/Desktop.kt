@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.core.util.Consumer
 import com.paraskcd.influentiallauncher.clock.presentation.ClockHeader
+import com.paraskcd.influentiallauncher.startmenu.presentation.StartMenuHost
 import com.paraskcd.influentiallauncher.statusbar.presentation.StatusBarHost
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarHost
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarLayout
@@ -24,31 +25,37 @@ import com.paraskcd.influentiallauncher.taskbar.presentation.rememberAboveTaskba
 
 @Composable
 fun Desktop(activity: ComponentActivity) {
-    var pickerOpen by rememberSaveable { mutableStateOf(false) }
+    var startOpen by rememberSaveable { mutableStateOf(false) }
+    val aboveTaskbar = rememberAboveTaskbarOffset()
 
     DisposableEffect(activity) {
-        val listener = Consumer<Intent> { pickerOpen = false }
+        val listener = Consumer<Intent> { startOpen = false }
         activity.addOnNewIntentListener(listener)
         onDispose { activity.removeOnNewIntentListener(listener) }
     }
-    BackHandler(enabled = pickerOpen) { pickerOpen = false }
+    BackHandler(enabled = startOpen) { startOpen = false }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) { detectTapGestures { pickerOpen = false } }
+            .pointerInput(Unit) { detectTapGestures { startOpen = false } }
     ) {
         ClockHeader(modifier = Modifier.align(Alignment.TopStart))
     }
     TaskbarHost(
-        startOpen = false,
-        onStartClick = { },
-        pickerOpen = pickerOpen,
-        onPickerOpenChange = { pickerOpen = it }
+        startOpen = startOpen,
+        onStartClick = { startOpen = !startOpen },
+        onAppLaunched = { startOpen = false }
     )
     StatusBarHost(
         offsetX = TaskbarLayout.sideMargin,
-        offsetY = rememberAboveTaskbarOffset(),
-        visible = !pickerOpen
+        offsetY = aboveTaskbar,
+        visible = !startOpen
+    )
+    StartMenuHost(
+        open = startOpen,
+        offsetY = aboveTaskbar,
+        horizontalMargin = TaskbarLayout.sideMargin,
+        onClose = { startOpen = false }
     )
 }

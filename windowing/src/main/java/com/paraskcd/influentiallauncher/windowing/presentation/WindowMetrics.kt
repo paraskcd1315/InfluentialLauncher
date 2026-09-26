@@ -7,4 +7,5 @@ object WindowMetrics {
     const val BlurRampMs = 250
     const val ShadowAlpha = 0.6f
     val Elevation = 16.dp
+    val ImeGap = 8.dp
 }

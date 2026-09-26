@@ -2,10 +2,12 @@ package com.paraskcd.influentiallauncher.apps.infrastructure
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.LauncherActivityInfo
 import android.content.pm.LauncherApps
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.net.Uri
 import android.os.Handler
 import android.os.Process
 import android.os.UserHandle
@@ -49,6 +51,16 @@ class LauncherAppsInstalledApps @Inject constructor(
         launcherApps.startMainActivity(ComponentName(id.packageName, id.activityName), user, sourceBounds, null)
     }.onFailure { Log.w(LogTag, "launch failed for ${id.key}", it) }.isSuccess
 
+    override fun openInfo(id: AppId, sourceBounds: Rect?): Boolean = runCatching {
+        launcherApps.startAppDetailsActivity(ComponentName(id.packageName, id.activityName), user, sourceBounds, null)
+    }.onFailure { Log.w(LogTag, "app info failed for ${id.key}", it) }.isSuccess
+
+    override fun uninstall(id: AppId): Boolean = runCatching {
+        val intent = Intent(Intent.ACTION_DELETE, Uri.fromParts(PackageScheme, id.packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    }.onFailure { Log.w(LogTag, "uninstall failed for ${id.key}", it) }.isSuccess
+
     override suspend fun icon(id: AppId, sizePx: Int): Bitmap? = withContext(Dispatchers.IO) {
         runCatching {
             val info = findActivity(id) ?: return@runCatching null
@@ -68,5 +80,6 @@ class LauncherAppsInstalledApps @Inject constructor(
 
     private companion object {
         const val LogTag = "InstalledApps"
+        const val PackageScheme = "package"
     }
 }

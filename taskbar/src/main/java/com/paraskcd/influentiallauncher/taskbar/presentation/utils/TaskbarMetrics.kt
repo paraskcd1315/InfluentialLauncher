@@ -14,13 +14,7 @@ object TaskbarMetrics {
     val itemGap = InfSpacing.s1
     val startGlyphSize = 24.dp
     const val skeletonTileCount = 4
-    val pickerCornerRadius = InfRadii.xl
-    val pickerGap = InfSpacing.s2
-    val pickerMaxHeight = 420.dp
-    val pickerPadding = InfSpacing.s3
-    val pickerRowHeight = 56.dp
-    val pickerIconSize = 36.dp
-    val pickerCheckSize = 20.dp
+    val aboveGap = InfSpacing.s2
     const val skeletonAlpha = 0.10f
     const val draggingScale = 1.12f
 }

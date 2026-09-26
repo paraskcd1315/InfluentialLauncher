@@ -41,7 +41,10 @@ object DialogWindowSetup {
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
         )
-        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
+        window.setSoftInputMode(
+            WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED
+        )
         window.setGravity(gravity)
         window.setLayout(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT)
         window.attributes = window.attributes.apply {
@@ -60,13 +63,16 @@ object DialogWindowSetup {
         }
     }
 
-    fun setVisible(window: Window, visible: Boolean) {
+    fun setVisible(window: Window, visible: Boolean, focusable: Boolean) {
         window.decorView.visibility = if (visible) View.VISIBLE else View.INVISIBLE
-        if (visible) {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        } else {
-            window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        }
+        setFlag(window, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, on = !visible)
+        setFlag(window, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, on = !(visible && focusable))
+    }
+
+    private fun setFlag(window: Window, flag: Int, on: Boolean) {
+        val current = window.attributes.flags and flag != 0
+        if (current == on) return
+        if (on) window.addFlags(flag) else window.clearFlags(flag)
     }
 
     fun setBlur(window: Window, radius: Int) {

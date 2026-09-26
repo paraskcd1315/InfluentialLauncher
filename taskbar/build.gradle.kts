@@ -12,11 +12,11 @@ dependencies {
     implementation(project(":designsystem"))
     implementation(project(":windowing"))
     implementation(project(":apps"))
+    implementation(project(":pins"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.reorderable)
 }

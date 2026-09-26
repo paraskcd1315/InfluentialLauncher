@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
-import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.AddPinButton
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.PinnedApps
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.PinnedAppsSkeleton
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.StartButton
@@ -24,10 +23,8 @@ import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurre
 fun Taskbar(
     pinned: List<LauncherApp>?,
     startOpen: Boolean,
-    pickerOpen: Boolean,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onStartClick: () -> Unit,
-    onAddPinClick: () -> Unit,
     onLaunch: (AppId, Rect?) -> Unit,
     onReorder: (List<AppId>) -> Unit,
     modifier: Modifier = Modifier
@@ -52,6 +49,5 @@ fun Taskbar(
                 modifier = Modifier.weight(1f, fill = false)
             )
         }
-        AddPinButton(open = pickerOpen, onClick = onAddPinClick)
     }
 }

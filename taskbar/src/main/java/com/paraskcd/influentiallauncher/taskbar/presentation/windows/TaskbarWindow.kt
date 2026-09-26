@@ -15,10 +15,8 @@ fun TaskbarWindow(
     offsetY: Dp,
     pinned: List<LauncherApp>?,
     startOpen: Boolean,
-    pickerOpen: Boolean,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onStartClick: () -> Unit,
-    onAddPinClick: () -> Unit,
     onLaunch: (AppId, Rect?) -> Unit,
     onReorder: (List<AppId>) -> Unit
 ) {
@@ -32,10 +30,8 @@ fun TaskbarWindow(
         Taskbar(
             pinned = pinned,
             startOpen = startOpen,
-            pickerOpen = pickerOpen,
             loadIcon = loadIcon,
             onStartClick = onStartClick,
-            onAddPinClick = onAddPinClick,
             onLaunch = onLaunch,
             onReorder = onReorder
         )

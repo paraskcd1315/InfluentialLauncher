@@ -4,6 +4,8 @@ import android.view.Gravity
 import android.view.ViewGroup
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -34,23 +36,28 @@ fun InfWindow(
     fillWidth: Boolean = false,
     horizontalMargin: Dp = 0.dp,
     visible: Boolean = true,
+    focusable: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val density = LocalDensity.current
+    val imeBottom = WindowInsets.ime.getBottom(density)
+    val requestedOffsetPx = with(density) { offsetY.roundToPx() }
+    val imeOffsetPx = with(density) { imeBottom + WindowMetrics.ImeGap.roundToPx() }
+    val offsetYPx = if (focusable && imeBottom > 0) maxOf(requestedOffsetPx, imeOffsetPx) else requestedOffsetPx
+
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
             decorFitsSystemWindows = false,
             dismissOnClickOutside = false,
-            dismissOnBackPress = false
+            dismissOnBackPress = focusable
         )
     ) {
         val window = (LocalView.current.parent as DialogWindowProvider).window
-        val density = LocalDensity.current
         val screenWidthDp = LocalConfiguration.current.screenWidthDp
         val cornerRadiusPx = with(density) { cornerRadius.toPx() }
         val offsetXPx = with(density) { offsetX.roundToPx() }
-        val offsetYPx = with(density) { offsetY.roundToPx() }
         val marginPx = with(density) { horizontalMargin.roundToPx() }
         val elevationPx = with(density) { WindowMetrics.Elevation.toPx() }
         val blurAvailable by rememberWindowBlurAvailable()
@@ -89,7 +96,7 @@ fun InfWindow(
         val progress = reveal.value
         SideEffect {
             DialogWindowSetup.place(window, offsetYPx, alpha = progress)
-            DialogWindowSetup.setVisible(window, shown)
+            DialogWindowSetup.setVisible(window, shown, focusable = focusable && visible)
         }
         LaunchedEffect(blurAvailable, shown) {
             if (!shown) {

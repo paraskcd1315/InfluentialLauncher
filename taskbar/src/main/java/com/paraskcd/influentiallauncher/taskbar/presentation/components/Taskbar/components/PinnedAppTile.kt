@@ -12,9 +12,9 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
+import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfTile
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
-import com.paraskcd.influentiallauncher.taskbar.presentation.components.AppIcon
 
 @Composable
 fun PinnedAppTile(
@@ -32,6 +32,6 @@ fun PinnedAppTile(
             bounds = Rect(box.left.toInt(), box.top.toInt(), box.right.toInt(), box.bottom.toInt())
         }
     ) {
-        AppIcon(id = app.id, size = DsMetrics.tileIconSize, loadIcon = loadIcon)
+        InfAsyncIcon(key = app.id.key, size = DsMetrics.tileIconSize, load = { loadIcon(app.id, it) })
     }
 }

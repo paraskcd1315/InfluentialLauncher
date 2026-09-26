@@ -11,5 +11,9 @@ interface InstalledApps {
 
     fun launch(id: AppId, sourceBounds: Rect?): Boolean
 
+    fun openInfo(id: AppId, sourceBounds: Rect?): Boolean
+
+    fun uninstall(id: AppId): Boolean
+
     suspend fun icon(id: AppId, sizePx: Int): Bitmap?
 }

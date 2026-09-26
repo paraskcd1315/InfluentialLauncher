@@ -16,4 +16,4 @@ fun rememberTaskbarOffset(): Dp {
 
 @Composable
 fun rememberAboveTaskbarOffset(): Dp =
-    rememberTaskbarOffset() + TaskbarMetrics.barHeight + TaskbarMetrics.pickerGap
+    rememberTaskbarOffset() + TaskbarMetrics.barHeight + TaskbarMetrics.aboveGap

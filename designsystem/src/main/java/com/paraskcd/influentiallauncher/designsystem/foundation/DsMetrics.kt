@@ -10,4 +10,8 @@ object DsMetrics {
     const val pressScale = 0.92f
     const val tilePressedAlpha = 0.14f
     const val tileSelectedAlpha = 0.22f
+    const val skeletonAlpha = 0.10f
+    val searchHeight = 48.dp
+    val searchIconSize = 18.dp
+    const val searchFillAlpha = 0.08f
 }

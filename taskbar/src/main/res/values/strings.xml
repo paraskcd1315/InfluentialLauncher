@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="taskbar_start">Start</string>
-    <string name="taskbar_add_pin">Pin apps</string>
-    <string name="picker_title">Pin to taskbar</string>
-    <string name="picker_pinned">Pinned</string>
-    <string name="picker_close">Close</string>
-    <string name="picker_empty">No apps found</string>
 </resources>
