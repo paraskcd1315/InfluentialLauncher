@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -19,6 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Influential Launcher"
+rootProject.name = "InfluentialLauncher"
 include(":app")
- 
