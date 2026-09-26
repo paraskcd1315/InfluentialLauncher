@@ -4,8 +4,9 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.contacts.domain.model.Contact
+import com.paraskcd.influentiallauncher.contacts.domain.ports.ContactPinStore
 import com.paraskcd.influentiallauncher.contacts.domain.ports.ContactsSource
-import com.paraskcd.influentiallauncher.startmenu.presentation.model.ContactSection
+import com.paraskcd.influentiallauncher.startmenu.presentation.model.ContactsContent
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.PermissionState
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.ContactSections
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,15 +19,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ContactsViewModel @Inject constructor(
-    private val contactsSource: ContactsSource
+    private val contactsSource: ContactsSource,
+    private val pinStore: ContactPinStore
 ) : ViewModel() {
 
     val permission: String = contactsSource.permission
+
+    val callPermission: String = contactsSource.callPermission
 
     private val _permissionState = MutableStateFlow(currentPermission())
     val permissionState: StateFlow<PermissionState> = _permissionState.asStateFlow()
@@ -34,10 +39,16 @@ class ContactsViewModel @Inject constructor(
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
-    val sections: StateFlow<List<ContactSection>?> = _permissionState
+    val content: StateFlow<ContactsContent?> = _permissionState
         .flatMapLatest { state ->
             if (state == PermissionState.Granted) {
-                combine(contactsSource.contacts(), _query) { contacts, query -> ContactSections.of(contacts, query) }
+                combine(contactsSource.contacts(), pinStore.pins(), _query) { contacts, pins, query ->
+                    val byKey = contacts.associateBy { it.lookupKey }
+                    ContactsContent(
+                        pinned = if (query.isBlank()) pins.mapNotNull { byKey[it] } else emptyList(),
+                        sections = ContactSections.of(contacts, query)
+                    )
+                }
             } else {
                 emptyFlow()
             }
@@ -54,6 +65,18 @@ class ContactsViewModel @Inject constructor(
 
     fun open(contact: Contact) {
         contactsSource.open(contact)
+    }
+
+    fun call(contact: Contact) {
+        contactsSource.call(contact)
+    }
+
+    fun whatsApp(contact: Contact) {
+        contactsSource.whatsApp(contact)
+    }
+
+    fun togglePin(contact: Contact) {
+        viewModelScope.launch { pinStore.toggle(contact.lookupKey) }
     }
 
     suspend fun photo(contact: Contact, sizePx: Int): Bitmap? = contactsSource.photo(contact, sizePx)

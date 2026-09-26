@@ -5,5 +5,7 @@ data class Contact(
     val lookupKey: String,
     val name: String,
     val starred: Boolean,
-    val photoUri: String?
+    val photoUri: String?,
+    val phone: String?,
+    val whatsAppDataId: Long?
 )

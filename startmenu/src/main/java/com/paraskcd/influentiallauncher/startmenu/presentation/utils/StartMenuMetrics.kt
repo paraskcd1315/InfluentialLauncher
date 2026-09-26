@@ -29,4 +29,5 @@ object StartMenuMetrics {
     const val skeletonAlpha = 0.10f
     val skeletonLabelHeight = InfSpacing.s4
     const val avatarAlpha = 0.22f
+    val contactActionGap = 8.dp
 }
