@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.Process
 import android.os.UserHandle
 import android.util.Log
+import android.util.LruCache
 import androidx.core.graphics.drawable.toBitmap
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
@@ -33,6 +34,7 @@ class LauncherAppsInstalledApps @Inject constructor(
 
     private val launcherApps = context.getSystemService(LauncherApps::class.java)
     private val user: UserHandle = Process.myUserHandle()
+    private val iconCache = LruCache<String, Bitmap>(IconCacheEntries)
 
     override val apps: Flow<List<LauncherApp>> = callbackFlow {
         val callback = object : LauncherApps.Callback() {
@@ -61,11 +63,16 @@ class LauncherAppsInstalledApps @Inject constructor(
         context.startActivity(intent)
     }.onFailure { Log.w(LogTag, "uninstall failed for ${id.key}", it) }.isSuccess
 
-    override suspend fun icon(id: AppId, sizePx: Int): Bitmap? = withContext(Dispatchers.IO) {
-        runCatching {
-            val info = findActivity(id) ?: return@runCatching null
-            info.getIcon(context.resources.displayMetrics.densityDpi).toBitmap(sizePx, sizePx)
-        }.onFailure { Log.w(LogTag, "icon failed for ${id.key}", it) }.getOrNull()
+    override suspend fun icon(id: AppId, sizePx: Int, tint: Int?): Bitmap? {
+        val cacheKey = "${id.key}#$sizePx#${tint ?: 0}"
+        iconCache.get(cacheKey)?.let { return it }
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val info = findActivity(id) ?: return@runCatching null
+                val drawable = info.getIcon(context.resources.displayMetrics.densityDpi)
+                if (tint != null) ThemedIconRenderer.render(drawable, tint, sizePx) else drawable.toBitmap(sizePx, sizePx)
+            }.onFailure { Log.w(LogTag, "icon failed for ${id.key}", it) }.getOrNull()?.also { iconCache.put(cacheKey, it) }
+        }
     }
 
     private fun readApps(): List<LauncherApp> = runCatching {
@@ -81,5 +88,6 @@ class LauncherAppsInstalledApps @Inject constructor(
     private companion object {
         const val LogTag = "InstalledApps"
         const val PackageScheme = "package"
+        const val IconCacheEntries = 256
     }
 }

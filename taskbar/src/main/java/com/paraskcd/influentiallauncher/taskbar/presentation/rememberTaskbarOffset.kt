@@ -11,7 +11,7 @@ import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetric
 fun rememberTaskbarOffset(): Dp {
     val density = LocalDensity.current
     val navigationBar = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    return navigationBar + TaskbarMetrics.bottomGap
+    return maxOf(TaskbarMetrics.floatDistance, navigationBar + TaskbarMetrics.navigationGap)
 }
 
 @Composable

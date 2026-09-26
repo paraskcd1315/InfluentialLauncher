@@ -1,62 +1,49 @@
 package com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels
 
-import android.graphics.Bitmap
-import android.graphics.Rect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.paraskcd.influentiallauncher.apps.domain.model.AppId
-import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
-import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
-import com.paraskcd.influentiallauncher.startmenu.presentation.model.AppSection
-import com.paraskcd.influentiallauncher.startmenu.presentation.utils.AppSections
+import com.paraskcd.influentiallauncher.settings.domain.model.LauncherSettings
+import com.paraskcd.influentiallauncher.settings.domain.ports.SettingsStore
+import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuTab
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class StartMenuViewModel @Inject constructor(
-    private val installedApps: InstalledApps,
-    private val pinnedApps: PinnedApps
+    private val settingsStore: SettingsStore
 ) : ViewModel() {
 
-    private val _query = MutableStateFlow("")
-    val query: StateFlow<String> = _query.asStateFlow()
+    val settings: StateFlow<LauncherSettings> = settingsStore.settings
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), LauncherSettings())
 
-    val sections: StateFlow<List<AppSection>?> = combine(installedApps.apps, pinnedApps.pinnedIds, _query) { apps, pins, query ->
-        AppSections.of(apps, pins, query)
+    val tabs: StateFlow<List<StartMenuTab>> = settingsStore.settings
+        .map { settings ->
+            buildList {
+                if (settings.showAppsTab) add(StartMenuTab.Apps)
+                if (settings.showCalendarTab) add(StartMenuTab.Calendar)
+                if (settings.showContactsTab) add(StartMenuTab.Contacts)
+                add(StartMenuTab.Settings)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), StartMenuTab.entries)
+
+    fun setTabShown(tab: StartMenuTab, shown: Boolean) {
+        viewModelScope.launch {
+            settingsStore.update { current ->
+                when (tab) {
+                    StartMenuTab.Apps -> current.copy(showAppsTab = shown)
+                    StartMenuTab.Calendar -> current.copy(showCalendarTab = shown)
+                    StartMenuTab.Contacts -> current.copy(showContactsTab = shown)
+                    StartMenuTab.Settings -> current
+                }
+            }
+        }
     }
-        .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
-
-    fun setQuery(value: String) {
-        _query.value = value
-    }
-
-    fun launch(id: AppId, sourceBounds: Rect?) {
-        installedApps.launch(id, sourceBounds)
-    }
-
-    fun togglePin(id: AppId) {
-        viewModelScope.launch { pinnedApps.toggle(id) }
-    }
-
-    fun openInfo(id: AppId, sourceBounds: Rect?) {
-        installedApps.openInfo(id, sourceBounds)
-    }
-
-    fun uninstall(id: AppId) {
-        installedApps.uninstall(id)
-    }
-
-    suspend fun icon(id: AppId, sizePx: Int): Bitmap? = installedApps.icon(id, sizePx)
 
     private companion object {
         const val StopTimeoutMs = 5_000L

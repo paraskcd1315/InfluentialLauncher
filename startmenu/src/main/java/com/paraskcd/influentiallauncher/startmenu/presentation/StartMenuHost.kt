@@ -1,49 +1,66 @@
 package com.paraskcd.influentiallauncher.startmenu.presentation
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.paraskcd.influentiallauncher.startmenu.presentation.components.StartMenu.StartMenu
+import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuTab
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.AppsTab
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar.CalendarTab
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.contacts.ContactsTab
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.SettingsTab
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.StartMenuViewModel
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartMenuWindow
+import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartTabsWindow
+import com.paraskcd.influentiallauncher.windowing.presentation.WindowMetrics
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun StartMenuHost(
     open: Boolean,
-    offsetY: Dp,
-    horizontalMargin: Dp,
+    bottomOffset: Dp,
     onClose: () -> Unit,
     viewModel: StartMenuViewModel = hiltViewModel()
 ) {
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val query by viewModel.query.collectAsStateWithLifecycle()
+    val tabs by viewModel.tabs.collectAsStateWithLifecycle()
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
+    var selectedName by rememberSaveable { mutableStateOf(StartMenuTab.Apps.name) }
+    val selected = tabs.firstOrNull { it.name == selectedName } ?: tabs.first()
 
-    LaunchedEffect(open) {
-        if (!open) viewModel.setQuery("")
-    }
+    val density = LocalDensity.current
+    val screenHeight = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
+    val statusTop = with(density) { WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp() }
+    val ime = with(density) { WindowInsets.ime.getBottom(density).toDp() }
+    val effectiveBottom = if (ime > bottomOffset) maxOf(bottomOffset, ime + WindowMetrics.ImeGap) else bottomOffset
+    val tabsOffset = statusTop + StartMenuMetrics.windowGap
+    val menuTop = tabsOffset + StartMenuMetrics.tabsHeight + StartMenuMetrics.windowGap
+    val menuHeight = screenHeight - menuTop - effectiveBottom
 
-    StartMenuWindow(open = open, offsetY = offsetY, horizontalMargin = horizontalMargin, onClose = onClose) {
-        StartMenu(
-            sections = sections,
-            query = query,
-            onQueryChange = viewModel::setQuery,
-            loadIcon = viewModel::icon,
-            onLaunch = { id, bounds ->
-                onClose()
-                viewModel.launch(id, bounds)
-            },
-            onTogglePin = viewModel::togglePin,
-            onInfo = { id, bounds ->
-                onClose()
-                viewModel.openInfo(id, bounds)
-            },
-            onUninstall = { id ->
-                onClose()
-                viewModel.uninstall(id)
-            }
-        )
+    StartTabsWindow(
+        open = open,
+        offsetY = tabsOffset,
+        tabs = tabs,
+        selected = selected,
+        onSelect = { selectedName = it.name },
+        onClose = onClose
+    )
+    StartMenuWindow(open = open, offsetY = bottomOffset, height = menuHeight, onClose = onClose) {
+        when (selected) {
+            StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose)
+            StartMenuTab.Calendar -> CalendarTab(open = open, onClose = onClose)
+            StartMenuTab.Contacts -> ContactsTab(open = open, onClose = onClose)
+            StartMenuTab.Settings -> SettingsTab(settings = settings, onTabShown = viewModel::setTabShown)
+        }
     }
 }

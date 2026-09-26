@@ -24,8 +24,7 @@ fun TaskbarWindow(
         cornerRadius = TaskbarMetrics.barCornerRadius,
         onDismissRequest = { },
         offsetY = offsetY,
-        fillWidth = true,
-        horizontalMargin = TaskbarMetrics.sideMargin
+        widthFraction = TaskbarMetrics.widthFraction
     ) {
         Taskbar(
             pinned = pinned,

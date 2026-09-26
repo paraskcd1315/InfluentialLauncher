@@ -42,6 +42,9 @@ dependencies {
     implementation(project(":pins"))
     implementation(project(":startmenu"))
     implementation(project(":clock"))
+    implementation(project(":calendar"))
+    implementation(project(":contacts"))
+    implementation(project(":settings"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

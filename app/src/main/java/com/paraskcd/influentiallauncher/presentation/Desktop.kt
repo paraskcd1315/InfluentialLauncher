@@ -18,7 +18,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.core.util.Consumer
 import com.paraskcd.influentiallauncher.clock.presentation.ClockHeader
 import com.paraskcd.influentiallauncher.startmenu.presentation.StartMenuHost
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import com.paraskcd.influentiallauncher.presentation.utils.DesktopMetrics
 import com.paraskcd.influentiallauncher.statusbar.presentation.StatusBarHost
+import com.paraskcd.influentiallauncher.statusbar.presentation.StatusBarLayout
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarHost
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarLayout
 import com.paraskcd.influentiallauncher.taskbar.presentation.rememberAboveTaskbarOffset
@@ -27,6 +31,8 @@ import com.paraskcd.influentiallauncher.taskbar.presentation.rememberAboveTaskba
 fun Desktop(activity: ComponentActivity) {
     var startOpen by rememberSaveable { mutableStateOf(false) }
     val aboveTaskbar = rememberAboveTaskbarOffset()
+    val density = LocalDensity.current
+    val screenWidth = with(density) { LocalWindowInfo.current.containerSize.width.toDp() }
 
     DisposableEffect(activity) {
         val listener = Consumer<Intent> { startOpen = false }
@@ -48,14 +54,13 @@ fun Desktop(activity: ComponentActivity) {
         onAppLaunched = { startOpen = false }
     )
     StatusBarHost(
-        offsetX = TaskbarLayout.sideMargin,
+        offsetX = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f,
         offsetY = aboveTaskbar,
-        visible = !startOpen
+        visible = true
     )
     StartMenuHost(
         open = startOpen,
-        offsetY = aboveTaskbar,
-        horizontalMargin = TaskbarLayout.sideMargin,
+        bottomOffset = aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap,
         onClose = { startOpen = false }
     )
 }

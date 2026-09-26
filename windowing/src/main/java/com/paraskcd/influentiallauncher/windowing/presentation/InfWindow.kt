@@ -35,6 +35,7 @@ fun InfWindow(
     offsetY: Dp = 0.dp,
     fillWidth: Boolean = false,
     horizontalMargin: Dp = 0.dp,
+    widthFraction: Float? = null,
     visible: Boolean = true,
     focusable: Boolean = false,
     content: @Composable () -> Unit
@@ -65,11 +66,12 @@ fun InfWindow(
         val reveal = remember { Animatable(0f) }
         var configured by remember { mutableStateOf(false) }
 
-        remember(cornerRadiusPx, offsetXPx, gravity, fillWidth, marginPx, screenWidthDp) {
-            val width = if (fillWidth) {
-                DialogWindowSetup.displayWidth(window) - marginPx * 2
-            } else {
-                ViewGroup.LayoutParams.WRAP_CONTENT
+        remember(cornerRadiusPx, offsetXPx, gravity, fillWidth, marginPx, widthFraction, screenWidthDp) {
+            val displayWidth = DialogWindowSetup.displayWidth(window)
+            val width = when {
+                widthFraction != null -> (displayWidth * widthFraction).toInt()
+                fillWidth -> displayWidth - marginPx * 2
+                else -> ViewGroup.LayoutParams.WRAP_CONTENT
             }
             DialogWindowSetup.configure(
                 window = window,

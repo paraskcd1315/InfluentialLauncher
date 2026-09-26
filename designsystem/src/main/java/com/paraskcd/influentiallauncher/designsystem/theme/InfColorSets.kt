@@ -1,5 +1,6 @@
 package com.paraskcd.influentiallauncher.designsystem.theme
 
+import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
 
 fun infDarkColors(ramp: BrandRamp) = InfColors(
@@ -11,6 +12,9 @@ fun infDarkColors(ramp: BrandRamp) = InfColors(
     surface = InfDarkSurface,
     surfaceContainer = InfDarkSurfaceContainer,
     surfaceContainerHigh = InfDarkSurfaceContainerHigh,
+    surfaceBright = InfDarkSurfaceContainerHigh,
+    surfaceVariant = InfDarkSurfaceContainer,
+    outline = Color.White,
     textPrimary = Color.White.copy(alpha = 0.92f),
     textSecondary = Color.White.copy(alpha = 0.58f),
     textTertiary = Color.White.copy(alpha = 0.40f),
@@ -36,6 +40,9 @@ fun infLightColors(ramp: BrandRamp) = InfColors(
     surface = InfLightSurface,
     surfaceContainer = InfLightSurfaceContainer,
     surfaceContainerHigh = InfLightSurfaceContainerHigh,
+    surfaceBright = InfLightSurface,
+    surfaceVariant = InfLightSurfaceContainer,
+    outline = InfBorderLight,
     textPrimary = InfInkLight.copy(alpha = 0.92f),
     textSecondary = InfInkLight.copy(alpha = 0.56f),
     textTertiary = InfInkLight.copy(alpha = 0.40f),
@@ -50,4 +57,17 @@ fun infLightColors(ramp: BrandRamp) = InfColors(
     warning = InfWarning,
     danger = InfDanger,
     dangerText = InfDangerTextLight
+)
+
+fun InfColors.withWallpaper(scheme: ColorScheme) = copy(
+    bgBase = scheme.background,
+    surface = scheme.surface,
+    surfaceContainer = scheme.surfaceContainer,
+    surfaceContainerHigh = scheme.surfaceContainerHigh,
+    surfaceBright = scheme.surfaceBright,
+    surfaceVariant = scheme.surfaceVariant,
+    outline = scheme.outline,
+    brandText = scheme.primary,
+    textPrimary = scheme.onSurface,
+    textSecondary = scheme.onSurfaceVariant
 )

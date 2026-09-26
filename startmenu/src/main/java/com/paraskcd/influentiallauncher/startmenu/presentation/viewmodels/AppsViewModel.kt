@@ -1,0 +1,70 @@
+package com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels
+
+import android.graphics.Bitmap
+import android.graphics.Rect
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
+import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
+import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
+import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuContent
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.AppSections
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class AppsViewModel @Inject constructor(
+    private val installedApps: InstalledApps,
+    private val pinnedApps: PinnedApps
+) : ViewModel() {
+
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query.asStateFlow()
+
+    val content: StateFlow<StartMenuContent?> = combine(
+        installedApps.apps,
+        pinnedApps.pinnedIds(PinTarget.Taskbar),
+        pinnedApps.pinnedIds(PinTarget.Start),
+        _query
+    ) { apps, taskbar, start, query ->
+        AppSections.of(apps, taskbar, start, query)
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
+
+    fun setQuery(value: String) {
+        _query.value = value
+    }
+
+    fun launch(id: AppId, sourceBounds: Rect?) {
+        installedApps.launch(id, sourceBounds)
+    }
+
+    fun togglePin(target: PinTarget, id: AppId) {
+        viewModelScope.launch { pinnedApps.toggle(target, id) }
+    }
+
+    fun openInfo(id: AppId, sourceBounds: Rect?) {
+        installedApps.openInfo(id, sourceBounds)
+    }
+
+    fun uninstall(id: AppId) {
+        installedApps.uninstall(id)
+    }
+
+    suspend fun icon(id: AppId, sizePx: Int, tint: Int): Bitmap? = installedApps.icon(id, sizePx, tint)
+
+    private companion object {
+        const val StopTimeoutMs = 5_000L
+    }
+}

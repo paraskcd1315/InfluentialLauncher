@@ -35,18 +35,18 @@ fun Taskbar(
         modifier = modifier
             .fillMaxWidth()
             .infPanelSurface(RoundedCornerShape(TaskbarMetrics.barCornerRadius), blurred = LocalWindowBlurred.current)
-            .padding(TaskbarMetrics.barPadding)
+            .padding(vertical = TaskbarMetrics.barPaddingVertical, horizontal = TaskbarMetrics.barPaddingHorizontal)
     ) {
         StartButton(open = startOpen, onClick = onStartClick)
         if (pinned == null) {
-            PinnedAppsSkeleton(modifier = Modifier.weight(1f, fill = false))
+            PinnedAppsSkeleton(modifier = Modifier.weight(1f))
         } else {
             PinnedApps(
                 apps = pinned,
                 loadIcon = loadIcon,
                 onLaunch = onLaunch,
                 onReorder = onReorder,
-                modifier = Modifier.weight(1f, fill = false)
+                modifier = Modifier.weight(1f)
             )
         }
     }

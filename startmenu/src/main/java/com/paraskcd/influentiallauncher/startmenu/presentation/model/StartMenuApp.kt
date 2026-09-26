@@ -4,5 +4,6 @@ import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 
 data class StartMenuApp(
     val app: LauncherApp,
-    val pinned: Boolean
+    val onTaskbar: Boolean,
+    val onStart: Boolean
 )

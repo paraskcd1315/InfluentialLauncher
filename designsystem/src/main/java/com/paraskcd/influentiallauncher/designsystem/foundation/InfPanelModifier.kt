@@ -5,8 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import com.paraskcd.influentiallauncher.designsystem.theme.InfGlass
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -18,14 +16,5 @@ fun Modifier.infPanelSurface(shape: Shape, blurred: Boolean): Modifier {
     return this
         .clip(shape)
         .background(colors.bgBase.copy(alpha = alpha))
-        .border(InfGlass.borderWidth, colors.glassBorder, shape)
-        .border(
-            width = InfGlass.specularWidth,
-            brush = Brush.verticalGradient(
-                0f to colors.glassSpecular,
-                InfGlass.specularStop to Color.Transparent,
-                1f to Color.Transparent
-            ),
-            shape = shape
-        )
+        .border(InfGlass.borderWidth, colors.outline.copy(alpha = InfGlass.outlineAlpha), shape)
 }

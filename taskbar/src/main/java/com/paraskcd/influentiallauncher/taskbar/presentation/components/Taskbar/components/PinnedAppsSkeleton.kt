@@ -5,11 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
-import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
 
@@ -20,8 +19,8 @@ fun PinnedAppsSkeleton(modifier: Modifier = Modifier) {
         repeat(TaskbarMetrics.skeletonTileCount) {
             Box(
                 modifier = Modifier
-                    .size(DsMetrics.tileSize)
-                    .clip(InfShapes.md)
+                    .size(TaskbarMetrics.pinIconSize)
+                    .clip(CircleShape)
                     .background(fill)
             )
         }

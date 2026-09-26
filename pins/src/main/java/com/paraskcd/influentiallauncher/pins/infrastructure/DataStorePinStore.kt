@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.ports.PinStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -25,27 +26,33 @@ class DataStorePinStore @Inject constructor(
     @ApplicationContext private val context: Context
 ) : PinStore {
 
-    override val pins: Flow<List<AppId>> = context.taskbarStore.data
+    override fun pins(target: PinTarget): Flow<List<AppId>> = context.taskbarStore.data
         .catch { error ->
             if (error !is IOException) throw error
             Log.w(LogTag, "reading pins failed", error)
             emit(emptyPreferences())
         }
         .map { preferences ->
-            preferences[PinsKey].orEmpty()
+            preferences[keyOf(target)].orEmpty()
                 .split(Separator)
                 .mapNotNull { AppId.fromKey(it) }
         }
 
-    override suspend fun save(pins: List<AppId>) {
+    override suspend fun save(target: PinTarget, pins: List<AppId>) {
         context.taskbarStore.edit { preferences ->
-            preferences[PinsKey] = pins.joinToString(Separator) { it.key }
+            preferences[keyOf(target)] = pins.joinToString(Separator) { it.key }
         }
+    }
+
+    private fun keyOf(target: PinTarget): Preferences.Key<String> = when (target) {
+        PinTarget.Taskbar -> TaskbarKey
+        PinTarget.Start -> StartKey
     }
 
     private companion object {
         const val LogTag = "PinStore"
         const val Separator = "\n"
-        val PinsKey = stringPreferencesKey("pinned_apps")
+        val TaskbarKey = stringPreferencesKey("pinned_apps")
+        val StartKey = stringPreferencesKey("start_pinned_apps")
     }
 }

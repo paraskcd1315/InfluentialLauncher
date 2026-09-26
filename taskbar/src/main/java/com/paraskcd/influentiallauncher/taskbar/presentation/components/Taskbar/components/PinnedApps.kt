@@ -3,10 +3,12 @@ package com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar
 import android.graphics.Bitmap
 import android.graphics.Rect
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,9 +16,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
+import com.paraskcd.influentiallauncher.designsystem.foundation.horizontalFadingEdges
+import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -39,11 +44,12 @@ fun PinnedApps(
         if (fromIndex < 0 || toIndex < 0) return@rememberReorderableLazyListState
         order = order.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
     }
+    val draggingFill = InfTheme.colors.surfaceVariant.copy(alpha = TaskbarMetrics.draggingFillAlpha)
 
     LazyRow(
         state = listState,
         horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
-        modifier = modifier
+        modifier = modifier.horizontalFadingEdges(listState)
     ) {
         items(order, key = { it.id.key }) { app ->
             ReorderableItem(reorderState, key = app.id.key) { dragging ->
@@ -57,6 +63,7 @@ fun PinnedApps(
                             scaleX = scale
                             scaleY = scale
                         }
+                        .background(if (dragging) draggingFill else Color.Transparent, RoundedCornerShape(TaskbarMetrics.pinCornerRadius))
                         .longPressDraggableHandle(onDragStopped = { onReorder(order.map { it.id }) })
                 )
             }

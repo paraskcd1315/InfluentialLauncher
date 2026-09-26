@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
+import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +22,7 @@ class TaskbarViewModel @Inject constructor(
     private val pinnedApps: PinnedApps
 ) : ViewModel() {
 
-    val pinned: StateFlow<List<LauncherApp>?> = pinnedApps.pinned
+    val pinned: StateFlow<List<LauncherApp>?> = pinnedApps.pinned(PinTarget.Taskbar)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
 
     fun launch(id: AppId, sourceBounds: Rect?) {
@@ -29,10 +30,10 @@ class TaskbarViewModel @Inject constructor(
     }
 
     fun reorder(order: List<AppId>) {
-        viewModelScope.launch { pinnedApps.reorder(order) }
+        viewModelScope.launch { pinnedApps.reorder(PinTarget.Taskbar, order) }
     }
 
-    suspend fun icon(id: AppId, sizePx: Int): Bitmap? = installedApps.icon(id, sizePx)
+    suspend fun icon(id: AppId, sizePx: Int, tint: Int): Bitmap? = installedApps.icon(id, sizePx, tint)
 
     private companion object {
         const val StopTimeoutMs = 5_000L
