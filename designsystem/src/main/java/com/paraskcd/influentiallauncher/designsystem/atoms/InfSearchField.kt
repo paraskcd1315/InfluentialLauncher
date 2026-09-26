@@ -23,7 +23,8 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.X
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
-import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
+import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 
@@ -45,7 +46,7 @@ fun InfSearchField(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .infGlassSurface(shape, specular = false, strong = true)
+            .infPanelSurface(shape, blurred = LocalInfBlurred.current)
     ) {
         Icon(
             imageVector = Lucide.Search,

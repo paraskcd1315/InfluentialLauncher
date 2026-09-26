@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.paraskcd.influentiallauncher.designsystem.atoms.InfSearchField
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -126,12 +125,5 @@ fun ContactsTab(
                 }
             }
         }
-        InfSearchField(
-            value = query,
-            onValueChange = viewModel::setQuery,
-            placeholder = stringResource(R.string.startmenu_search_contacts),
-            clearDescription = stringResource(R.string.startmenu_clear),
-            modifier = Modifier.padding(top = StartMenuMetrics.searchTop, start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding)
-        )
     }
 }

@@ -61,7 +61,6 @@ fun Desktop(activity: ComponentActivity) {
     )
     StartMenuHost(
         open = startOpen,
-        tabsOffsetX = taskbarEdge,
         tabsOffsetY = aboveTaskbar,
         bottomOffset = aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap,
         onClose = { startOpen = false }

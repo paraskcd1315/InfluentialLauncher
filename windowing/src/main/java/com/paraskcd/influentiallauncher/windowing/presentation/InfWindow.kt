@@ -40,13 +40,14 @@ fun InfWindow(
     visible: Boolean = true,
     focusable: Boolean = false,
     fullScreen: Boolean = false,
+    liftAboveIme: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
     val imeBottom = WindowInsets.ime.getBottom(density)
     val requestedOffsetPx = with(density) { offsetY.roundToPx() }
     val imeOffsetPx = with(density) { imeBottom + WindowMetrics.ImeGap.roundToPx() }
-    val offsetYPx = if (focusable && !fullScreen && imeBottom > 0) maxOf(requestedOffsetPx, imeOffsetPx) else requestedOffsetPx
+    val offsetYPx = if (focusable && liftAboveIme && !fullScreen && imeBottom > 0) maxOf(requestedOffsetPx, imeOffsetPx) else requestedOffsetPx
 
     Dialog(
         onDismissRequest = onDismissRequest,

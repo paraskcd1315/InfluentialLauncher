@@ -14,7 +14,6 @@ import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurre
 @Composable
 fun StartTabsWindow(
     open: Boolean,
-    offsetX: Dp,
     offsetY: Dp,
     tabs: List<StartMenuTab>,
     selected: StartMenuTab,
@@ -24,8 +23,7 @@ fun StartTabsWindow(
     InfWindow(
         cornerRadius = InfRadii.pill,
         onDismissRequest = onClose,
-        gravity = Gravity.BOTTOM or Gravity.START,
-        offsetX = offsetX,
+        gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
         offsetY = offsetY,
         visible = open
     ) {
