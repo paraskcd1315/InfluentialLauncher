@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.taskbar.presentation.model
+package com.paraskcd.influentiallauncher.statusbar.presentation.model
 
 import com.paraskcd.influentiallauncher.devicestatus.domain.model.BatteryStatus
 import com.paraskcd.influentiallauncher.devicestatus.domain.model.CellularStatus

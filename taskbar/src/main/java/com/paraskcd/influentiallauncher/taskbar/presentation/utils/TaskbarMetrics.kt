@@ -13,8 +13,6 @@ object TaskbarMetrics {
     val barHeight = DsMetrics.tileSize + barPadding * 2
     val itemGap = InfSpacing.s1
     val startGlyphSize = 24.dp
-    val statusIconSize = 18.dp
-    val statusGap = InfSpacing.s2
     const val skeletonTileCount = 4
     val pickerCornerRadius = InfRadii.xl
     val pickerGap = InfSpacing.s2

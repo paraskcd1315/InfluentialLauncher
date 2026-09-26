@@ -7,10 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
-import com.paraskcd.influentiallauncher.devicestatus.domain.ports.DeviceStatusSource
 import com.paraskcd.influentiallauncher.taskbar.domain.usecase.PinnedApps
 import com.paraskcd.influentiallauncher.taskbar.presentation.model.PickerRow
-import com.paraskcd.influentiallauncher.taskbar.presentation.model.StatusState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,8 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TaskbarViewModel @Inject constructor(
     private val installedApps: InstalledApps,
-    private val pinnedApps: PinnedApps,
-    deviceStatus: DeviceStatusSource
+    private val pinnedApps: PinnedApps
 ) : ViewModel() {
 
     val pinned: StateFlow<List<LauncherApp>?> = pinnedApps.pinned
@@ -31,14 +28,6 @@ class TaskbarViewModel @Inject constructor(
 
     val pickerRows: StateFlow<List<PickerRow>?> = combine(installedApps.apps, pinnedApps.pinnedIds) { apps, pins ->
         apps.map { PickerRow(app = it, pinned = it.id in pins) }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
-
-    val status: StateFlow<StatusState?> = combine(
-        deviceStatus.battery,
-        deviceStatus.wifi,
-        deviceStatus.cellular
-    ) { battery, wifi, cellular ->
-        StatusState(battery, wifi, cellular)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
 
     fun launch(id: AppId, sourceBounds: Rect?) {

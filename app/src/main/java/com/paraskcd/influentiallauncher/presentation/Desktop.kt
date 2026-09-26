@@ -17,7 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.core.util.Consumer
 import com.paraskcd.influentiallauncher.clock.presentation.ClockHeader
+import com.paraskcd.influentiallauncher.statusbar.presentation.StatusBarHost
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarHost
+import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarLayout
+import com.paraskcd.influentiallauncher.taskbar.presentation.rememberAboveTaskbarOffset
 
 @Composable
 fun Desktop(activity: ComponentActivity) {
@@ -42,5 +45,10 @@ fun Desktop(activity: ComponentActivity) {
         onStartClick = { },
         pickerOpen = pickerOpen,
         onPickerOpenChange = { pickerOpen = it }
+    )
+    StatusBarHost(
+        offsetX = TaskbarLayout.sideMargin,
+        offsetY = rememberAboveTaskbarOffset(),
+        visible = !pickerOpen
     )
 }

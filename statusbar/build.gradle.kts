@@ -5,18 +5,16 @@ plugins {
 }
 
 android {
-    namespace = "com.paraskcd.influentiallauncher.taskbar"
+    namespace = "com.paraskcd.influentiallauncher.statusbar"
 }
 
 dependencies {
     implementation(project(":designsystem"))
     implementation(project(":windowing"))
-    implementation(project(":apps"))
+    implementation(project(":devicestatus"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.reorderable)
 }

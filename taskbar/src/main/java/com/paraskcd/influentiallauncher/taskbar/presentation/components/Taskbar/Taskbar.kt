@@ -17,15 +17,12 @@ import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.PinnedApps
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.PinnedAppsSkeleton
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.StartButton
-import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.StatusArea
-import com.paraskcd.influentiallauncher.taskbar.presentation.model.StatusState
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
 
 @Composable
 fun Taskbar(
     pinned: List<LauncherApp>?,
-    status: StatusState?,
     startOpen: Boolean,
     pickerOpen: Boolean,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
@@ -36,36 +33,25 @@ fun Taskbar(
     modifier: Modifier = Modifier
 ) {
     Row(
+        horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
             .infPanelSurface(RoundedCornerShape(TaskbarMetrics.barCornerRadius), blurred = LocalWindowBlurred.current)
             .padding(TaskbarMetrics.barPadding)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f)
-        ) {
-            StartButton(open = startOpen, onClick = onStartClick)
-            if (pinned == null) {
-                PinnedAppsSkeleton(modifier = Modifier.weight(1f, fill = false))
-            } else {
-                PinnedApps(
-                    apps = pinned,
-                    loadIcon = loadIcon,
-                    onLaunch = onLaunch,
-                    onReorder = onReorder,
-                    modifier = Modifier.weight(1f, fill = false)
-                )
-            }
-            AddPinButton(open = pickerOpen, onClick = onAddPinClick)
-        }
-        if (status != null) {
-            StatusArea(
-                status = status,
-                modifier = Modifier.padding(start = TaskbarMetrics.statusGap, end = TaskbarMetrics.barPadding)
+        StartButton(open = startOpen, onClick = onStartClick)
+        if (pinned == null) {
+            PinnedAppsSkeleton(modifier = Modifier.weight(1f, fill = false))
+        } else {
+            PinnedApps(
+                apps = pinned,
+                loadIcon = loadIcon,
+                onLaunch = onLaunch,
+                onReorder = onReorder,
+                modifier = Modifier.weight(1f, fill = false)
             )
         }
+        AddPinButton(open = pickerOpen, onClick = onAddPinClick)
     }
 }

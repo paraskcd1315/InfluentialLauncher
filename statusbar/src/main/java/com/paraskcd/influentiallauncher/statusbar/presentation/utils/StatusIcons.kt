@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.taskbar.presentation.utils
+package com.paraskcd.influentiallauncher.statusbar.presentation.utils
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.composables.icons.lucide.Battery

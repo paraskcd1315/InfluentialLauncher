@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":apps"))
     implementation(project(":devicestatus"))
     implementation(project(":taskbar"))
+    implementation(project(":statusbar"))
     implementation(project(":clock"))
 
     implementation(libs.androidx.core.ktx)

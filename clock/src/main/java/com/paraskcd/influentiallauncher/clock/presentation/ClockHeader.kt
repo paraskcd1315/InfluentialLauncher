@@ -6,7 +6,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,6 +24,7 @@ import com.paraskcd.influentiallauncher.clock.presentation.utils.ClockFormat
 import com.paraskcd.influentiallauncher.clock.presentation.utils.ClockMetrics
 import com.paraskcd.influentiallauncher.clock.presentation.viewmodels.ClockViewModel
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ClockHeader(
     modifier: Modifier = Modifier,
@@ -38,7 +40,7 @@ fun ClockHeader(
     )
     Column(
         modifier = modifier
-            .windowInsetsPadding(WindowInsets.statusBars)
+            .windowInsetsPadding(WindowInsets.statusBarsIgnoringVisibility)
             .padding(start = ClockMetrics.sideInset, end = ClockMetrics.sideInset, top = ClockMetrics.topGap)
     ) {
         Text(
