@@ -27,6 +27,7 @@ fun Taskbar(
     onStartClick: () -> Unit,
     onLaunch: (AppId, Rect?) -> Unit,
     onReorder: (List<AppId>) -> Unit,
+    onMenu: (LauncherApp) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -46,6 +47,7 @@ fun Taskbar(
                 loadIcon = loadIcon,
                 onLaunch = onLaunch,
                 onReorder = onReorder,
+                onMenu = onMenu,
                 modifier = Modifier.weight(1f)
             )
         }

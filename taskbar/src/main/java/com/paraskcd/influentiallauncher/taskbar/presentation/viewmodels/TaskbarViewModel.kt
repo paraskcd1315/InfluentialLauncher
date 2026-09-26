@@ -25,12 +25,27 @@ class TaskbarViewModel @Inject constructor(
     val pinned: StateFlow<List<LauncherApp>?> = pinnedApps.pinned(PinTarget.Taskbar)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
 
+    val startPins: StateFlow<List<AppId>> = pinnedApps.pinnedIds(PinTarget.Start)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptyList())
+
     fun launch(id: AppId, sourceBounds: Rect?) {
         installedApps.launch(id, sourceBounds)
     }
 
     fun reorder(order: List<AppId>) {
         viewModelScope.launch { pinnedApps.reorder(PinTarget.Taskbar, order) }
+    }
+
+    fun togglePin(target: PinTarget, id: AppId) {
+        viewModelScope.launch { pinnedApps.toggle(target, id) }
+    }
+
+    fun openInfo(id: AppId) {
+        installedApps.openInfo(id, null)
+    }
+
+    fun uninstall(id: AppId) {
+        installedApps.uninstall(id)
     }
 
     suspend fun icon(id: AppId, sizePx: Int, tint: Int): Bitmap? = installedApps.icon(id, sizePx, tint)

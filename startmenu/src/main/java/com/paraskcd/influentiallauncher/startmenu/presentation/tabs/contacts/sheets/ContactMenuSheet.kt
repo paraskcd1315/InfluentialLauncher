@@ -12,9 +12,9 @@ import com.composables.icons.lucide.UserRound
 import com.paraskcd.influentiallauncher.contacts.domain.model.Contact
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.startmenu.R
-import com.paraskcd.influentiallauncher.startmenu.presentation.shared.sheets.SheetAction
-import com.paraskcd.influentiallauncher.startmenu.presentation.shared.sheets.SheetActions
-import com.paraskcd.influentiallauncher.startmenu.presentation.shared.sheets.SheetWindow
+import com.paraskcd.influentiallauncher.designsystem.organisms.InfAction
+import com.paraskcd.influentiallauncher.designsystem.organisms.InfActionList
+import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.contacts.components.ContactAvatar
 
 @Composable
@@ -29,7 +29,7 @@ fun ContactMenuSheet(
     onOpen: (Contact) -> Unit
 ) {
     val colors = InfTheme.colors
-    SheetWindow(
+    InfSheetWindow(
         item = contact,
         title = { it.name },
         onDismiss = onDismiss,
@@ -37,7 +37,7 @@ fun ContactMenuSheet(
     ) { current ->
         val actions = buildList {
             add(
-                SheetAction(
+                InfAction(
                     icon = if (pinned) Lucide.PinOff else Lucide.Pin,
                     label = stringResource(if (pinned) R.string.startmenu_unpin_contact else R.string.startmenu_pin_contact),
                     tint = colors.textPrimary,
@@ -45,13 +45,13 @@ fun ContactMenuSheet(
                 )
             )
             if (current.phone != null) {
-                add(SheetAction(Lucide.Phone, stringResource(R.string.startmenu_call), colors.textPrimary) { onCall(current) })
+                add(InfAction(Lucide.Phone, stringResource(R.string.startmenu_call), colors.textPrimary) { onCall(current) })
             }
             if (current.whatsAppDataId != null) {
-                add(SheetAction(Lucide.MessageCircle, stringResource(R.string.startmenu_whatsapp), colors.success) { onWhatsApp(current) })
+                add(InfAction(Lucide.MessageCircle, stringResource(R.string.startmenu_whatsapp), colors.success) { onWhatsApp(current) })
             }
-            add(SheetAction(Lucide.UserRound, stringResource(R.string.startmenu_open_contact), colors.textPrimary) { onOpen(current) })
+            add(InfAction(Lucide.UserRound, stringResource(R.string.startmenu_open_contact), colors.textPrimary) { onOpen(current) })
         }
-        SheetActions(actions = actions, onDismiss = onDismiss)
+        InfActionList(actions = actions, onDismiss = onDismiss)
     }
 }

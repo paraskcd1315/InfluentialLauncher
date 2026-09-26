@@ -44,6 +44,7 @@ import com.paraskcd.influentiallauncher.timetracking.domain.model.StartTimer
 import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerActivity
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerProject
+import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
 
 @Composable
 fun StartTimerSheet(
@@ -53,7 +54,7 @@ fun StartTimerSheet(
     onStart: (Tracker, StartTimer) -> Unit,
     onDismiss: () -> Unit
 ) {
-    SheetWindow(
+    InfSheetWindow(
         item = tracker,
         title = { stringResource(R.string.startmenu_timer_title, stringResource(TrackerLabels.nameOf(it))) },
         onDismiss = onDismiss

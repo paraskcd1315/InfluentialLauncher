@@ -5,7 +5,7 @@ import androidx.compose.ui.res.stringResource
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfButton
 import com.paraskcd.influentiallauncher.designsystem.organisms.InfDatePicker
 import com.paraskcd.influentiallauncher.startmenu.R
-import com.paraskcd.influentiallauncher.startmenu.presentation.shared.sheets.SheetWindow
+import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
 import java.time.LocalDate
 
 @Composable
@@ -14,7 +14,7 @@ fun DatePickerSheet(
     onPick: (LocalDate) -> Unit,
     onDismiss: () -> Unit
 ) {
-    SheetWindow(
+    InfSheetWindow(
         item = date,
         title = { stringResource(R.string.startmenu_pick_date) },
         onDismiss = onDismiss

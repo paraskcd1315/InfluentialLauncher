@@ -45,4 +45,5 @@ object DsMetrics {
     val pickerYearTextSize = 22.sp
     val pickerTextSize = 13.sp
     val pickerChipHeight = 36.dp
+    val groupGap = 2.dp
 }

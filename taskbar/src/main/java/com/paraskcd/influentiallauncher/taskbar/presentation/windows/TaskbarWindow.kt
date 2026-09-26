@@ -18,7 +18,8 @@ fun TaskbarWindow(
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onStartClick: () -> Unit,
     onLaunch: (AppId, Rect?) -> Unit,
-    onReorder: (List<AppId>) -> Unit
+    onReorder: (List<AppId>) -> Unit,
+    onMenu: (LauncherApp) -> Unit
 ) {
     InfWindow(
         cornerRadius = TaskbarMetrics.barCornerRadius,
@@ -32,7 +33,8 @@ fun TaskbarWindow(
             loadIcon = loadIcon,
             onStartClick = onStartClick,
             onLaunch = onLaunch,
-            onReorder = onReorder
+            onReorder = onReorder,
+            onMenu = onMenu
         )
     }
 }

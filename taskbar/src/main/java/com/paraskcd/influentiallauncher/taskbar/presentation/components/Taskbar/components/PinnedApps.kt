@@ -32,9 +32,12 @@ fun PinnedApps(
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onLaunch: (AppId, Rect?) -> Unit,
     onReorder: (List<AppId>) -> Unit,
+    onMenu: (LauncherApp) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var order by remember { mutableStateOf(apps) }
+    var moved by remember { mutableStateOf(false) }
+    var held by remember { mutableStateOf(false) }
     LaunchedEffect(apps) { order = apps }
 
     val listState = rememberLazyListState()
@@ -42,6 +45,7 @@ fun PinnedApps(
         val fromIndex = order.indexOfFirst { it.id.key == from.key }
         val toIndex = order.indexOfFirst { it.id.key == to.key }
         if (fromIndex < 0 || toIndex < 0) return@rememberReorderableLazyListState
+        moved = true
         order = order.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
     }
     val draggingFill = InfTheme.colors.glassStrongBg
@@ -57,14 +61,27 @@ fun PinnedApps(
                 PinnedAppTile(
                     app = app,
                     loadIcon = loadIcon,
-                    onLaunch = onLaunch,
+                    onLaunch = { id, bounds -> if (held) held = false else onLaunch(id, bounds) },
                     modifier = Modifier
                         .graphicsLayer {
                             scaleX = scale
                             scaleY = scale
                         }
                         .background(if (dragging) draggingFill else Color.Transparent, RoundedCornerShape(TaskbarMetrics.pinCornerRadius))
-                        .longPressDraggableHandle(onDragStopped = { onReorder(order.map { it.id }) })
+                        .longPressDraggableHandle(
+                            onDragStarted = {
+                                moved = false
+                                held = true
+                            },
+                            onDragStopped = {
+                                if (moved) {
+                                    held = false
+                                    onReorder(order.map { it.id })
+                                } else {
+                                    onMenu(app)
+                                }
+                            }
+                        )
                 )
             }
         }

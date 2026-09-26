@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,6 +53,8 @@ fun InfDatePicker(
     val colors = InfTheme.colors
     val locale = Locale.getDefault()
     var shown by remember(selected) { mutableStateOf(YearMonth.from(selected)) }
+    var pickingYear by remember { mutableStateOf(false) }
+    var yearPage by remember { mutableIntStateOf(pageOf(selected.year)) }
     val firstDay = WeekFields.of(locale).firstDayOfWeek
 
     Column(verticalArrangement = Arrangement.spacedBy(InfSpacing.s4), modifier = modifier.fillMaxWidth()) {
@@ -60,53 +63,47 @@ fun InfDatePicker(
                 icon = Lucide.ChevronLeft,
                 contentDescription = previousYearDescription,
                 tint = colors.textPrimary,
-                onClick = { shown = shown.minusYears(1) }
+                onClick = { if (pickingYear) yearPage -= YearsPerPage else shown = shown.minusYears(1) }
             )
             Text(
-                text = shown.year.toString(),
+                text = if (pickingYear) "$yearPage – ${yearPage + YearsPerPage - 1}" else shown.year.toString(),
                 fontSize = DsMetrics.pickerYearTextSize,
                 fontWeight = FontWeight.Bold,
-                color = colors.textPrimary,
+                color = if (pickingYear) colors.brandText else colors.textPrimary,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(InfShapes.pill)
+                    .clickable {
+                        yearPage = pageOf(shown.year)
+                        pickingYear = !pickingYear
+                    }
+                    .padding(vertical = InfSpacing.s2)
             )
             InfIconButton(
                 icon = Lucide.ChevronRight,
                 contentDescription = nextYearDescription,
                 tint = colors.textPrimary,
-                onClick = { shown = shown.plusYears(1) }
+                onClick = { if (pickingYear) yearPage += YearsPerPage else shown = shown.plusYears(1) }
             )
         }
-        Column(verticalArrangement = Arrangement.spacedBy(InfSpacing.s2)) {
-            Month.entries.chunked(MonthColumns).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(InfSpacing.s2), modifier = Modifier.fillMaxWidth()) {
-                    row.forEach { month ->
-                        val active = month == shown.month
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(DsMetrics.pickerChipHeight)
-                                .then(
-                                    if (active) {
-                                        Modifier.clip(InfShapes.pill).background(colors.brand)
-                                    } else {
-                                        Modifier.infGlassSurface(InfShapes.pill, specular = false)
-                                    }
-                                )
-                                .clickable { shown = shown.withMonth(month.value) }
-                        ) {
-                            Text(
-                                text = month.getDisplayName(TextStyle.SHORT, locale),
-                                fontSize = DsMetrics.pickerTextSize,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (active) Color.White else colors.textPrimary
-                            )
-                        }
-                    }
+        if (pickingYear) {
+            val years = (yearPage until yearPage + YearsPerPage).toList()
+            ChipGrid(
+                labels = years.map { it.toString() },
+                active = years.indexOf(shown.year),
+                onSelect = { index ->
+                    shown = shown.withYear(years[index])
+                    pickingYear = false
                 }
-            }
+            )
+            return@Column
         }
+        ChipGrid(
+            labels = Month.entries.map { it.getDisplayName(TextStyle.SHORT, locale) },
+            active = shown.monthValue - 1,
+            onSelect = { index -> shown = shown.withMonth(index + 1) }
+        )
         val weekdays = (0 until DaysInWeek).map { firstDay.plus(it.toLong()) }
         Row(modifier = Modifier.fillMaxWidth()) {
             weekdays.forEach { day ->
@@ -131,6 +128,43 @@ fun InfDatePicker(
         }
     }
 }
+
+@Composable
+private fun ChipGrid(labels: List<String>, active: Int, onSelect: (Int) -> Unit) {
+    val colors = InfTheme.colors
+    Column(verticalArrangement = Arrangement.spacedBy(InfSpacing.s2)) {
+        labels.withIndex().chunked(ChipColumns).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(InfSpacing.s2), modifier = Modifier.fillMaxWidth()) {
+                row.forEach { (index, label) ->
+                    val on = index == active
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(DsMetrics.pickerChipHeight)
+                            .then(
+                                if (on) {
+                                    Modifier.clip(InfShapes.pill).background(colors.brand)
+                                } else {
+                                    Modifier.infGlassSurface(InfShapes.pill, specular = false)
+                                }
+                            )
+                            .clickable { onSelect(index) }
+                    ) {
+                        Text(
+                            text = label,
+                            fontSize = DsMetrics.pickerTextSize,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (on) Color.White else colors.textPrimary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun pageOf(year: Int): Int = year - Math.floorMod(year, YearsPerPage)
 
 @Composable
 private fun DayCell(
@@ -163,5 +197,6 @@ private fun DayCell(
     }
 }
 
-private const val MonthColumns = 4
+private const val ChipColumns = 4
+private const val YearsPerPage = 12
 private const val DaysInWeek = 7

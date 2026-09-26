@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="taskbar_start">Start</string>
+    <string name="taskbar_unpin">Unpin from taskbar</string>
+    <string name="taskbar_pin_start">Pin to Start</string>
+    <string name="taskbar_unpin_start">Unpin from Start</string>
+    <string name="taskbar_info">App info</string>
+    <string name="taskbar_uninstall">Uninstall</string>
 </resources>

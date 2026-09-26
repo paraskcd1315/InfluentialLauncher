@@ -1,4 +1,4 @@
-package com.paraskcd.influentiallauncher.startmenu.presentation.shared.sheets
+package com.paraskcd.influentiallauncher.windowing.presentation
 
 import android.view.Gravity
 import androidx.compose.foundation.layout.ColumnScope
@@ -11,11 +11,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.designsystem.organisms.InfBottomSheet
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
-import com.paraskcd.influentiallauncher.windowing.presentation.InfWindow
 import kotlinx.coroutines.delay
 
 @Composable
-fun <T : Any> SheetWindow(
+fun <T : Any> InfSheetWindow(
     item: T?,
     title: @Composable (T) -> String,
     onDismiss: () -> Unit,
