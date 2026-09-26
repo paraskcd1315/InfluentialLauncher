@@ -32,6 +32,7 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.startmenu.R
+import com.paraskcd.influentiallauncher.startmenu.presentation.sheets.AppMenuSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.LetterIndexedBox
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.ListSkeleton
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components.AppRow
@@ -46,6 +47,7 @@ import kotlinx.coroutines.launch
 fun AppsTab(
     open: Boolean,
     onClose: () -> Unit,
+    onScrub: (Char?) -> Unit,
     viewModel: AppsViewModel = hiltViewModel()
 ) {
     val content by viewModel.content.collectAsStateWithLifecycle()
@@ -54,7 +56,7 @@ fun AppsTab(
     val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint) { { id, px -> viewModel.icon(id, px, tint) } }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    var expandedKey by remember { mutableStateOf<String?>(null) }
+    var menuKey by remember { mutableStateOf<String?>(null) }
     val listTop = StartMenuMetrics.searchTop + DsMetrics.searchHeight + StartMenuMetrics.searchContentGap
 
     LaunchedEffect(open) {
@@ -62,25 +64,16 @@ fun AppsTab(
             listState.scrollToItem(0)
         } else {
             viewModel.setQuery("")
-            expandedKey = null
+            menuKey = null
         }
     }
-    LaunchedEffect(query) {
-        expandedKey = null
-        listState.scrollToItem(0)
-    }
+    LaunchedEffect(query) { listState.scrollToItem(0) }
+    val pinnedKeys = content?.pinned?.map { it.app.id.key }
+    LaunchedEffect(pinnedKeys) { listState.scrollToItem(0) }
 
     val launch: (AppId, Rect?) -> Unit = { id, bounds ->
         onClose()
         viewModel.launch(id, bounds)
-    }
-    val info: (AppId, Rect?) -> Unit = { id, bounds ->
-        onClose()
-        viewModel.openInfo(id, bounds)
-    }
-    val uninstall: (AppId) -> Unit = { id ->
-        onClose()
-        viewModel.uninstall(id)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -95,7 +88,8 @@ fun AppsTab(
             onJump = { letter ->
                 val index = LetterIndex.headerIndices(leading, sections.map { it.letter to it.apps.size })[letter]
                 if (index != null) scope.launch { listState.scrollToItem(index) }
-            }
+            },
+            onScrub = onScrub
         ) {
             when {
                 current == null -> ListSkeleton(
@@ -125,14 +119,9 @@ fun AppsTab(
                         item(key = ListKeys.PinnedGrid) {
                             PinnedGrid(
                                 apps = current.pinned,
-                                expandedKey = expandedKey?.takeIf { it.startsWith(ListKeys.PinnedPrefix) }?.removePrefix(ListKeys.PinnedPrefix),
                                 loadIcon = loadIcon,
                                 onLaunch = launch,
-                                onExpand = { key -> expandedKey = key?.let { ListKeys.PinnedPrefix + it } },
-                                onToggleStart = { viewModel.togglePin(PinTarget.Start, it) },
-                                onToggleTaskbar = { viewModel.togglePin(PinTarget.Taskbar, it) },
-                                onInfo = { info(it, null) },
-                                onUninstall = uninstall
+                                onLongPress = { menuKey = it.app.id.key }
                             )
                         }
                     }
@@ -140,19 +129,13 @@ fun AppsTab(
                     sections.forEach { section ->
                         item(key = ListKeys.HeaderPrefix + section.letter) { InfSectionHeader(text = section.letter.toString()) }
                         itemsIndexed(section.apps, key = { _, entry -> entry.app.id.key }) { index, entry ->
-                            val key = entry.app.id.key
                             AppRow(
                                 entry = entry,
                                 index = index,
                                 count = section.apps.size,
-                                expanded = expandedKey == key,
                                 loadIcon = loadIcon,
                                 onLaunch = launch,
-                                onLongPress = { expandedKey = if (expandedKey == key) null else key },
-                                onToggleStart = { viewModel.togglePin(PinTarget.Start, entry.app.id) },
-                                onToggleTaskbar = { viewModel.togglePin(PinTarget.Taskbar, entry.app.id) },
-                                onInfo = { bounds -> info(entry.app.id, bounds) },
-                                onUninstall = { uninstall(entry.app.id) }
+                                onLongPress = { menuKey = entry.app.id.key }
                             )
                         }
                     }
@@ -167,4 +150,23 @@ fun AppsTab(
             modifier = Modifier.padding(top = StartMenuMetrics.searchTop, start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding)
         )
     }
+
+    val menuEntry = menuKey?.let { key ->
+        content?.let { current -> (current.pinned + current.sections.flatMap { it.apps }).firstOrNull { it.app.id.key == key } }
+    }
+    AppMenuSheet(
+        entry = menuEntry,
+        loadIcon = loadIcon,
+        onDismiss = { menuKey = null },
+        onToggleStart = { viewModel.togglePin(PinTarget.Start, it) },
+        onToggleTaskbar = { viewModel.togglePin(PinTarget.Taskbar, it) },
+        onInfo = { id ->
+            onClose()
+            viewModel.openInfo(id, null)
+        },
+        onUninstall = { id ->
+            onClose()
+            viewModel.uninstall(id)
+        }
+    )
 }

@@ -3,7 +3,6 @@ package com.paraskcd.influentiallauncher.designsystem.atoms
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -17,7 +16,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
-import com.paraskcd.influentiallauncher.designsystem.theme.InfGlass
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 
 @Composable
@@ -47,7 +45,6 @@ fun InfAsyncIcon(
             modifier = modifier
                 .size(size)
                 .clip(CircleShape)
-                .border(InfGlass.borderWidth, InfTheme.colors.outline.copy(alpha = InfGlass.outlineAlpha), CircleShape)
         )
     }
 }

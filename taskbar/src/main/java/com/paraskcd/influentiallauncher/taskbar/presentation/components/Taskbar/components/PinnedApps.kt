@@ -44,7 +44,7 @@ fun PinnedApps(
         if (fromIndex < 0 || toIndex < 0) return@rememberReorderableLazyListState
         order = order.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
     }
-    val draggingFill = InfTheme.colors.surfaceVariant.copy(alpha = TaskbarMetrics.draggingFillAlpha)
+    val draggingFill = InfTheme.colors.glassStrongBg
 
     LazyRow(
         state = listState,

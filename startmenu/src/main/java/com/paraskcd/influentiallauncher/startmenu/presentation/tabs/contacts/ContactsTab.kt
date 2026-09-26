@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 fun ContactsTab(
     open: Boolean,
     onClose: () -> Unit,
+    onScrub: (Char?) -> Unit,
     viewModel: ContactsViewModel = hiltViewModel()
 ) {
     val permission by viewModel.permissionState.collectAsStateWithLifecycle()
@@ -85,7 +86,8 @@ fun ContactsTab(
                 val leading = if (favourites == null) 0 else favourites.contacts.size + 1
                 val index = LetterIndex.headerIndices(leading, lettered.map { it.letter to it.contacts.size })[letter]
                 if (index != null) scope.launch { listState.scrollToItem(index) }
-            }
+            },
+            onScrub = onScrub
         ) {
             when {
                 current == null -> ListSkeleton(modifier = Modifier.padding(contentPadding))

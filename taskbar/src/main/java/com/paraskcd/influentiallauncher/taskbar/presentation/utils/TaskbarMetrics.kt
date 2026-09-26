@@ -22,5 +22,4 @@ object TaskbarMetrics {
     const val skeletonTileCount = 4
     const val skeletonAlpha = 0.10f
     const val draggingScale = 1.12f
-    const val draggingFillAlpha = 0.35f
 }

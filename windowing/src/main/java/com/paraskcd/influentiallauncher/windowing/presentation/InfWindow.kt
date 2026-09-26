@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.windowing.infrastructure.DialogWindowSetup
 import kotlinx.coroutines.android.awaitFrame
@@ -38,13 +39,14 @@ fun InfWindow(
     widthFraction: Float? = null,
     visible: Boolean = true,
     focusable: Boolean = false,
+    fullScreen: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
     val imeBottom = WindowInsets.ime.getBottom(density)
     val requestedOffsetPx = with(density) { offsetY.roundToPx() }
     val imeOffsetPx = with(density) { imeBottom + WindowMetrics.ImeGap.roundToPx() }
-    val offsetYPx = if (focusable && imeBottom > 0) maxOf(requestedOffsetPx, imeOffsetPx) else requestedOffsetPx
+    val offsetYPx = if (focusable && !fullScreen && imeBottom > 0) maxOf(requestedOffsetPx, imeOffsetPx) else requestedOffsetPx
 
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -66,9 +68,10 @@ fun InfWindow(
         val reveal = remember { Animatable(0f) }
         var configured by remember { mutableStateOf(false) }
 
-        remember(cornerRadiusPx, offsetXPx, gravity, fillWidth, marginPx, widthFraction, screenWidthDp) {
+        remember(cornerRadiusPx, offsetXPx, gravity, fillWidth, marginPx, widthFraction, screenWidthDp, fullScreen) {
             val displayWidth = DialogWindowSetup.displayWidth(window)
             val width = when {
+                fullScreen -> displayWidth
                 widthFraction != null -> (displayWidth * widthFraction).toInt()
                 fillWidth -> displayWidth - marginPx * 2
                 else -> ViewGroup.LayoutParams.WRAP_CONTENT
@@ -76,12 +79,14 @@ fun InfWindow(
             DialogWindowSetup.configure(
                 window = window,
                 widthPx = width,
+                heightPx = if (fullScreen) DialogWindowSetup.displayHeight(window) else ViewGroup.LayoutParams.WRAP_CONTENT,
                 gravity = gravity,
                 offsetXPx = offsetXPx,
                 offsetYPx = offsetYPx,
                 cornerRadiusPx = cornerRadiusPx,
-                elevationPx = elevationPx,
-                shadowAlpha = WindowMetrics.ShadowAlpha
+                elevationPx = if (fullScreen) 0f else elevationPx,
+                shadowAlpha = WindowMetrics.ShadowAlpha,
+                fullScreen = fullScreen
             )
             DialogWindowSetup.place(window, offsetYPx, alpha = 0f)
         }
@@ -111,6 +116,10 @@ fun InfWindow(
                 DialogWindowSetup.setBlur(window, value.toInt())
             }
         }
-        CompositionLocalProvider(LocalWindowBlurred provides blurAvailable, content = content)
+        CompositionLocalProvider(
+            LocalWindowBlurred provides blurAvailable,
+            LocalInfBlurred provides blurAvailable,
+            content = content
+        )
     }
 }

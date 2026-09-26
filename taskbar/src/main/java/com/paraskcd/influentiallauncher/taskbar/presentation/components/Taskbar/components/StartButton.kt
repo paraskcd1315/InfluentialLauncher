@@ -1,7 +1,6 @@
 package com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -10,10 +9,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
 import com.paraskcd.influentiallauncher.designsystem.icons.WindowsLogo
-import com.paraskcd.influentiallauncher.designsystem.theme.InfGlass
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.taskbar.R
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
@@ -31,9 +30,8 @@ fun StartButton(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .size(TaskbarMetrics.startSize)
-            .clip(shape)
-            .background(if (open) colors.surfaceBright else colors.surfaceVariant.copy(alpha = InfGlass.wellAlpha))
-            .border(InfGlass.borderWidth, colors.outline.copy(alpha = InfGlass.outlineAlpha), shape)
+            .infGlassSurface(shape)
+            .background(if (open) colors.brandTint else Color.Transparent)
             .clickable(onClickLabel = label, onClick = onClick)
     ) {
         Icon(

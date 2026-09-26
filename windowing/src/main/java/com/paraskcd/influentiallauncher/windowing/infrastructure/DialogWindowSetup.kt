@@ -4,7 +4,6 @@ import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
 import android.view.View
-import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.view.Window
 import android.view.WindowManager
@@ -13,12 +12,14 @@ object DialogWindowSetup {
     fun configure(
         window: Window,
         widthPx: Int,
+        heightPx: Int,
         gravity: Int,
         offsetXPx: Int,
         offsetYPx: Int,
         cornerRadiusPx: Float,
         elevationPx: Float,
-        shadowAlpha: Float
+        shadowAlpha: Float,
+        fullScreen: Boolean
     ) {
         window.decorView.outlineProvider = object : ViewOutlineProvider() {
             override fun getOutline(view: View, outline: Outline) {
@@ -45,12 +46,20 @@ object DialogWindowSetup {
             WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED
         )
+        if (fullScreen) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.isNavigationBarContrastEnforced = false
+        }
         window.setGravity(gravity)
-        window.setLayout(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT)
+        window.setLayout(widthPx, heightPx)
         window.attributes = window.attributes.apply {
             x = offsetXPx
             y = offsetYPx
             windowAnimations = 0
+            if (fullScreen) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                fitInsetsTypes = 0
+            }
         }
     }
 
@@ -81,4 +90,7 @@ object DialogWindowSetup {
 
     fun displayWidth(window: Window): Int =
         window.windowManager.currentWindowMetrics.bounds.width()
+
+    fun displayHeight(window: Window): Int =
+        window.windowManager.currentWindowMetrics.bounds.height()
 }

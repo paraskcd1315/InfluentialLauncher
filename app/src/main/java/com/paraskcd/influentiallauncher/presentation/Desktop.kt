@@ -53,13 +53,16 @@ fun Desktop(activity: ComponentActivity) {
         onStartClick = { startOpen = !startOpen },
         onAppLaunched = { startOpen = false }
     )
+    val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
     StatusBarHost(
-        offsetX = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f,
+        offsetX = taskbarEdge,
         offsetY = aboveTaskbar,
-        visible = true
+        visible = !startOpen
     )
     StartMenuHost(
         open = startOpen,
+        tabsOffsetX = taskbarEdge,
+        tabsOffsetY = aboveTaskbar,
         bottomOffset = aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap,
         onClose = { startOpen = false }
     )

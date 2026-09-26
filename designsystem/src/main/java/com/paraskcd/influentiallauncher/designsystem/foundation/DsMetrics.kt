@@ -34,4 +34,9 @@ object DsMetrics {
     val bubbleTextSize = 48.sp
     val buttonHeight = 44.dp
     val buttonTextSize = 15.sp
+    val hairlineThickness = 1.dp
+    val sheetHandleWidth = 40.dp
+    val sheetHandleHeight = 5.dp
+    val sheetIconSize = 40.dp
+    val actionIconSize = 22.dp
 }

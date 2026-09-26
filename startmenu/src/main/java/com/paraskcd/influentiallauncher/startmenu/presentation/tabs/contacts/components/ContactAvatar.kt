@@ -43,7 +43,7 @@ fun ContactAvatar(
             .size(StartMenuMetrics.rowIconSize)
             .clip(CircleShape)
             .background(colors.brand.copy(alpha = StartMenuMetrics.avatarAlpha))
-            .border(InfGlass.borderWidth, colors.outline.copy(alpha = InfGlass.outlineAlpha), CircleShape)
+            .border(InfGlass.borderWidth, colors.glassBorder, CircleShape)
     ) {
         val bitmap = photo
         if (bitmap != null) {

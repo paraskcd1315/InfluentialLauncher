@@ -16,5 +16,6 @@ fun Modifier.infPanelSurface(shape: Shape, blurred: Boolean): Modifier {
     return this
         .clip(shape)
         .background(colors.bgBase.copy(alpha = alpha))
-        .border(InfGlass.borderWidth, colors.outline.copy(alpha = InfGlass.outlineAlpha), shape)
+        .border(InfGlass.borderWidth, colors.glassBorder, shape)
+        .infSpecularEdge(shape)
 }

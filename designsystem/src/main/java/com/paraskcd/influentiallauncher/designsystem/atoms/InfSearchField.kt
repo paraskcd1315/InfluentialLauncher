@@ -1,6 +1,5 @@
 package com.paraskcd.influentiallauncher.designsystem.atoms
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
@@ -25,6 +23,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.X
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
+import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 
@@ -46,20 +45,19 @@ fun InfSearchField(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .clip(shape)
-            .background(colors.surfaceBright)
+            .infGlassSurface(shape, specular = false, strong = true)
     ) {
         Icon(
             imageVector = Lucide.Search,
             contentDescription = null,
-            tint = colors.textPrimary,
+            tint = colors.textTertiary,
             modifier = Modifier
                 .padding(start = DsMetrics.searchIconStart, end = DsMetrics.searchIconEnd)
                 .size(DsMetrics.searchIconSize)
         )
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
             if (value.isEmpty()) {
-                Text(text = placeholder, style = textStyle, color = colors.textPrimary, maxLines = 1)
+                Text(text = placeholder, style = textStyle, color = colors.textTertiary, maxLines = 1)
             }
             BasicTextField(
                 value = value,

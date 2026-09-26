@@ -8,7 +8,6 @@ object StartMenuMetrics {
     const val widthFraction = 0.9f
     val cornerRadius = DsMetrics.cornerLarge
     val windowGap = InfSpacing.s2
-    val tabsHeight = DsMetrics.segmentHeight + InfSpacing.s1 * 2
     val listPadding = 16.dp
     val searchTop = 16.dp
     val searchContentGap = 8.dp
@@ -22,11 +21,6 @@ object StartMenuMetrics {
     val pinnedIconSize = 54.dp
     val pinnedLabelGap = 6.dp
     val pinnedCellPadding = 8.dp
-    val actionGap = InfSpacing.s2
-    val actionHeight = 40.dp
-    val actionIconSize = 16.dp
-    val actionPadding = InfSpacing.s3
-    const val actionFillAlpha = 0.12f
     val permissionPadding = InfSpacing.s5
     val permissionGap = InfSpacing.s4
     val eventDotSize = 10.dp

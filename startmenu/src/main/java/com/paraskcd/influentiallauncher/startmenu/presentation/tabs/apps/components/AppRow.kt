@@ -2,7 +2,6 @@ package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.compon
 
 import android.graphics.Bitmap
 import android.graphics.Rect
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,14 +33,9 @@ fun AppRow(
     entry: StartMenuApp,
     index: Int,
     count: Int,
-    expanded: Boolean,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onLaunch: (AppId, Rect?) -> Unit,
     onLongPress: () -> Unit,
-    onToggleStart: () -> Unit,
-    onToggleTaskbar: () -> Unit,
-    onInfo: (Rect?) -> Unit,
-    onUninstall: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var bounds by remember { mutableStateOf<Rect?>(null) }
@@ -75,15 +69,6 @@ fun AppRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
-            )
-        }
-        AnimatedVisibility(visible = expanded) {
-            AppActions(
-                entry = entry,
-                onToggleStart = onToggleStart,
-                onToggleTaskbar = onToggleTaskbar,
-                onInfo = { onInfo(bounds) },
-                onUninstall = onUninstall
             )
         }
     }
