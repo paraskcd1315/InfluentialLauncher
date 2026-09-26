@@ -1,0 +1,65 @@
+package com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components
+
+import android.graphics.Bitmap
+import android.graphics.Rect
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
+import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
+
+@Composable
+fun PinnedApps(
+    apps: List<LauncherApp>,
+    loadIcon: suspend (AppId, Int) -> Bitmap?,
+    onLaunch: (AppId, Rect?) -> Unit,
+    onReorder: (List<AppId>) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var order by remember { mutableStateOf(apps) }
+    LaunchedEffect(apps) { order = apps }
+
+    val listState = rememberLazyListState()
+    val reorderState = rememberReorderableLazyListState(listState) { from, to ->
+        val fromIndex = order.indexOfFirst { it.id == from.key }
+        val toIndex = order.indexOfFirst { it.id == to.key }
+        if (fromIndex < 0 || toIndex < 0) return@rememberReorderableLazyListState
+        order = order.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
+    }
+
+    LazyRow(
+        state = listState,
+        horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
+        modifier = modifier
+    ) {
+        items(order, key = { it.id }) { app ->
+            ReorderableItem(reorderState, key = app.id) { dragging ->
+                val scale by animateFloatAsState(if (dragging) TaskbarMetrics.draggingScale else 1f, label = "pinScale")
+                PinnedAppTile(
+                    app = app,
+                    loadIcon = loadIcon,
+                    onLaunch = onLaunch,
+                    modifier = Modifier
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                        }
+                        .longPressDraggableHandle(onDragStopped = { onReorder(order.map { it.id }) })
+                )
+            }
+        }
+    }
+}

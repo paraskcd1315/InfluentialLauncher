@@ -62,6 +62,11 @@ object DialogWindowSetup {
 
     fun setVisible(window: Window, visible: Boolean) {
         window.decorView.visibility = if (visible) View.VISIBLE else View.INVISIBLE
+        if (visible) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        } else {
+            window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        }
     }
 
     fun setBlur(window: Window, radius: Int) {

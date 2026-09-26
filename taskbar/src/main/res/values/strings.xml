@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="taskbar_start">Start</string>
+    <string name="taskbar_add_pin">Pin apps</string>
+    <string name="taskbar_battery">Battery %1$d%%</string>
+    <string name="taskbar_battery_charging">Battery %1$d%%, charging</string>
+    <string name="taskbar_battery_percent">%1$d%%</string>
+    <string name="taskbar_wifi_connected">Wi-Fi connected</string>
+    <string name="taskbar_wifi_off">Wi-Fi not connected</string>
+    <string name="taskbar_cellular">Mobile signal</string>
+    <string name="picker_title">Pin to taskbar</string>
+    <string name="picker_pinned">Pinned</string>
+    <string name="picker_close">Close</string>
+    <string name="picker_empty">No apps found</string>
+</resources>
