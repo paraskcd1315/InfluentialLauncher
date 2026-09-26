@@ -12,7 +12,7 @@ object StartMenuMetrics {
     val searchTop = 16.dp
     val searchContentGap = 8.dp
     val listTopPlain = 16.dp
-    val listBottom = 16.dp
+    val listBottom = 88.dp
     val rowGap = 2.dp
     val rowPadding = 16.dp
     val rowIconSize = 54.dp
@@ -23,8 +23,6 @@ object StartMenuMetrics {
     val pinnedCellPadding = 8.dp
     val permissionPadding = InfSpacing.s5
     val permissionGap = InfSpacing.s4
-    val eventDotSize = 10.dp
-    val dayHeaderHeight = 56.dp
     const val skeletonRows = 6
     const val skeletonAlpha = 0.10f
     val skeletonLabelHeight = InfSpacing.s4

@@ -42,4 +42,7 @@ object DsMetrics {
     val iconButtonSize = 44.dp
     val iconButtonGlyph = 20.dp
     const val disabledAlpha = 0.38f
+    val pickerYearTextSize = 22.sp
+    val pickerTextSize = 13.sp
+    val pickerChipHeight = 36.dp
 }

@@ -17,7 +17,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun <T : Any> SheetWindow(
     item: T?,
-    title: (T) -> String,
+    title: @Composable (T) -> String,
     onDismiss: () -> Unit,
     leading: (@Composable (T) -> Unit)? = null,
     content: @Composable ColumnScope.(T) -> Unit

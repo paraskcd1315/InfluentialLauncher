@@ -4,6 +4,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
@@ -20,7 +21,8 @@ fun InfSegmented(
     selected: Int,
     onSelect: (Int) -> Unit,
     blurred: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    equalWidth: Boolean = false
 ) {
     Box(
         modifier = modifier
@@ -28,12 +30,17 @@ fun InfSegmented(
             .padding(InfSpacing.s1)
     ) {
         Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            modifier = if (equalWidth) Modifier.fillMaxWidth() else Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(InfSpacing.s1),
             verticalAlignment = Alignment.CenterVertically
         ) {
             labels.forEachIndexed { index, label ->
-                InfSegment(label = label, active = index == selected, onClick = { onSelect(index) })
+                InfSegment(
+                    label = label,
+                    active = index == selected,
+                    onClick = { onSelect(index) },
+                    modifier = if (equalWidth) Modifier.weight(1f) else Modifier
+                )
             }
         }
     }

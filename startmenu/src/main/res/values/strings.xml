@@ -37,4 +37,27 @@
     <string name="startmenu_settings_calendar">Calendar tab</string>
     <string name="startmenu_settings_contacts">Contacts tab</string>
     <string name="startmenu_settings_caption">Show this tab in the Start menu</string>
+    <string name="startmenu_pick_date">Pick a date</string>
+    <string name="startmenu_previous_year">Previous year</string>
+    <string name="startmenu_next_year">Next year</string>
+    <string name="startmenu_tracker_toggl">Toggl</string>
+    <string name="startmenu_tracker_kimai">Kimai</string>
+    <string name="startmenu_tracker_setup">Add your %1$s details in the Settings tab to see your hours here.</string>
+    <string name="startmenu_tracker_failed">%1$s did not answer. Check its details in the Settings tab.</string>
+    <string name="startmenu_total">%1$dh %2$02dm</string>
+    <string name="startmenu_today_total">Today · %1$s</string>
+    <string name="startmenu_calendar_allow">Show calendar events</string>
+    <string name="startmenu_timer_start">Start timer</string>
+    <string name="startmenu_timer_stop">Stop timer</string>
+    <string name="startmenu_timer_title">Start a %1$s timer</string>
+    <string name="startmenu_timer_description">Description</string>
+    <string name="startmenu_timer_placeholder">What are you working on?</string>
+    <string name="startmenu_timer_project">Project</string>
+    <string name="startmenu_timer_activity">Activity</string>
+    <string name="startmenu_timer_no_project">No project</string>
+    <string name="startmenu_timer_loading">Loading…</string>
+    <string name="startmenu_settings_tracking">Time tracking</string>
+    <string name="startmenu_settings_toggl_token">Toggl API token</string>
+    <string name="startmenu_settings_kimai_url">Kimai URL</string>
+    <string name="startmenu_settings_kimai_token">Kimai API token</string>
 </resources>

@@ -52,6 +52,10 @@ class CalendarViewModel @Inject constructor(
         _day.value = _day.value.plusDays(1)
     }
 
+    fun setDay(date: LocalDate) {
+        _day.value = date
+    }
+
     fun today() {
         _day.value = LocalDate.now()
     }

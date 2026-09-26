@@ -33,7 +33,15 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.windows.LetterBub
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartMenuWindow
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartSearchWindow
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartTabsWindow
+import com.paraskcd.influentiallauncher.startmenu.presentation.shared.sheets.StartTimerSheet
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TimelineMetrics
+import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.TimeTrackingViewModel
+import com.paraskcd.influentiallauncher.startmenu.presentation.windows.TimerButtonWindow
+import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.windowing.presentation.WindowMetrics
+import kotlinx.coroutines.delay
+
+private const val TimerPollMs = 30_000L
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -44,8 +52,23 @@ fun StartMenuHost(
     onClose: () -> Unit,
     viewModel: StartMenuViewModel = hiltViewModel(),
     appsViewModel: AppsViewModel = hiltViewModel(),
-    contactsViewModel: ContactsViewModel = hiltViewModel()
+    contactsViewModel: ContactsViewModel = hiltViewModel(),
+    timeTracking: TimeTrackingViewModel = hiltViewModel()
 ) {
+    val credentials by timeTracking.credentials.collectAsStateWithLifecycle()
+    val running by timeTracking.running.collectAsStateWithLifecycle()
+    val calendarTracker by timeTracking.tracker.collectAsStateWithLifecycle()
+    var startFor by remember { mutableStateOf<Tracker?>(null) }
+    LaunchedEffect(open, credentials) {
+        if (!open) {
+            startFor = null
+            return@LaunchedEffect
+        }
+        while (true) {
+            timeTracking.refreshRunning()
+            delay(TimerPollMs)
+        }
+    }
     val tabs by viewModel.tabs.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val appsQuery by appsViewModel.query.collectAsStateWithLifecycle()
@@ -69,7 +92,8 @@ fun StartMenuHost(
     val searchOffset = screenHeight - menuTop - StartMenuMetrics.searchTop - DsMetrics.searchHeight
     val searchFraction = (screenWidth * StartMenuMetrics.widthFraction - StartMenuMetrics.listPadding * 2) / screenWidth
     val searchesContacts = selected == StartMenuTab.Contacts
-    val searchShown = open && (selected == StartMenuTab.Apps || (searchesContacts && contactsPermission != PermissionState.Missing))
+    val timerTracker = if (selected == StartMenuTab.Calendar) calendarTracker else Tracker.Toggl
+    val searchShown = open &&(selected == StartMenuTab.Apps || (searchesContacts && contactsPermission != PermissionState.Missing))
 
     StartTabsWindow(
         open = open,
@@ -82,11 +106,24 @@ fun StartMenuHost(
     StartMenuWindow(open = open, offsetY = bottomOffset, height = menuHeight, onClose = onClose) {
         when (selected) {
             StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose, onScrub = { scrubLetter = it }, viewModel = appsViewModel)
-            StartMenuTab.Calendar -> CalendarTab(open = open, onClose = onClose)
+            StartMenuTab.Calendar -> CalendarTab(open = open, onClose = onClose, timeTracking = timeTracking)
             StartMenuTab.Contacts -> ContactsTab(open = open, onClose = onClose, onScrub = { scrubLetter = it }, viewModel = contactsViewModel)
-            StartMenuTab.Settings -> SettingsTab(settings = settings, onTabShown = viewModel::setTabShown)
+            StartMenuTab.Settings -> SettingsTab(
+                settings = settings,
+                onTabShown = viewModel::setTabShown,
+                credentials = credentials,
+                onCredentials = timeTracking::updateCredentials
+            )
         }
     }
+    TimerButtonWindow(
+        visible = open && credentials.configured(timerTracker),
+        running = running[timerTracker],
+        offsetX = screenWidth * (1f - StartMenuMetrics.widthFraction) / 2f + TimelineMetrics.fabInset,
+        offsetY = effectiveBottom + TimelineMetrics.fabInset,
+        onStart = { startFor = timerTracker },
+        onStop = timeTracking::stop
+    )
     StartSearchWindow(
         visible = searchShown,
         offsetY = searchOffset,
@@ -98,4 +135,11 @@ fun StartMenuHost(
         onClose = onClose
     )
     LetterBubbleWindow(letter = scrubLetter.takeIf { open }, offsetY = bubbleOffset)
+    StartTimerSheet(
+        tracker = startFor,
+        loadProjects = timeTracking::projects,
+        loadActivities = timeTracking::activities,
+        onStart = timeTracking::start,
+        onDismiss = { startFor = null }
+    )
 }
