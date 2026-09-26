@@ -24,3 +24,5 @@ rootProject.name = "InfluentialLauncher"
 include(":app")
 include(":designsystem")
 include(":windowing")
+include(":apps")
+include(":devicestatus")
