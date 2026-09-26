@@ -33,6 +33,13 @@ android {
 }
 
 dependencies {
+    implementation(project(":designsystem"))
+    implementation(project(":windowing"))
+    implementation(project(":apps"))
+    implementation(project(":devicestatus"))
+    implementation(project(":taskbar"))
+    implementation(project(":clock"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
