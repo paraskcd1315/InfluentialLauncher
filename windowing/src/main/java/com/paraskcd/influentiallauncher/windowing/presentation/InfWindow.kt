@@ -1,0 +1,107 @@
+package com.paraskcd.influentiallauncher.windowing.presentation
+
+import android.view.Gravity
+import android.view.ViewGroup
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
+import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
+import com.paraskcd.influentiallauncher.windowing.infrastructure.DialogWindowSetup
+import kotlinx.coroutines.android.awaitFrame
+
+@Composable
+fun InfWindow(
+    cornerRadius: Dp,
+    onDismissRequest: () -> Unit,
+    gravity: Int = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
+    offsetX: Dp = 0.dp,
+    offsetY: Dp = 0.dp,
+    fillWidth: Boolean = false,
+    horizontalMargin: Dp = 0.dp,
+    visible: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+            dismissOnClickOutside = false,
+            dismissOnBackPress = false
+        )
+    ) {
+        val window = (LocalView.current.parent as DialogWindowProvider).window
+        val density = LocalDensity.current
+        val screenWidthDp = LocalConfiguration.current.screenWidthDp
+        val cornerRadiusPx = with(density) { cornerRadius.toPx() }
+        val offsetXPx = with(density) { offsetX.roundToPx() }
+        val offsetYPx = with(density) { offsetY.roundToPx() }
+        val marginPx = with(density) { horizontalMargin.roundToPx() }
+        val elevationPx = with(density) { WindowMetrics.Elevation.toPx() }
+        val blurAvailable by rememberWindowBlurAvailable()
+        val blur = remember { Animatable(0f) }
+        val reveal = remember { Animatable(0f) }
+        var configured by remember { mutableStateOf(false) }
+
+        remember(cornerRadiusPx, offsetXPx, gravity, fillWidth, marginPx, screenWidthDp) {
+            val width = if (fillWidth) {
+                DialogWindowSetup.displayWidth(window) - marginPx * 2
+            } else {
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            }
+            DialogWindowSetup.configure(
+                window = window,
+                widthPx = width,
+                gravity = gravity,
+                offsetXPx = offsetXPx,
+                offsetYPx = offsetYPx,
+                cornerRadiusPx = cornerRadiusPx,
+                elevationPx = elevationPx,
+                shadowAlpha = WindowMetrics.ShadowAlpha
+            )
+            DialogWindowSetup.place(window, offsetYPx, alpha = 0f)
+        }
+        LaunchedEffect(Unit) {
+            awaitFrame()
+            awaitFrame()
+            configured = true
+        }
+        LaunchedEffect(visible, configured) {
+            if (!configured) return@LaunchedEffect
+            reveal.animateTo(if (visible) 1f else 0f, tween(InfMotion.durMorphMs, easing = InfMotion.easeIos))
+        }
+        val shown = configured && (visible || reveal.value > 0f)
+        val progress = reveal.value
+        SideEffect {
+            DialogWindowSetup.place(window, offsetYPx, alpha = progress)
+            DialogWindowSetup.setVisible(window, shown)
+        }
+        LaunchedEffect(blurAvailable, shown) {
+            if (!shown) {
+                blur.snapTo(0f)
+                DialogWindowSetup.setBlur(window, 0)
+                return@LaunchedEffect
+            }
+            val target = if (blurAvailable) WindowMetrics.BlurRadiusMax.toFloat() else 0f
+            blur.animateTo(target, tween(WindowMetrics.BlurRampMs)) {
+                DialogWindowSetup.setBlur(window, value.toInt())
+            }
+        }
+        CompositionLocalProvider(LocalWindowBlurred provides blurAvailable, content = content)
+    }
+}
