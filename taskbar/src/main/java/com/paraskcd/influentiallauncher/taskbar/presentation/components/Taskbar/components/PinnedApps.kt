@@ -34,8 +34,8 @@ fun PinnedApps(
 
     val listState = rememberLazyListState()
     val reorderState = rememberReorderableLazyListState(listState) { from, to ->
-        val fromIndex = order.indexOfFirst { it.id == from.key }
-        val toIndex = order.indexOfFirst { it.id == to.key }
+        val fromIndex = order.indexOfFirst { it.id.key == from.key }
+        val toIndex = order.indexOfFirst { it.id.key == to.key }
         if (fromIndex < 0 || toIndex < 0) return@rememberReorderableLazyListState
         order = order.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
     }
@@ -45,8 +45,8 @@ fun PinnedApps(
         horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
         modifier = modifier
     ) {
-        items(order, key = { it.id }) { app ->
-            ReorderableItem(reorderState, key = app.id) { dragging ->
+        items(order, key = { it.id.key }) { app ->
+            ReorderableItem(reorderState, key = app.id.key) { dragging ->
                 val scale by animateFloatAsState(if (dragging) TaskbarMetrics.draggingScale else 1f, label = "pinScale")
                 PinnedAppTile(
                     app = app,

@@ -73,7 +73,7 @@ fun AppPicker(
                 modifier = Modifier.padding(InfSpacing.s3)
             )
             else -> LazyColumn(modifier = Modifier.heightIn(max = TaskbarMetrics.pickerMaxHeight)) {
-                items(rows, key = { it.app.id }) { row ->
+                items(rows, key = { it.app.id.key }) { row ->
                     AppPickerRow(row = row, loadIcon = loadIcon, onToggle = onToggle)
                 }
             }
