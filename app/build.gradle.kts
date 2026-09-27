@@ -1,11 +1,30 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.influential.android.application)
     alias(libs.plugins.influential.android.compose)
     alias(libs.plugins.influential.hilt)
 }
 
+val releaseSigning = Properties().apply {
+    rootProject.file("keystore.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) }
+}
+val releaseSigningKeys = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+val releaseSigningReady = releaseSigningKeys.all { !releaseSigning.getProperty(it).isNullOrBlank() }
+
 android {
     namespace = "com.paraskcd.influentiallauncher"
+
+    signingConfigs {
+        if (releaseSigningReady) {
+            create("release") {
+                storeFile = file(releaseSigning.getProperty("storeFile"))
+                storePassword = releaseSigning.getProperty("storePassword")
+                keyAlias = releaseSigning.getProperty("keyAlias")
+                keyPassword = releaseSigning.getProperty("keyPassword")
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.paraskcd.influentiallauncher"
@@ -27,7 +46,8 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (releaseSigningReady) signingConfig = signingConfigs.getByName("release")
         }
     }
 }
