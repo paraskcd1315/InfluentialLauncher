@@ -29,7 +29,7 @@ class HomeDragState {
         hoverIndex = -1
     }
 
-    fun move(to: Offset, area: IntSize, grid: HomeGrid, count: Int) {
+    fun move(to: Offset, area: IntSize, grid: HomeGrid) {
         val cellWidth = area.width / grid.columns.toFloat()
         val cellHeight = area.height / grid.rows.toFloat()
         if (cellWidth <= 0f || cellHeight <= 0f) return
@@ -40,11 +40,7 @@ class HomeDragState {
         val margin = (1f - HomeMetrics.hoverCore) / 2f
         val nearEdge = insideX < margin || insideX > 1f - margin || insideY < margin || insideY > 1f - margin
         if (nearEdge && hoverIndex >= 0) return
-        hoverIndex = (row * grid.columns + column).coerceIn(0, count)
-    }
-
-    fun clampHover(count: Int) {
-        if (hoverIndex > count) hoverIndex = count
+        hoverIndex = row * grid.columns + column
     }
 
     fun leave() {

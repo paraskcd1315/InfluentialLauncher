@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Minus
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
@@ -37,6 +38,7 @@ fun HomeAppCell(
     app: LauncherApp,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     modifier: Modifier = Modifier,
+    iconSize: Dp = HomeMetrics.iconSize,
     onRemove: (() -> Unit)? = null
 ) {
     Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
@@ -47,7 +49,7 @@ fun HomeAppCell(
             Box {
                 InfAsyncIcon(
                     key = app.id.key,
-                    size = HomeMetrics.iconSize,
+                    size = iconSize,
                     load = { loadIcon(app.id, it) },
                     version = loadIcon
                 )

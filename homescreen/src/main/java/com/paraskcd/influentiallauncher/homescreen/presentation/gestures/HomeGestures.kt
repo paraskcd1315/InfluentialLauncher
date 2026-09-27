@@ -9,13 +9,14 @@ import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.unit.IntSize
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
-import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenPage
+import com.paraskcd.influentiallauncher.homescreen.presentation.state.VisualPage
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 
 class HomeGestures(
     private val pager: PagerState,
-    private val pages: () -> List<HomeScreenPage>,
+    private val pages: () -> List<VisualPage>,
     private val grid: () -> HomeGrid,
+    private val insets: () -> GridInsets,
     private val wiggling: () -> Boolean,
     private val overview: () -> Boolean,
     private val onTapApp: (LauncherApp, RectF) -> Unit,
@@ -30,8 +31,11 @@ class HomeGestures(
             val down = awaitFirstDown(requireUnconsumed = false)
             if (overview()) return@awaitEachGesture
             val page = pages().getOrNull(pager.currentPage)
-            val slot = slotAt(down.position, size)
-            val app = page?.apps?.getOrNull(slot)
+            val inset = insets()
+            val area = inset.area(size)
+            val local = inset.local(down.position)
+            val slot = slotAt(local, area)
+            val app = slot?.let { page?.slots?.getOrNull(it) }
             val outcome = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
                 while (true) {
                     val event = awaitPointerEvent()
@@ -51,7 +55,7 @@ class HomeGestures(
                 Outcome.Drag -> app?.let(onDragApp)
                 Outcome.Tap -> when {
                     page == null -> onTapAddPage()
-                    app != null && !wiggling() -> onTapApp(app, cellRect(slot, size))
+                    app != null && slot != null && !wiggling() -> onTapApp(app, inset.window(cellRect(slot, area)))
                     app == null && wiggling() -> onTapEmpty()
                 }
                 Outcome.LongPress -> when {
@@ -70,7 +74,8 @@ class HomeGestures(
         }
     }
 
-    private fun slotAt(position: Offset, area: IntSize): Int {
+    private fun slotAt(position: Offset, area: IntSize): Int? {
+        if (position.x < 0f || position.x >= area.width || position.y < 0f || position.y >= area.height) return null
         val shape = grid()
         val column = (position.x / (area.width / shape.columns.toFloat())).toInt().coerceIn(0, shape.columns - 1)
         val row = (position.y / (area.height / shape.rows.toFloat())).toInt().coerceIn(0, shape.rows - 1)
@@ -87,4 +92,13 @@ class HomeGestures(
     }
 
     private enum class Outcome { Tap, Drag, LongPress, Cancel }
+}
+
+/** The horizontal padding between the full-width pager and the grid it lays apps in. */
+data class GridInsets(val startPx: Float, val endPx: Float) {
+    fun area(full: IntSize): IntSize = IntSize((full.width - startPx - endPx).toInt().coerceAtLeast(0), full.height)
+
+    fun local(position: Offset): Offset = position - Offset(startPx, 0f)
+
+    fun window(cell: RectF): RectF = RectF(cell.left + startPx, cell.top, cell.right + startPx, cell.bottom)
 }

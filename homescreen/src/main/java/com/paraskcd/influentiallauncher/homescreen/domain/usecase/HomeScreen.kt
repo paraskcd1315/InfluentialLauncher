@@ -12,7 +12,7 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class HomeScreenPage(val id: String, val apps: List<LauncherApp>)
+data class HomeScreenPage(val id: String, val apps: List<LauncherApp?>)
 
 data class HomeScreenState(val pages: List<HomeScreenPage>, val homeIndex: Int)
 
@@ -24,7 +24,7 @@ class HomeScreen @Inject constructor(
     val state: Flow<HomeScreenState> = combine(installedApps.apps, store.layout) { apps, layout ->
         val byId = apps.associateBy { it.id }
         HomeScreenState(
-            pages = layout.pages.map { page -> HomeScreenPage(page.id, page.apps.mapNotNull { byId[it] }) },
+            pages = layout.pages.map { page -> HomeScreenPage(page.id, page.apps.map { id -> id?.let(byId::get) }) },
             homeIndex = layout.homeIndex
         )
     }
@@ -33,7 +33,7 @@ class HomeScreen @Inject constructor(
 
     suspend fun add(app: AppId) = store.update { HomeEdits.addApp(it, app, ::newId) }
 
-    suspend fun move(app: AppId, toPageId: String, toIndex: Int) = store.update { HomeEdits.move(it, app, toPageId, toIndex, ::newId) }
+    suspend fun move(app: AppId, toPageId: String, toIndex: Int) = store.update { HomeEdits.move(it, app, toPageId, toIndex) }
 
     suspend fun remove(app: AppId) = store.update { HomeEdits.removeApp(it, app) }
 

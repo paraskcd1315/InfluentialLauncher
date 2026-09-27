@@ -1,17 +1,26 @@
 package com.paraskcd.influentiallauncher.homescreen.presentation.utils
 
-import com.paraskcd.influentiallauncher.homescreen.domain.model.HomeLayout
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntSize
 
-/** The columns and rows one home page lays its apps out in, for the current orientation. */
+/** The columns and rows one visual home page shows. */
 data class HomeGrid(val columns: Int, val rows: Int) {
-    init {
-        require(columns * rows == HomeLayout.PageCapacity)
-    }
+    val capacity: Int get() = columns * rows
 
     companion object {
-        val Portrait = HomeGrid(columns = 4, rows = 6)
-        val Landscape = HomeGrid(columns = 6, rows = 4)
+        private val Portrait = HomeGrid(columns = 4, rows = 6)
+        private val Landscape = HomeGrid(columns = 6, rows = 4)
 
-        fun of(landscape: Boolean): HomeGrid = if (landscape) Landscape else Portrait
+        fun preferred(landscape: Boolean): HomeGrid = if (landscape) Landscape else Portrait
+
+        fun fit(area: IntSize, density: Density, landscape: Boolean): HomeGrid {
+            val preferred = preferred(landscape)
+            if (area.width <= 0 || area.height <= 0) return preferred
+            val (minWidth, minHeight) = with(density) { HomeMetrics.minCellWidth.toPx() to HomeMetrics.minCellHeight.toPx() }
+            return HomeGrid(
+                columns = (area.width / minWidth).toInt().coerceIn(1, preferred.columns),
+                rows = (area.height / minHeight).toInt().coerceIn(1, preferred.rows)
+            )
+        }
     }
 }

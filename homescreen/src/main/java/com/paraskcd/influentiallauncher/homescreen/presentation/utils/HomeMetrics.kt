@@ -17,6 +17,10 @@ object HomeMetrics {
     const val labelShadowAlpha = 0.35f
     const val labelShadowBlur = 12f
     val iconSize = 56.dp
+    val minCellWidth = 60.dp
+    val minCellHeight = 72.dp
+    val cellInset = 4.dp
+    const val labelLineFallback = 1.45f
     val labelGap = 4.dp
     val badgeSize = 22.dp
     val badgeGlyph = 14.dp

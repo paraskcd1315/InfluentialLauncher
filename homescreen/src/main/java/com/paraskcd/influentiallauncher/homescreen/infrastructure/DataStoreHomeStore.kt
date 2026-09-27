@@ -59,7 +59,7 @@ class DataStoreHomeStore @Inject constructor(
                 val apps = page.optJSONArray(Fields.Apps) ?: JSONArray()
                 HomePage(
                     id = page.getString(Fields.Id),
-                    apps = (0 until apps.length()).mapNotNull { AppId.fromKey(apps.optString(it)) }
+                    apps = (0 until apps.length()).map { slot -> if (apps.isNull(slot)) null else AppId.fromKey(apps.optString(slot)) }
                 )
             }
             HomeEdits.normalize(HomeLayout(parsed, root.optString(Fields.Home))) { DefaultPageId }
@@ -75,7 +75,7 @@ class DataStoreHomeStore @Inject constructor(
                     put(
                         JSONObject()
                             .put(Fields.Id, page.id)
-                            .put(Fields.Apps, JSONArray().apply { page.apps.forEach { put(it.key) } })
+                            .put(Fields.Apps, JSONArray().apply { page.apps.forEach { put(it?.key ?: JSONObject.NULL) } })
                     )
                 }
             }

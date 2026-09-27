@@ -14,18 +14,17 @@ import androidx.compose.ui.unit.min
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
-import com.paraskcd.influentiallauncher.homescreen.domain.model.HomeLayout
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 
 @Composable
-fun PageMap(apps: List<LauncherApp>, grid: HomeGrid, loadIcon: suspend (AppId, Int) -> Bitmap?, modifier: Modifier = Modifier) {
+fun PageMap(apps: List<LauncherApp?>, grid: HomeGrid, loadIcon: suspend (AppId, Int) -> Bitmap?, modifier: Modifier = Modifier) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val cellWidth = maxWidth / grid.columns
         val cellHeight = maxHeight / grid.rows
         val icon = min(cellWidth, cellHeight) * HomeMetrics.mapIconFraction
-        apps.take(HomeLayout.PageCapacity).forEachIndexed { index, app ->
-            key(app.id.key) {
+        apps.take(grid.capacity).forEachIndexed { index, app ->
+            if (app != null) key(app.id.key) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier

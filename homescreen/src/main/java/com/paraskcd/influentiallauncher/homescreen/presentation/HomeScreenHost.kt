@@ -14,6 +14,7 @@ import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,31 +46,31 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
-import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.infrastructure.LaunchOrigins
-import com.paraskcd.influentiallauncher.designsystem.atoms.InfButton
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
-import com.paraskcd.influentiallauncher.homescreen.R
-import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenPage
 import com.paraskcd.influentiallauncher.homescreen.presentation.components.AddPageTile
 import com.paraskcd.influentiallauncher.homescreen.presentation.components.PageGrid
 import com.paraskcd.influentiallauncher.homescreen.presentation.components.PageOverview
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDrag
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.DragSource
+import com.paraskcd.influentiallauncher.homescreen.presentation.gestures.GridInsets
 import com.paraskcd.influentiallauncher.homescreen.presentation.gestures.HomeGestures
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.DeletePageSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.HomeAppSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.RemoveAppSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.state.HomeDragState
+import com.paraskcd.influentiallauncher.homescreen.presentation.state.HomePaging
+import com.paraskcd.influentiallauncher.homescreen.presentation.state.VisualPage
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 import com.paraskcd.influentiallauncher.homescreen.presentation.viewmodels.HomeScreenViewModel
@@ -78,10 +79,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/** The edge-to-edge home pager, whose [contentPadding] insets each page's grid. */
 @Composable
 fun HomeScreenHost(
     onAppLaunched: () -> Unit,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     onOverviewChange: (Boolean) -> Unit = {},
     viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
@@ -97,21 +100,32 @@ fun HomeScreenHost(
     val tint = InfTheme.colors.brandText.toArgb()
     val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
     val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
-    val pageCount = pages.size + if (wiggling) 1 else 0
-    val pager = rememberPagerState(initialPage = current.homeIndex) { pageCount }
+    val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
+    val landscape = isLandscape()
+    var areaOrigin by remember { mutableStateOf(Offset.Zero) }
+    var areaSize by remember { mutableStateOf(IntSize.Zero) }
+    val insets = with(density) {
+        GridInsets(
+            startPx = contentPadding.calculateLeftPadding(layoutDirection).toPx(),
+            endPx = contentPadding.calculateRightPadding(layoutDirection).toPx()
+        )
+    }
+    val grid = HomeGrid.fit(insets.area(areaSize), density, landscape)
+    val visual = remember(pages, grid) { HomePaging.visualPages(pages, grid.capacity) }
+    val homeVisual = visual.indexOfFirst { it.page.id == pages.getOrNull(current.homeIndex)?.id }.coerceAtLeast(0)
+    val pageCount = visual.size + if (wiggling) 1 else 0
+    val pager = rememberPagerState(initialPage = homeVisual) { pageCount }
     val drag = remember { HomeDragState() }
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
     val view = LocalView.current
-    val density = LocalDensity.current
     val iconPx = with(density) { HomeMetrics.iconSize.roundToPx() }
-    var areaOrigin by remember { mutableStateOf(Offset.Zero) }
-    var areaSize by remember { mutableStateOf(IntSize.Zero) }
-    val latestPages by rememberUpdatedState(pages)
+    val latestVisual by rememberUpdatedState(visual)
+    val latestGrid by rememberUpdatedState(grid)
+    val latestInsets by rememberUpdatedState(insets)
     val latestWiggling by rememberUpdatedState(wiggling)
     val latestOverview by rememberUpdatedState(overview)
-    val grid = HomeGrid.of(isLandscape())
-    val latestGrid by rememberUpdatedState(grid)
     val wiggle = wiggleAngle(wiggling)
     val overviewProgress by animateFloatAsState(
         targetValue = if (overview) 1f else 0f,
@@ -128,8 +142,9 @@ fun HomeScreenHost(
     val gestures = remember {
         HomeGestures(
             pager = pager,
-            pages = { latestPages },
+            pages = { latestVisual },
             grid = { latestGrid },
+            insets = { latestInsets },
             wiggling = { latestWiggling },
             overview = { latestOverview },
             onTapApp = { app, cell ->
@@ -160,7 +175,7 @@ fun HomeScreenHost(
             origin = { areaOrigin },
             size = { areaSize },
             grid = { latestGrid },
-            countOn = { pageIndex -> countOn(latestPages, pageIndex, drag) },
+            insets = { latestInsets },
             edgePx = with(density) { HomeMetrics.edgeZone.toPx() },
             flip = { side ->
                 scope.launch {
@@ -169,31 +184,21 @@ fun HomeScreenHost(
                         val target = pager.currentPage + side
                         if (target !in 0 until pager.pageCount) break
                         pager.animateScrollToPage(target)
-                        drag.clampHover(countOn(latestPages, target, drag))
                     }
                 }
             },
             currentPage = { pager.currentPage },
             onDrop = { payload, pageIndex, index ->
-                val page = latestPages.getOrNull(pageIndex)
+                val page = latestVisual.getOrNull(pageIndex)
                 when (payload.source) {
-                    DragSource.Home -> if (page == null) viewModel.moveToNewPage(payload.app.id) else viewModel.move(payload.app.id, page.id, index)
-                    DragSource.Taskbar -> viewModel.fromTaskbar(payload.app.id, page?.id, index)
+                    DragSource.Home -> if (page == null) viewModel.moveToNewPage(payload.app.id) else viewModel.move(payload.app.id, page.page.id, page.start + index)
+                    DragSource.Taskbar -> viewModel.fromTaskbar(payload.app.id, page?.page?.id, (page?.start ?: 0) + index)
                 }
             }
         )
     }
 
     Column(modifier = modifier) {
-        if (wiggling) {
-            InfButton(
-                label = stringResource(R.string.home_done),
-                onClick = viewModel::stopWiggle,
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(bottom = HomeMetrics.dotsGap)
-            )
-        }
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -206,25 +211,29 @@ fun HomeScreenHost(
                 .pointerInput(Unit) { with(gestures) { detect() } }
         ) {
             if (overviewProgress > 0f) {
+                val currentPageId = visual.getOrNull(pager.currentPage)?.page?.id
                 PageOverview(
                     pages = pages,
                     homeIndex = current.homeIndex,
-                    currentIndex = pager.currentPage,
+                    currentIndex = pages.indexOfFirst { it.id == currentPageId }.coerceAtLeast(0),
                     onOpen = { index ->
                         viewModel.closeOverview()
-                        scope.launch { pager.scrollToPage(index) }
+                        val target = visual.indexOfFirst { it.page.id == pages.getOrNull(index)?.id }.coerceAtLeast(0)
+                        scope.launch { pager.scrollToPage(target) }
                     },
                     onSetHome = { viewModel.setHome(it.id) },
                     onDelete = viewModel::askDelete,
                     onAdd = viewModel::addPage,
                     grid = grid,
                     loadIcon = loadIcon,
-                    modifier = Modifier.graphicsLayer {
-                        val scale = lerp(HomeMetrics.overviewCardsScale, 1f, overviewProgress)
-                        scaleX = scale
-                        scaleY = scale
-                        alpha = overviewProgress
-                    }
+                    modifier = Modifier
+                        .padding(contentPadding)
+                        .graphicsLayer {
+                            val scale = lerp(HomeMetrics.overviewCardsScale, 1f, overviewProgress)
+                            scaleX = scale
+                            scaleY = scale
+                            alpha = overviewProgress
+                        }
                 )
             }
             if (overviewProgress < 1f) {
@@ -232,7 +241,7 @@ fun HomeScreenHost(
                     state = pager,
                     userScrollEnabled = !drag.dragging && !overview,
                     beyondViewportPageCount = 1,
-                    key = { pages.getOrNull(it)?.id ?: AddPageKey },
+                    key = { visual.getOrNull(it)?.key ?: AddPageKey },
                     modifier = Modifier.graphicsLayer {
                         val scale = lerp(1f, HomeMetrics.overviewPagerScale, overviewProgress)
                         scaleX = scale
@@ -240,17 +249,19 @@ fun HomeScreenHost(
                         alpha = 1f - overviewProgress
                     }
                 ) { index ->
-                    val page = pages.getOrNull(index)
-                    if (page == null) {
-                        AddPageTile()
-                    } else {
-                        PageGrid(
-                            slots = slotsFor(page, index, pager.currentPage, drag),
-                            grid = grid,
-                            loadIcon = loadIcon,
-                            wiggle = wiggle,
-                            onRemove = if (wiggling) viewModel::askRemove else null
-                        )
+                    val page = visual.getOrNull(index)
+                    Box(modifier = Modifier.padding(contentPadding)) {
+                        if (page == null) {
+                            AddPageTile()
+                        } else {
+                            PageGrid(
+                                slots = HomePaging.gridSlots(page, grid.capacity, drag, hovered = index == pager.currentPage),
+                                grid = grid,
+                                loadIcon = loadIcon,
+                                wiggle = wiggle,
+                                onRemove = if (wiggling) viewModel::askRemove else null
+                            )
+                        }
                     }
                 }
             }
@@ -291,7 +302,7 @@ private class HomeDropTarget(
     private val origin: () -> Offset,
     private val size: () -> IntSize,
     private val grid: () -> HomeGrid,
-    private val countOn: (Int) -> Int,
+    private val insets: () -> GridInsets,
     private val edgePx: Float,
     private val flip: (Int) -> Job,
     private val currentPage: () -> Int,
@@ -306,11 +317,12 @@ private class HomeDropTarget(
 
     override fun onMoved(event: DragAndDropEvent) {
         val android = event.toAndroidDragEvent()
-        val local = Offset(android.x, android.y) - origin()
-        drag.move(local, size(), grid(), countOn(currentPage()))
+        val full = Offset(android.x, android.y) - origin()
+        val inset = insets()
+        drag.move(inset.local(full), inset.area(size()), grid())
         val side = when {
-            local.x < edgePx -> -1
-            local.x > size().width - edgePx -> 1
+            full.x < edgePx -> -1
+            full.x > size().width - edgePx -> 1
             else -> 0
         }
         if (side != edgeSide) {
@@ -342,16 +354,6 @@ private class HomeDropTarget(
         edgeJob = null
         edgeSide = 0
     }
-}
-
-private fun countOn(pages: List<HomeScreenPage>, pageIndex: Int, drag: HomeDragState): Int =
-    pages.getOrNull(pageIndex)?.apps?.count { it.id != drag.app?.id } ?: 0
-
-private fun slotsFor(page: HomeScreenPage, index: Int, currentPage: Int, drag: HomeDragState): List<LauncherApp?> {
-    val dragged = drag.app ?: return page.apps
-    val base: List<LauncherApp?> = if (drag.fromHome) page.apps.filterNot { it.id == dragged.id } else page.apps
-    if (index != currentPage || drag.hoverIndex < 0) return base
-    return base.toMutableList().apply { add(drag.hoverIndex.coerceIn(0, size), null) }
 }
 
 @Composable

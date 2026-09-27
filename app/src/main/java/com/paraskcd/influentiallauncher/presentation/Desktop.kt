@@ -42,7 +42,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.fillMaxWidth
+import com.paraskcd.influentiallauncher.homescreen.presentation.HomeEditDone
 import com.paraskcd.influentiallauncher.homescreen.presentation.HomeScreenHost
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -248,10 +250,10 @@ fun Desktop(activity: ComponentActivity) {
                 )
             }
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .then(if (landscape) Modifier.fillMaxWidth(DesktopMetrics.landscapeHeaderFraction) else Modifier)
+                .then(if (landscape) Modifier.fillMaxWidth(DesktopMetrics.landscapeHeaderFraction) else Modifier.fillMaxWidth())
                 .padding(top = if (landscape) StatusBarLayout.height + DesktopMetrics.windowGap else 0.dp)
                 .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
                 .graphicsLayer {
@@ -263,17 +265,26 @@ fun Desktop(activity: ComponentActivity) {
                     transformOrigin = TransformOrigin(0f, 0f)
                 }
         ) {
-            ClockHeader(sideInset = taskbarEdge)
-            GlanceHost(horizontalInset = taskbarEdge)
+            Column {
+                ClockHeader(sideInset = taskbarEdge)
+                GlanceHost(horizontalInset = taskbarEdge)
+            }
+            HomeEditDone(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = taskbarEdge)
+            )
         }
         HomeScreenHost(
             onAppLaunched = appLaunched,
             onOverviewChange = { homeOverview = it },
+            contentPadding = PaddingValues(
+                start = if (landscape) screenWidth * DesktopMetrics.landscapeHeaderFraction else taskbarEdge,
+                end = if (landscape) aboveTaskbar else taskbarEdge
+            ),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = if (landscape) screenWidth * DesktopMetrics.landscapeHeaderFraction else taskbarEdge,
-                    end = if (landscape) aboveTaskbar else taskbarEdge,
                     top = if (landscape) statusTop + DesktopMetrics.windowGap else headerHeight + DesktopMetrics.windowGap,
                     bottom = if (landscape) navigationBottom + StatusBarLayout.height + DesktopMetrics.windowGap * 2
                         else aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap
