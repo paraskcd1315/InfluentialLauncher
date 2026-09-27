@@ -25,11 +25,10 @@ internal object ThemedIconRenderer {
     private const val VisibleAlpha = 24
     private const val ContrastGain = 3f
     private const val ChannelMax = 255
-    private const val SingleColourShare = 0.9f
     private const val BadgeCoverage = 0.15f
     private const val QuantizeMask = 0x00F0F0F0
-    private const val PlateCoverage = 0.6f
     private const val LogoCoverage = 0.01f
+    private const val MinContrast = 96
 
     fun render(icon: Drawable, tint: Int, sizePx: Int): Bitmap {
         val adaptive = icon as? AdaptiveIconDrawable
@@ -81,14 +80,16 @@ internal object ThemedIconRenderer {
         source.getPixels(pixels, 0, width, 0, 0, width, height)
         val opaque = pixels.filter { Color.alpha(it) >= OpaqueAlpha }
         if (opaque.isEmpty()) return source
-        val plate = opaque.size >= pixels.size * PlateCoverage
         val colours = opaque.groupingBy { it and QuantizeMask }.eachCount()
         val (base, baseCount) = colours.maxBy { it.value }
-        if (!plate && baseCount >= opaque.size * SingleColourShare) return source
         if (baseCount < pixels.size * BadgeCoverage) return source
         val backgroundRed = Color.red(base)
         val backgroundGreen = Color.green(base)
         val backgroundBlue = Color.blue(base)
+        val contrasting = opaque.count { pixel ->
+            abs(Color.red(pixel) - backgroundRed) + abs(Color.green(pixel) - backgroundGreen) + abs(Color.blue(pixel) - backgroundBlue) >= MinContrast
+        }
+        if (contrasting < opaque.size * LogoCoverage) return source
         var visible = 0
         for (index in pixels.indices) {
             val pixel = pixels[index]
