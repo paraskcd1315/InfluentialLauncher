@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.infrastructure.LaunchOrigins
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
@@ -380,7 +381,7 @@ private fun PageDots(count: Int, current: Int, modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .size(HomeMetrics.dot)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = if (index == current) 1f else DotIdleAlpha))
+                    .background(LocalWallpaperInk.current.content.copy(alpha = if (index == current) 1f else DotIdleAlpha))
             )
         }
     }

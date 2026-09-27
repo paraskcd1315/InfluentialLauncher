@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Minus
+import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
@@ -31,7 +32,6 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.homescreen.R
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 
-private val LabelShadow = Shadow(color = Color.Black.copy(alpha = HomeMetrics.labelShadowAlpha), blurRadius = HomeMetrics.labelShadowBlur)
 
 @Composable
 fun HomeAppCell(
@@ -41,6 +41,7 @@ fun HomeAppCell(
     iconSize: Dp = HomeMetrics.iconSize,
     onRemove: (() -> Unit)? = null
 ) {
+    val ink = LocalWallpaperInk.current
     Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -75,8 +76,10 @@ fun HomeAppCell(
             }
             Text(
                 text = app.label,
-                style = MaterialTheme.typography.labelMedium.copy(shadow = LabelShadow),
-                color = Color.White,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    shadow = Shadow(color = ink.shadow.copy(alpha = HomeMetrics.labelShadowAlpha), blurRadius = HomeMetrics.labelShadowBlur)
+                ),
+                color = ink.content,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center

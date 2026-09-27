@@ -29,8 +29,13 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -200,6 +205,11 @@ fun Desktop(activity: ComponentActivity) {
     val taskbarEdge = if (landscape) maxOf(DesktopMetrics.landscapeInset, cutoutStart + DesktopMetrics.windowGap)
         else screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
     val landscapeGridMargin = maxOf(statusTop, navigationBottom) + DesktopMetrics.windowGap
+    val windowSize = LocalWindowInfo.current.containerSize
+    var headerBounds by remember { mutableStateOf<Rect?>(null) }
+    var gridBounds by remember { mutableStateOf<Rect?>(null) }
+    val headerInk = rememberWallpaperInk(headerBounds, windowSize)
+    val gridInk = rememberWallpaperInk(gridBounds, windowSize)
     val pillTop = statusTop + DesktopMetrics.windowGap
     val belowPill = pillTop + StatusBarLayout.height + DesktopMetrics.windowGap
     val introZoom = if (introPlaying) 1f - fade.value else 0f
@@ -257,6 +267,7 @@ fun Desktop(activity: ComponentActivity) {
                 .then(if (landscape) Modifier.fillMaxWidth(DesktopMetrics.landscapeHeaderFraction) else Modifier.fillMaxWidth())
                 .padding(top = if (landscape) StatusBarLayout.height + DesktopMetrics.windowGap else 0.dp)
                 .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
+                .onGloballyPositioned { headerBounds = it.boundsInWindow() }
                 .graphicsLayer {
                     alpha = chromeAlpha
                     translationY = direction * (1f - fade.value) * clockLift
@@ -266,9 +277,11 @@ fun Desktop(activity: ComponentActivity) {
                     transformOrigin = TransformOrigin(0f, 0f)
                 }
         ) {
-            Column {
-                ClockHeader(sideInset = taskbarEdge)
-                GlanceHost(horizontalInset = taskbarEdge)
+            CompositionLocalProvider(LocalWallpaperInk provides headerInk) {
+                Column {
+                    ClockHeader(sideInset = taskbarEdge)
+                    GlanceHost(horizontalInset = taskbarEdge)
+                }
             }
             HomeEditDone(
                 modifier = Modifier
@@ -276,6 +289,7 @@ fun Desktop(activity: ComponentActivity) {
                     .padding(end = taskbarEdge)
             )
         }
+        CompositionLocalProvider(LocalWallpaperInk provides gridInk) {
         HomeScreenHost(
             onAppLaunched = appLaunched,
             onOverviewChange = { homeOverview = it },
@@ -289,11 +303,13 @@ fun Desktop(activity: ComponentActivity) {
                     top = if (landscape) landscapeGridMargin else headerHeight + DesktopMetrics.windowGap,
                     bottom = if (landscape) landscapeGridMargin else aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap
                 )
+                .onGloballyPositioned { gridBounds = it.boundsInWindow() }
                 .graphicsLayer {
                     alpha = fade.value
                     translationY = direction * (1f - fade.value) * clockLift
                 }
         )
+        }
     }
     TaskbarHost(
         startOpen = startOpen,

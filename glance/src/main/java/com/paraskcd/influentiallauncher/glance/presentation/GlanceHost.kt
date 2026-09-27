@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import com.paraskcd.influentiallauncher.glance.R
 import com.paraskcd.influentiallauncher.glance.presentation.components.GlanceText
 import com.paraskcd.influentiallauncher.glance.presentation.components.MediaGlance
@@ -134,7 +135,7 @@ fun GlanceHost(
                         modifier = Modifier
                             .size(GlanceMetrics.dot)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = if (index == pager.currentPage) 1f else GlanceMetrics.dotIdleAlpha))
+                            .background(LocalWallpaperInk.current.content.copy(alpha = if (index == pager.currentPage) 1f else GlanceMetrics.dotIdleAlpha))
                     )
                 }
             }

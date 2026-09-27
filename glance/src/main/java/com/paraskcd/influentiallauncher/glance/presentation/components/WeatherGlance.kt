@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import com.paraskcd.influentiallauncher.glance.R
 import com.paraskcd.influentiallauncher.glance.presentation.utils.GlanceMetrics
 import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherVisuals
@@ -30,7 +31,7 @@ fun WeatherGlance(weather: Weather, onOpen: () -> Unit, modifier: Modifier = Mod
         Icon(
             imageVector = WeatherVisuals.iconOf(weather.condition, weather.isDay),
             contentDescription = null,
-            tint = Color.White,
+            tint = LocalWallpaperInk.current.content,
             modifier = Modifier.size(GlanceMetrics.icon)
         )
         GlanceText(text = stringResource(R.string.glance_temperature, weather.temperatureC), style = MaterialTheme.typography.headlineMedium)

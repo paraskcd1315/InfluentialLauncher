@@ -15,20 +15,22 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import com.paraskcd.influentiallauncher.glance.presentation.utils.GlanceMetrics
-
-private val GlanceShadow = Shadow(
-    color = Color.Black.copy(alpha = GlanceMetrics.shadowAlpha),
-    offset = GlanceMetrics.shadowOffset,
-    blurRadius = GlanceMetrics.shadowBlur
-)
 
 @Composable
 fun GlanceText(text: String, style: TextStyle, modifier: Modifier = Modifier, alpha: Float = 1f) {
+    val ink = LocalWallpaperInk.current
     Text(
         text = text,
-        style = style.copy(shadow = GlanceShadow),
-        color = Color.White.copy(alpha = alpha),
+        style = style.copy(
+            shadow = Shadow(
+                color = ink.shadow.copy(alpha = GlanceMetrics.shadowAlpha),
+                offset = GlanceMetrics.shadowOffset,
+                blurRadius = GlanceMetrics.shadowBlur
+            )
+        ),
+        color = ink.content.copy(alpha = alpha),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier
@@ -36,7 +38,7 @@ fun GlanceText(text: String, style: TextStyle, modifier: Modifier = Modifier, al
 }
 
 @Composable
-fun GlanceControl(icon: ImageVector, description: String, onClick: () -> Unit, tint: Color = Color.White) {
+fun GlanceControl(icon: ImageVector, description: String, onClick: () -> Unit, tint: Color = LocalWallpaperInk.current.content) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier

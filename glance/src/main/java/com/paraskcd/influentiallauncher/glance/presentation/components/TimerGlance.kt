@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Square
 import com.composables.icons.lucide.Timer
+import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.glance.R
 import com.paraskcd.influentiallauncher.glance.presentation.utils.GlanceMetrics
@@ -42,7 +43,7 @@ fun TimerGlance(entry: TimeEntry, onStop: () -> Unit, modifier: Modifier = Modif
         Icon(
             imageVector = Lucide.Timer,
             contentDescription = null,
-            tint = entry.colourArgb?.let(::Color) ?: Color.White,
+            tint = entry.colourArgb?.let(::Color) ?: LocalWallpaperInk.current.content,
             modifier = Modifier.size(GlanceMetrics.icon)
         )
         Column(modifier = Modifier.weight(1f)) {

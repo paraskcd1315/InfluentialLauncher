@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
+import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.homescreen.R
@@ -34,8 +35,8 @@ fun AddPageTile(modifier: Modifier = Modifier) {
                 .size(HomeMetrics.iconSize)
                 .infGlassSurface(CircleShape, specular = false)
         ) {
-            Icon(imageVector = Lucide.Plus, contentDescription = null, tint = Color.White, modifier = Modifier.size(HomeMetrics.badgeSize))
+            Icon(imageVector = Lucide.Plus, contentDescription = null, tint = LocalWallpaperInk.current.content, modifier = Modifier.size(HomeMetrics.badgeSize))
         }
-        Text(text = stringResource(R.string.home_add_page), style = MaterialTheme.typography.labelLarge, color = Color.White)
+        Text(text = stringResource(R.string.home_add_page), style = MaterialTheme.typography.labelLarge, color = LocalWallpaperInk.current.content)
     }
 }

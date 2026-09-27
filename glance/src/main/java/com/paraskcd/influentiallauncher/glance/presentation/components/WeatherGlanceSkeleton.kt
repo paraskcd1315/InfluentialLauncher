@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import com.paraskcd.influentiallauncher.glance.presentation.utils.GlanceMetrics
 
 @Composable
@@ -20,11 +21,11 @@ fun WeatherGlanceSkeleton(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.fillMaxWidth()
     ) {
-        SkeletonBlock(Color.White, { pulse }, Modifier.size(GlanceMetrics.icon), CircleShape)
-        SkeletonBlock(Color.White, { pulse }, Modifier.size(GlanceMetrics.skeletonTemperature, GlanceMetrics.skeletonTemperatureHeight))
+        SkeletonBlock(LocalWallpaperInk.current.content, { pulse }, Modifier.size(GlanceMetrics.icon), CircleShape)
+        SkeletonBlock(LocalWallpaperInk.current.content, { pulse }, Modifier.size(GlanceMetrics.skeletonTemperature, GlanceMetrics.skeletonTemperatureHeight))
         Column(verticalArrangement = Arrangement.spacedBy(GlanceMetrics.skeletonLineGap)) {
-            SkeletonBlock(Color.White, { pulse }, Modifier.size(GlanceMetrics.skeletonTitleWidth, GlanceMetrics.skeletonLine))
-            SkeletonBlock(Color.White, { pulse }, Modifier.size(GlanceMetrics.skeletonSubtitleWidth, GlanceMetrics.skeletonLine))
+            SkeletonBlock(LocalWallpaperInk.current.content, { pulse }, Modifier.size(GlanceMetrics.skeletonTitleWidth, GlanceMetrics.skeletonLine))
+            SkeletonBlock(LocalWallpaperInk.current.content, { pulse }, Modifier.size(GlanceMetrics.skeletonSubtitleWidth, GlanceMetrics.skeletonLine))
         }
     }
 }
