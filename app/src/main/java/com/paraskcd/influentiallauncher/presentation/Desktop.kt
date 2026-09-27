@@ -66,6 +66,7 @@ fun Desktop(activity: ComponentActivity) {
     var left by remember { mutableStateOf(false) }
     var direction by remember { mutableFloatStateOf(-1f) }
     var introPending by remember { mutableStateOf(false) }
+    var introPlaying by remember { mutableStateOf(false) }
     val hidden = hiddenFor != null
     val aboveTaskbar = rememberAboveTaskbarOffset()
     val density = LocalDensity.current
@@ -103,11 +104,15 @@ fun Desktop(activity: ComponentActivity) {
                         startOpen = false
                         direction = -1f
                         introPending = true
+                        introPlaying = true
                         scope.launch { fade.snapTo(0f) }
                     }
                     Intent.ACTION_USER_PRESENT -> if (introPending) {
                         introPending = false
-                        scope.launch { fade.animateTo(1f, tween(DesktopMetrics.unlockIntroMs, easing = InfMotion.easeIos)) }
+                        scope.launch {
+                            fade.animateTo(1f, tween(DesktopMetrics.unlockIntroMs, easing = InfMotion.easeIos))
+                            introPlaying = false
+                        }
                     }
                 }
             }
@@ -153,7 +158,8 @@ fun Desktop(activity: ComponentActivity) {
     val systemBarShown = startOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
-    val zoomTarget = maxOf(if (startOpen) DesktopMetrics.startWallpaperZoom else 0f, 1f - fade.value) * DesktopMetrics.wallpaperZoomMax
+    val introZoom = if (introPlaying) 1f - fade.value else 0f
+    val zoomTarget = maxOf(if (startOpen) DesktopMetrics.startWallpaperZoom else 0f, introZoom) * DesktopMetrics.wallpaperZoomMax
     val wallpaperZoom by animateFloatAsState(
         targetValue = zoomTarget,
         animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessLow),
