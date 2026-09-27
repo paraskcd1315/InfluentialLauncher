@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -160,12 +160,14 @@ fun Desktop(activity: ComponentActivity) {
     val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
     val introZoom = if (introPlaying) 1f - fade.value else 0f
     val zoomTarget = maxOf(if (startOpen) DesktopMetrics.startWallpaperZoom else 0f, introZoom) * DesktopMetrics.wallpaperZoomMax
-    val wallpaperZoom by animateFloatAsState(
+    val wallpaperZoom = animateFloatAsState(
         targetValue = zoomTarget,
         animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessLow),
         label = "wallpaperZoom"
     )
-    SideEffect { WallpaperZoom.set(activity.window, wallpaperZoom) }
+    LaunchedEffect(Unit) {
+        snapshotFlow { wallpaperZoom.value }.collect { WallpaperZoom.set(activity.window, it) }
+    }
 
     Box(
         modifier = Modifier
