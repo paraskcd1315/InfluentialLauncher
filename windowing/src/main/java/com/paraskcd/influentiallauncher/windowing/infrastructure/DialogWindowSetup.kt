@@ -66,10 +66,11 @@ object DialogWindowSetup {
         }
     }
 
-    fun place(window: Window, offsetYPx: Int, alpha: Float) {
+    fun place(window: Window, offsetXPx: Int, offsetYPx: Int, alpha: Float) {
         val attributes = window.attributes
-        if (attributes.y == offsetYPx && attributes.alpha == alpha) return
+        if (attributes.x == offsetXPx && attributes.y == offsetYPx && attributes.alpha == alpha) return
         window.attributes = attributes.apply {
+            x = offsetXPx
             y = offsetYPx
             this.alpha = alpha
         }

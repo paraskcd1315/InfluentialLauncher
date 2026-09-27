@@ -53,4 +53,8 @@ object DsMetrics {
     val sliderTrack = 4.dp
     val sliderThumb = 20.dp
     const val sliderThumbCore = 0.5f
+    const val parallaxShadowAlpha = 0.22f
+    val parallaxShadowBlur = 6.dp
+    val parallaxShadowLift = 2.dp
+    val parallaxShadowDrift = 3.dp
 }

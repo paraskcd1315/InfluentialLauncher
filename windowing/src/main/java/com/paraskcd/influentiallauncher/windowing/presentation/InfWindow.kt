@@ -13,7 +13,9 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -23,9 +25,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.windowing.infrastructure.DialogWindowSetup
 import kotlinx.coroutines.android.awaitFrame
+import kotlin.math.roundToInt
 
 @Composable
 fun InfWindow(
@@ -46,6 +50,7 @@ fun InfWindow(
     content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
+    val parallax = LocalParallax.current
     val imeBottom = WindowInsets.ime.getBottom(density)
     val requestedOffsetPx = with(density) { offsetY.roundToPx() }
     val imeOffsetPx = with(density) { imeBottom + WindowMetrics.ImeGap.roundToPx() }
@@ -91,7 +96,7 @@ fun InfWindow(
                 shadowAlpha = WindowMetrics.ShadowAlpha,
                 fullScreen = fullScreen
             )
-            DialogWindowSetup.place(window, offsetYPx, alpha = 0f)
+            DialogWindowSetup.place(window, offsetXPx, offsetYPx, alpha = 0f)
         }
         LaunchedEffect(Unit) {
             awaitFrame()
@@ -114,8 +119,23 @@ fun InfWindow(
                 appliedBlur[0] = blurRadius
                 DialogWindowSetup.setBlur(window, blurRadius)
             }
-            DialogWindowSetup.place(window, offsetYPx, alpha = progress)
             DialogWindowSetup.setVisible(window, shown, focusable = focusable && visible)
+        }
+        val baseX = rememberUpdatedState(offsetXPx)
+        val baseY = rememberUpdatedState(offsetYPx)
+        val shownAlpha = rememberUpdatedState(progress)
+        val drift = if (fullScreen) 0f else with(density) { WindowMetrics.ParallaxShift.toPx() }
+        val xSign = if (gravity and Gravity.HORIZONTAL_GRAVITY_MASK == Gravity.RIGHT) -1f else 1f
+        val ySign = if (gravity and Gravity.VERTICAL_GRAVITY_MASK == Gravity.BOTTOM) -1f else 1f
+        LaunchedEffect(window, drift, xSign, ySign) {
+            snapshotFlow {
+                val tilt = parallax.value
+                WindowPlacement(
+                    x = baseX.value - (tilt.x * drift * xSign).roundToInt(),
+                    y = baseY.value - (tilt.y * drift * ySign).roundToInt(),
+                    alpha = shownAlpha.value
+                )
+            }.collect { DialogWindowSetup.place(window, it.x, it.y, it.alpha) }
         }
         LaunchedEffect(blurAvailable, shown) {
             if (!shown) {

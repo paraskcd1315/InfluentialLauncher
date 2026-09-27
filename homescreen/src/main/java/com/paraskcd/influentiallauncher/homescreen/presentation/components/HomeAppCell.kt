@@ -28,6 +28,8 @@ import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxShadow
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.homescreen.R
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
@@ -52,7 +54,8 @@ fun HomeAppCell(
                     key = app.id.key,
                     size = iconSize,
                     load = { loadIcon(app.id, it) },
-                    version = loadIcon
+                    version = loadIcon,
+                    modifier = Modifier.infParallaxShadow(LocalParallax.current)
                 )
                 if (onRemove != null) {
                     val label = stringResource(R.string.home_remove_app, app.label)
