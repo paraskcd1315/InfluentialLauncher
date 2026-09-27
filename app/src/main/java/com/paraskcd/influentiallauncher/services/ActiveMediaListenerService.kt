@@ -1,5 +1,0 @@
-package com.paraskcd.influentiallauncher.services
-
-import android.service.notification.NotificationListenerService
-
-class ActiveMediaListenerService : NotificationListenerService()

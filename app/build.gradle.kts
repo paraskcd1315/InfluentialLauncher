@@ -1,109 +1,80 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.dagger.hilt)
+    alias(libs.plugins.influential.android.application)
+    alias(libs.plugins.influential.android.compose)
+    alias(libs.plugins.influential.hilt)
 }
+
+val releaseSigning = Properties().apply {
+    rootProject.file("keystore.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) }
+}
+val releaseSigningKeys = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+val releaseSigningReady = releaseSigningKeys.all { !releaseSigning.getProperty(it).isNullOrBlank() }
 
 android {
     namespace = "com.paraskcd.influentiallauncher"
-    compileSdk = 36
+
+    signingConfigs {
+        if (releaseSigningReady) {
+            create("release") {
+                storeFile = file(releaseSigning.getProperty("storeFile"))
+                storePassword = releaseSigning.getProperty("storePassword")
+                keyAlias = releaseSigning.getProperty("keyAlias")
+                keyPassword = releaseSigning.getProperty("keyPassword")
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.paraskcd.influentiallauncher"
-        minSdk = 34
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = 2
+        versionName = "2.0.0"
+        resValue("string", "app_name", "Influential Launcher")
     }
 
-    applicationVariants.all {
-        val variant = this
-        outputs.all {
-            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
-            val appName = variant.applicationId
-            val formatter = SimpleDateFormat("yyyy-MM-dd-HH'h'mm'm'")
-            val timestamp = formatter.format(Date())
-
-            output.outputFileName = "$appName-v-$timestamp.apk"
-        }
+    buildFeatures {
+        resValues = true
     }
 
     buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+        debug {
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "Influential Dev")
         }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        compose = true
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_11)
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (releaseSigningReady) signingConfig = signingConfigs.getByName("release")
+        }
     }
 }
 
 dependencies {
+    implementation(project(":designsystem"))
+    implementation(project(":windowing"))
+    implementation(project(":apps"))
+    implementation(project(":devicestatus"))
+    implementation(project(":taskbar"))
+    implementation(project(":statusbar"))
+    implementation(project(":pins"))
+    implementation(project(":startmenu"))
+    implementation(project(":clock"))
+    implementation(project(":calendar"))
+    implementation(project(":contacts"))
+    implementation(project(":settings"))
+    implementation(project(":timetracking"))
+    implementation(project(":media"))
+    implementation(project(":weather"))
+    implementation(project(":glance"))
+    implementation(project(":controlcenter"))
+    implementation(project(":homescreen"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.text.google.fonts)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.foundation)
-    implementation(libs.androidx.ui.text)
-    implementation(libs.androidx.foundation.layout)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.accompanist.drawablepainter)
-    implementation(libs.fluent.system.icons)
-    implementation(libs.reorderable)
-    implementation(libs.calvin.reorderable)
-    implementation(libs.play.services.location)
-    implementation(libs.okhttp3)
-    implementation(libs.gson)
-
-    // Coroutines
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.coroutines.play.services)
-
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
-    ksp(libs.androidx.hilt.compiler)
-
-    // Room
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-
-    // DataStore
-    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.hiddenapibypass)
 }

@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -19,6 +20,23 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Influential Launcher"
+rootProject.name = "InfluentialLauncher"
 include(":app")
- 
+include(":designsystem")
+include(":windowing")
+include(":apps")
+include(":devicestatus")
+include(":taskbar")
+include(":clock")
+include(":statusbar")
+include(":pins")
+include(":startmenu")
+include(":calendar")
+include(":contacts")
+include(":settings")
+include(":timetracking")
+include(":media")
+include(":weather")
+include(":glance")
+include(":controlcenter")
+include(":homescreen")

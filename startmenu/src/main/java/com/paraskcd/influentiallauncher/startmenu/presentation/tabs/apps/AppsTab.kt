@@ -1,0 +1,197 @@
+package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps
+
+import android.graphics.Bitmap
+import android.graphics.Rect
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import com.paraskcd.influentiallauncher.designsystem.foundation.InfGroupedCorners
+import com.paraskcd.influentiallauncher.windowing.presentation.isLandscape
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
+import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
+import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
+import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
+import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
+import com.paraskcd.influentiallauncher.startmenu.R
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.AppMenuSheet
+import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.LetterIndexedBox
+import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.ListSkeleton
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components.AppRow
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components.PinnedGrid
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.LetterIndex
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.ListKeys
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
+import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.AppsViewModel
+import kotlinx.coroutines.launch
+
+@Composable
+fun AppsTab(
+    open: Boolean,
+    onClose: () -> Unit,
+    onLaunched: () -> Unit,
+    onScrub: (Char?) -> Unit,
+    viewModel: AppsViewModel = hiltViewModel()
+) {
+    val content by viewModel.content.collectAsStateWithLifecycle()
+    val query by viewModel.query.collectAsStateWithLifecycle()
+    val tint = InfTheme.colors.brandText.toArgb()
+    val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
+    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    var menuKey by remember { mutableStateOf<String?>(null) }
+    val listTop = StartMenuMetrics.searchTop + DsMetrics.searchHeight + StartMenuMetrics.searchContentGap
+
+    LaunchedEffect(open) {
+        if (open) {
+            listState.scrollToItem(0)
+        } else {
+            viewModel.setQuery("")
+            menuKey = null
+        }
+    }
+    LaunchedEffect(query) { listState.scrollToItem(0) }
+    val pinnedKeys = content?.pinned?.map { it.app.id.key }
+    LaunchedEffect(pinnedKeys) { listState.scrollToItem(0) }
+
+    val launch: (AppId, LaunchOrigin?) -> Unit = { id, origin ->
+        onLaunched()
+        viewModel.launch(id, origin)
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        val current = content
+        val sections = current?.sections.orEmpty()
+        val available = sections.map { it.letter }.toSet()
+        val leading = if (current?.pinned.isNullOrEmpty()) 1 else 3
+        val landscape = isLandscape()
+        val appColumns = if (landscape) StartMenuMetrics.landscapeAppColumns else 1
+        val pinnedColumns = if (landscape) StartMenuMetrics.landscapePinnedColumns else StartMenuMetrics.pinnedColumns
+        LetterIndexedBox(
+            letters = LetterIndex.Letters,
+            available = available,
+            scrubberPadding = PaddingValues(top = listTop, bottom = StartMenuMetrics.listBottom),
+            onJump = { letter ->
+                val index = LetterIndex.headerIndices(leading, sections.map { it.letter to (it.apps.size + appColumns - 1) / appColumns })[letter]
+                if (index != null) scope.launch { listState.scrollToItem(index) }
+            },
+            onScrub = onScrub
+        ) {
+            when {
+                current == null -> ListSkeleton(
+                    modifier = Modifier.padding(start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding + DsMetrics.scrubberWidth, top = listTop)
+                )
+                sections.isEmpty() -> Text(
+                    text = stringResource(R.string.startmenu_empty),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = InfTheme.colors.textSecondary,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = listTop + StartMenuMetrics.listPadding)
+                )
+                else -> LazyColumn(
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(StartMenuMetrics.rowGap),
+                    contentPadding = PaddingValues(
+                        start = StartMenuMetrics.listPadding,
+                        end = StartMenuMetrics.listPadding + DsMetrics.scrubberWidth,
+                        top = listTop,
+                        bottom = StartMenuMetrics.listBottom
+                    ),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    if (current.pinned.isNotEmpty()) {
+                        item(key = ListKeys.PinnedHeader) { InfSectionHeader(text = stringResource(R.string.startmenu_pinned)) }
+                        item(key = ListKeys.PinnedGrid) {
+                            PinnedGrid(
+                                apps = current.pinned,
+                                loadIcon = loadIcon,
+                                onLaunch = launch,
+                                onLongPress = { menuKey = it.app.id.key },
+                                columns = pinnedColumns
+                            )
+                        }
+                    }
+                    item(key = ListKeys.AllAppsHeader) { InfSectionHeader(text = stringResource(R.string.startmenu_all_apps)) }
+                    sections.forEach { section ->
+                        item(key = ListKeys.HeaderPrefix + section.letter) { InfSectionHeader(text = section.letter.toString()) }
+                        if (appColumns == 1) {
+                            itemsIndexed(section.apps, key = { _, entry -> entry.app.id.key }) { index, entry ->
+                                AppRow(
+                                    entry = entry,
+                                    index = index,
+                                    count = section.apps.size,
+                                    loadIcon = loadIcon,
+                                    onLaunch = launch,
+                                    onLongPress = { menuKey = entry.app.id.key }
+                                )
+                            }
+                        } else {
+                            val rows = section.apps.chunked(appColumns)
+                            itemsIndexed(rows, key = { _, row -> ListKeys.RowPrefix + row.first().app.id.key }) { rowIndex, row ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(StartMenuMetrics.rowGap)) {
+                                    row.forEachIndexed { column, entry ->
+                                        AppRow(
+                                            entry = entry,
+                                            index = rowIndex,
+                                            count = rows.size,
+                                            loadIcon = loadIcon,
+                                            onLaunch = launch,
+                                            onLongPress = { menuKey = entry.app.id.key },
+                                            shape = InfGroupedCorners.grid(rowIndex, column, rows.size, appColumns, rows.last().size),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    repeat(appColumns - row.size) { Spacer(modifier = Modifier.weight(1f)) }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    val menuEntry = menuKey?.let { key ->
+        content?.let { current -> (current.pinned + current.sections.flatMap { it.apps }).firstOrNull { it.app.id.key == key } }
+    }
+    AppMenuSheet(
+        entry = menuEntry,
+        loadIcon = loadIcon,
+        onDismiss = { menuKey = null },
+        onToggleStart = { viewModel.togglePin(PinTarget.Start, it) },
+        onToggleTaskbar = { viewModel.togglePin(PinTarget.Taskbar, it) },
+        onAddToHome = viewModel::addToHome,
+        onInfo = { id ->
+            onClose()
+            viewModel.openInfo(id, null)
+        },
+        onUninstall = { id ->
+            onClose()
+            viewModel.uninstall(id)
+        }
+    )
+}

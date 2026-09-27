@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="statusbar_battery">Battery %1$d%%</string>
+    <string name="statusbar_battery_charging">Battery %1$d%%, charging</string>
+    <string name="statusbar_battery_percent">%1$d%%</string>
+    <string name="statusbar_wifi_connected">Wi-Fi connected</string>
+    <string name="statusbar_wifi_off">Wi-Fi not connected</string>
+    <string name="statusbar_cellular">Mobile signal</string>
+    <string name="statusbar_open_controls">Open quick settings</string>
+    <string name="statusbar_search">Search</string>
+</resources>
