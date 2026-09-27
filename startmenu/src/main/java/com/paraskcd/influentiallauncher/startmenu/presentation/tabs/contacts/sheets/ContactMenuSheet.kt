@@ -6,8 +6,8 @@ import androidx.compose.ui.res.stringResource
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCircle
 import com.composables.icons.lucide.Phone
-import com.composables.icons.lucide.Pin
-import com.composables.icons.lucide.PinOff
+import com.composables.icons.lucide.Star
+import com.composables.icons.lucide.StarOff
 import com.composables.icons.lucide.UserRound
 import com.paraskcd.influentiallauncher.contacts.domain.model.Contact
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -20,10 +20,9 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.contacts.com
 @Composable
 fun ContactMenuSheet(
     contact: Contact?,
-    pinned: Boolean,
     loadPhoto: suspend (Contact, Int) -> Bitmap?,
     onDismiss: () -> Unit,
-    onTogglePin: (Contact) -> Unit,
+    onToggleFavourite: (Contact) -> Unit,
     onCall: (Contact) -> Unit,
     onWhatsApp: (Contact) -> Unit,
     onOpen: (Contact) -> Unit
@@ -38,10 +37,10 @@ fun ContactMenuSheet(
         val actions = buildList {
             add(
                 InfAction(
-                    icon = if (pinned) Lucide.PinOff else Lucide.Pin,
-                    label = stringResource(if (pinned) R.string.startmenu_unpin_contact else R.string.startmenu_pin_contact),
-                    tint = colors.textPrimary,
-                    run = { onTogglePin(current) }
+                    icon = if (current.starred) Lucide.StarOff else Lucide.Star,
+                    label = stringResource(if (current.starred) R.string.startmenu_unfavourite_contact else R.string.startmenu_favourite_contact),
+                    tint = if (current.starred) colors.textPrimary else colors.warning,
+                    run = { onToggleFavourite(current) }
                 )
             )
             if (current.phone != null) {

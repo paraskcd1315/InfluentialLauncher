@@ -1,6 +1,5 @@
 package com.paraskcd.influentiallauncher.clock.presentation
 
-import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -17,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.clock.presentation.utils.ClockFormat
@@ -28,10 +27,10 @@ import com.paraskcd.influentiallauncher.clock.presentation.viewmodels.ClockViewM
 @Composable
 fun ClockHeader(
     modifier: Modifier = Modifier,
+    sideInset: Dp = ClockMetrics.sideInset,
     viewModel: ClockViewModel = hiltViewModel()
 ) {
     val now by viewModel.now.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     val locale = LocalConfiguration.current.locales[0]
     val shadow = Shadow(
         color = Color.Black.copy(alpha = ClockMetrics.shadowAlpha),
@@ -41,15 +40,11 @@ fun ClockHeader(
     Column(
         modifier = modifier
             .windowInsetsPadding(WindowInsets.statusBarsIgnoringVisibility)
-            .padding(start = ClockMetrics.sideInset, end = ClockMetrics.sideInset, top = ClockMetrics.topGap)
+            .padding(start = sideInset, end = sideInset, top = ClockMetrics.topGap)
     ) {
         Text(
-            text = ClockFormat.time(now, locale, DateFormat.is24HourFormat(context)),
-            style = MaterialTheme.typography.displayLarge.copy(
-                fontSize = ClockMetrics.timeSize,
-                lineHeight = ClockMetrics.timeLineHeight,
-                shadow = shadow
-            ),
+            text = ClockFormat.time(now, locale),
+            style = MaterialTheme.typography.displayLarge.copy(fontSize = ClockMetrics.timeSize, shadow = shadow),
             color = Color.White
         )
         Spacer(Modifier.height(ClockMetrics.dateGap))

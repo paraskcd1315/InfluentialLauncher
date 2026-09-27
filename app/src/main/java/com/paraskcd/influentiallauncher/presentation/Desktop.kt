@@ -40,20 +40,20 @@ fun Desktop(activity: ComponentActivity) {
         onDispose { activity.removeOnNewIntentListener(listener) }
     }
     BackHandler(enabled = startOpen) { startOpen = false }
+    val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) { detectTapGestures { startOpen = false } }
     ) {
-        ClockHeader(modifier = Modifier.align(Alignment.TopStart))
+        ClockHeader(modifier = Modifier.align(Alignment.TopStart), sideInset = taskbarEdge)
     }
     TaskbarHost(
         startOpen = startOpen,
         onStartClick = { startOpen = !startOpen },
         onAppLaunched = { startOpen = false }
     )
-    val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
     StatusBarHost(
         offsetX = taskbarEdge,
         offsetY = aboveTaskbar,

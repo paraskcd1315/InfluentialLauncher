@@ -19,8 +19,8 @@
     <string name="startmenu_favourites">Favourites</string>
     <string name="startmenu_call">Call</string>
     <string name="startmenu_whatsapp">WhatsApp</string>
-    <string name="startmenu_pin_contact">Pin to top</string>
-    <string name="startmenu_unpin_contact">Unpin</string>
+    <string name="startmenu_favourite_contact">Add to favourites</string>
+    <string name="startmenu_unfavourite_contact">Remove from favourites</string>
     <string name="startmenu_open_contact">Open contact</string>
     <string name="startmenu_contacts_empty">No contacts</string>
     <string name="startmenu_contacts_permission">Allow access to your contacts to see them here.</string>

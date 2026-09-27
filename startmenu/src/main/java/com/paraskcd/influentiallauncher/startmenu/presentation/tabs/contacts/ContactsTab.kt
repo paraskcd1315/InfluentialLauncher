@@ -64,6 +64,11 @@ fun ContactsTab(
         pendingCall?.let(viewModel::call)
         pendingCall = null
     }
+    var pendingFavourite by remember { mutableStateOf<Contact?>(null) }
+    val writeLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) pendingFavourite?.let(viewModel::toggleFavourite)
+        pendingFavourite = null
+    }
     val listTop = StartMenuMetrics.searchTop + DsMetrics.searchHeight + StartMenuMetrics.searchContentGap
     val contentPadding = PaddingValues(
         start = StartMenuMetrics.listPadding,
@@ -82,8 +87,8 @@ fun ContactsTab(
         }
     }
     LaunchedEffect(query) { listState.scrollToItem(0) }
-    val pinnedKeys = content?.pinned?.map { it.lookupKey }
-    LaunchedEffect(pinnedKeys) { listState.scrollToItem(0) }
+    val favouriteKeys = content?.favourites?.map { it.lookupKey }
+    LaunchedEffect(favouriteKeys) { listState.scrollToItem(0) }
 
     val openContact: (Contact) -> Unit = {
         onClose()
@@ -104,6 +109,14 @@ fun ContactsTab(
         viewModel.whatsApp(it)
     }
     val longPress: (Contact) -> Unit = { menuKey = it.lookupKey }
+    val toggleFavourite: (Contact) -> Unit = { contact ->
+        if (ContextCompat.checkSelfPermission(context, viewModel.writePermission) == PackageManager.PERMISSION_GRANTED) {
+            viewModel.toggleFavourite(contact)
+        } else {
+            pendingFavourite = contact
+            writeLauncher.launch(viewModel.writePermission)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (permission == PermissionState.Missing) {
@@ -117,17 +130,14 @@ fun ContactsTab(
         }
         val current = content
         val sections = current?.sections.orEmpty()
-        val pinned = current?.pinned.orEmpty()
-        val lettered = sections.filterNot { it.favourites }
+        val favourites = current?.favourites.orEmpty()
         LetterIndexedBox(
             letters = LetterIndex.Letters,
-            available = lettered.map { it.letter }.toSet(),
+            available = sections.map { it.letter }.toSet(),
             scrubberPadding = PaddingValues(top = listTop, bottom = StartMenuMetrics.listBottom),
             onJump = { letter ->
-                val favourites = sections.firstOrNull { it.favourites }
-                val pinnedItems = if (pinned.isEmpty()) 0 else 2
-                val leading = pinnedItems + if (favourites == null) 0 else favourites.contacts.size + 1
-                val index = LetterIndex.headerIndices(leading, lettered.map { it.letter to it.contacts.size })[letter]
+                val leading = if (favourites.isEmpty()) 0 else FavouriteItems
+                val index = LetterIndex.headerIndices(leading, sections.map { it.letter to it.contacts.size })[letter]
                 if (index != null) scope.launch { listState.scrollToItem(index) }
             },
             onScrub = onScrub
@@ -148,17 +158,14 @@ fun ContactsTab(
                     contentPadding = contentPadding,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    if (pinned.isNotEmpty()) {
-                        item(key = ListKeys.PinnedHeader) { InfSectionHeader(text = stringResource(R.string.startmenu_pinned)) }
+                    if (favourites.isNotEmpty()) {
+                        item(key = ListKeys.PinnedHeader) { InfSectionHeader(text = stringResource(R.string.startmenu_favourites)) }
                         item(key = ListKeys.PinnedGrid) {
-                            PinnedContacts(contacts = pinned, loadPhoto = viewModel::photo, onOpen = openContact, onLongPress = longPress)
+                            PinnedContacts(contacts = favourites, loadPhoto = viewModel::photo, onOpen = openContact, onLongPress = longPress)
                         }
                     }
                     sections.forEach { section ->
-                        item(key = ListKeys.HeaderPrefix + section.letter) {
-                            val title = if (section.favourites) stringResource(R.string.startmenu_favourites) else section.letter.toString()
-                            InfSectionHeader(text = title)
-                        }
+                        item(key = ListKeys.HeaderPrefix + section.letter) { InfSectionHeader(text = section.letter.toString()) }
                         itemsIndexed(section.contacts, key = { _, contact -> "${section.letter}:${contact.id}" }) { index, contact ->
                             ContactRow(
                                 contact = contact,
@@ -180,12 +187,13 @@ fun ContactsTab(
     val menuContact = menuKey?.let { key -> content?.sections?.flatMap { it.contacts }?.firstOrNull { it.lookupKey == key } }
     ContactMenuSheet(
         contact = menuContact,
-        pinned = menuKey != null && content?.pinned?.any { it.lookupKey == menuKey } == true,
         loadPhoto = viewModel::photo,
         onDismiss = { menuKey = null },
-        onTogglePin = viewModel::togglePin,
+        onToggleFavourite = toggleFavourite,
         onCall = call,
         onWhatsApp = whatsApp,
         onOpen = openContact
     )
 }
+
+private const val FavouriteItems = 2

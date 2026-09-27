@@ -9,6 +9,8 @@ interface ContactsSource {
 
     val callPermission: String
 
+    val writePermission: String
+
     fun hasPermission(): Boolean
 
     fun contacts(): Flow<List<Contact>>
@@ -18,6 +20,8 @@ interface ContactsSource {
     fun call(contact: Contact): Boolean
 
     fun whatsApp(contact: Contact): Boolean
+
+    suspend fun setFavourite(contact: Contact, favourite: Boolean): Boolean
 
     suspend fun photo(contact: Contact, sizePx: Int): Bitmap?
 }

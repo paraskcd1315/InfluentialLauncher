@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.contacts.domain.model.Contact
-import com.paraskcd.influentiallauncher.contacts.domain.ports.ContactPinStore
 import com.paraskcd.influentiallauncher.contacts.domain.ports.ContactsSource
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.ContactsContent
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.PermissionState
@@ -25,13 +24,14 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ContactsViewModel @Inject constructor(
-    private val contactsSource: ContactsSource,
-    private val pinStore: ContactPinStore
+    private val contactsSource: ContactsSource
 ) : ViewModel() {
 
     val permission: String = contactsSource.permission
 
     val callPermission: String = contactsSource.callPermission
+
+    val writePermission: String = contactsSource.writePermission
 
     private val _permissionState = MutableStateFlow(currentPermission())
     val permissionState: StateFlow<PermissionState> = _permissionState.asStateFlow()
@@ -42,10 +42,9 @@ class ContactsViewModel @Inject constructor(
     val content: StateFlow<ContactsContent?> = _permissionState
         .flatMapLatest { state ->
             if (state == PermissionState.Granted) {
-                combine(contactsSource.contacts(), pinStore.pins(), _query) { contacts, pins, query ->
-                    val byKey = contacts.associateBy { it.lookupKey }
+                combine(contactsSource.contacts(), _query) { contacts, query ->
                     ContactsContent(
-                        pinned = if (query.isBlank()) pins.mapNotNull { byKey[it] } else emptyList(),
+                        favourites = if (query.isBlank()) contacts.filter { it.starred } else emptyList(),
                         sections = ContactSections.of(contacts, query)
                     )
                 }
@@ -75,8 +74,8 @@ class ContactsViewModel @Inject constructor(
         contactsSource.whatsApp(contact)
     }
 
-    fun togglePin(contact: Contact) {
-        viewModelScope.launch { pinStore.toggle(contact.lookupKey) }
+    fun toggleFavourite(contact: Contact) {
+        viewModelScope.launch { contactsSource.setFavourite(contact, !contact.starred) }
     }
 
     suspend fun photo(contact: Contact, sizePx: Int): Bitmap? = contactsSource.photo(contact, sizePx)

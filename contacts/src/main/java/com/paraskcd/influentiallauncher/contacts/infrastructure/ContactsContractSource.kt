@@ -2,6 +2,7 @@ package com.paraskcd.influentiallauncher.contacts.infrastructure
 
 import android.Manifest
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -36,6 +37,8 @@ class ContactsContractSource @Inject constructor(
     override val permission: String = Manifest.permission.READ_CONTACTS
 
     override val callPermission: String = Manifest.permission.CALL_PHONE
+
+    override val writePermission: String = Manifest.permission.WRITE_CONTACTS
 
     override fun hasPermission(): Boolean =
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
@@ -72,6 +75,14 @@ class ContactsContractSource @Inject constructor(
         val canCall = ContextCompat.checkSelfPermission(context, callPermission) == PackageManager.PERMISSION_GRANTED
         val action = if (canCall) Intent.ACTION_CALL else Intent.ACTION_DIAL
         return launch(Intent(action, Uri.fromParts("tel", number, null)), "call failed")
+    }
+
+    override suspend fun setFavourite(contact: Contact, favourite: Boolean): Boolean = withContext(Dispatchers.IO) {
+        runCatching {
+            val values = ContentValues().apply { put(ContactsContract.Contacts.STARRED, if (favourite) 1 else 0) }
+            val uri = ContactsContract.Contacts.getLookupUri(contact.id, contact.lookupKey)
+            context.contentResolver.update(uri, values, null, null) > 0
+        }.onFailure { Log.w(LogTag, "favourite update failed", it) }.getOrDefault(false)
     }
 
     override fun whatsApp(contact: Contact): Boolean {

@@ -6,6 +6,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 
 object StartMenuMetrics {
     const val widthFraction = 0.9f
+    const val riseFraction = 1f / 3f
     val cornerRadius = DsMetrics.cornerLarge
     val windowGap = InfSpacing.s2
     val listPadding = 16.dp
