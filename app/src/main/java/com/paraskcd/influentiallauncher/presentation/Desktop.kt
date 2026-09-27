@@ -65,7 +65,10 @@ import com.paraskcd.influentiallauncher.glance.presentation.GlanceHost
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.infrastructure.NotificationShade
 import com.paraskcd.influentiallauncher.infrastructure.SpotlightSearchLauncher
+import com.paraskcd.influentiallauncher.infrastructure.WallpaperShift
 import com.paraskcd.influentiallauncher.infrastructure.WallpaperZoom
+import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowParallax
+import kotlin.math.roundToInt
 import com.paraskcd.influentiallauncher.presentation.model.DesktopAction
 import com.paraskcd.influentiallauncher.presentation.utils.DesktopMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.StartMenuHost
@@ -228,6 +231,14 @@ fun Desktop(activity: ComponentActivity) {
     LaunchedEffect(Unit) {
         snapshotFlow { wallpaperZoom.value }.collect { WallpaperZoom.set(activity.window, it) }
     }
+    val tilt = LocalWindowParallax.current
+    val wallpaperDrift = with(density) { DesktopMetrics.wallpaperParallax.toPx() }
+    val contentDrift = with(density) { DesktopMetrics.contentParallax.toPx() }
+    LaunchedEffect(Unit) {
+        snapshotFlow { tilt.value }.collect {
+            WallpaperShift.set(activity.window, (it.x * wallpaperDrift).roundToInt(), (it.y * wallpaperDrift).roundToInt())
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -270,7 +281,8 @@ fun Desktop(activity: ComponentActivity) {
                 .onGloballyPositioned { headerBounds = it.boundsInWindow() }
                 .graphicsLayer {
                     alpha = chromeAlpha
-                    translationY = direction * (1f - fade.value) * clockLift
+                    translationX = -tilt.value.x * contentDrift
+                    translationY = direction * (1f - fade.value) * clockLift - tilt.value.y * contentDrift
                     val scale = lerp(DesktopMetrics.overviewChromeScale, 1f, chrome)
                     scaleX = scale
                     scaleY = scale
@@ -306,7 +318,8 @@ fun Desktop(activity: ComponentActivity) {
                 .onGloballyPositioned { gridBounds = it.boundsInWindow() }
                 .graphicsLayer {
                     alpha = fade.value
-                    translationY = direction * (1f - fade.value) * clockLift
+                    translationX = -tilt.value.x * contentDrift
+                    translationY = direction * (1f - fade.value) * clockLift - tilt.value.y * contentDrift
                 }
         )
         }
