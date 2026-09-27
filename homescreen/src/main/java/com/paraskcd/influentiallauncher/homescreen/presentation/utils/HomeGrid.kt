@@ -8,7 +8,7 @@ data class HomeGrid(val columns: Int, val rows: Int) {
     val capacity: Int get() = columns * rows
 
     companion object {
-        private val Portrait = HomeGrid(columns = 4, rows = 6)
+        private val Portrait = HomeGrid(columns = 4, rows = 5)
         private val Landscape = HomeGrid(columns = 6, rows = 4)
 
         fun preferred(landscape: Boolean): HomeGrid = if (landscape) Landscape else Portrait

@@ -43,14 +43,15 @@ fun PageGrid(
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val cellWidth = maxWidth / grid.columns
-        val cellHeight = maxHeight / grid.rows
+        val cellHeight = min(maxHeight / grid.rows, HomeMetrics.maxCellHeight)
         val cellWidthPx = with(density) { cellWidth.toPx() }
         val cellHeightPx = with(density) { cellHeight.toPx() }
+        val topPx = with(density) { ((maxHeight - cellHeight * grid.rows) / 2).toPx() }
         val iconSize = cellIconSize(cellWidth, cellHeight)
         slots.forEachIndexed { index, slot ->
             val target = IntOffset(
                 ((index % grid.columns) * cellWidthPx).roundToInt(),
-                ((index / grid.columns) * cellHeightPx).roundToInt()
+                (topPx + (index / grid.columns) * cellHeightPx).roundToInt()
             )
             when (slot) {
                 GridSlot.Empty -> Unit

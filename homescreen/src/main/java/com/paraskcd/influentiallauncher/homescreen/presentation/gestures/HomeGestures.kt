@@ -32,8 +32,9 @@ class HomeGestures(
             if (overview()) return@awaitEachGesture
             val page = pages().getOrNull(pager.currentPage)
             val inset = insets()
-            val area = inset.area(size)
-            val local = inset.local(down.position)
+            val shape = grid()
+            val area = inset.block(size, shape)
+            val local = inset.local(down.position, size, shape)
             val slot = slotAt(local, area)
             val app = slot?.let { page?.slots?.getOrNull(it) }
             val outcome = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
@@ -55,7 +56,7 @@ class HomeGestures(
                 Outcome.Drag -> app?.let(onDragApp)
                 Outcome.Tap -> when {
                     page == null -> onTapAddPage()
-                    app != null && slot != null && !wiggling() -> onTapApp(app, inset.window(cellRect(slot, area)))
+                    app != null && slot != null && !wiggling() -> onTapApp(app, inset.window(cellRect(slot, area), size, shape))
                     app == null && wiggling() -> onTapEmpty()
                 }
                 Outcome.LongPress -> when {
@@ -94,11 +95,21 @@ class HomeGestures(
     private enum class Outcome { Tap, Drag, LongPress, Cancel }
 }
 
-/** The horizontal padding between the full-width pager and the grid it lays apps in. */
-data class GridInsets(val startPx: Float, val endPx: Float) {
-    fun area(full: IntSize): IntSize = IntSize((full.width - startPx - endPx).toInt().coerceAtLeast(0), full.height)
+/** Where the grid block sits inside the full-width pager: side padding, and vertically centred rows of capped height. */
+data class GridInsets(val startPx: Float, val endPx: Float, val maxCellHeightPx: Float) {
+    fun horizontal(full: IntSize): IntSize = IntSize((full.width - startPx - endPx).toInt().coerceAtLeast(0), full.height)
 
-    fun local(position: Offset): Offset = position - Offset(startPx, 0f)
+    fun block(full: IntSize, grid: HomeGrid): IntSize {
+        val cellHeight = minOf(full.height / grid.rows.toFloat(), maxCellHeightPx)
+        return IntSize(horizontal(full).width, (cellHeight * grid.rows).toInt())
+    }
 
-    fun window(cell: RectF): RectF = RectF(cell.left + startPx, cell.top, cell.right + startPx, cell.bottom)
+    fun top(full: IntSize, grid: HomeGrid): Float = (full.height - block(full, grid).height) / 2f
+
+    fun local(position: Offset, full: IntSize, grid: HomeGrid): Offset = position - Offset(startPx, top(full, grid))
+
+    fun window(cell: RectF, full: IntSize, grid: HomeGrid): RectF {
+        val top = top(full, grid)
+        return RectF(cell.left + startPx, cell.top + top, cell.right + startPx, cell.bottom + top)
+    }
 }

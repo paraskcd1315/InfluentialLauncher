@@ -109,10 +109,11 @@ fun HomeScreenHost(
     val insets = with(density) {
         GridInsets(
             startPx = contentPadding.calculateLeftPadding(layoutDirection).toPx(),
-            endPx = contentPadding.calculateRightPadding(layoutDirection).toPx()
+            endPx = contentPadding.calculateRightPadding(layoutDirection).toPx(),
+            maxCellHeightPx = HomeMetrics.maxCellHeight.toPx()
         )
     }
-    val grid = HomeGrid.fit(insets.area(areaSize), density, landscape)
+    val grid = HomeGrid.fit(insets.horizontal(areaSize), density, landscape)
     val visual = remember(pages, grid) { HomePaging.visualPages(pages, grid.capacity) }
     val homeVisual = visual.indexOfFirst { it.page.id == pages.getOrNull(current.homeIndex)?.id }.coerceAtLeast(0)
     val pageCount = visual.size + if (wiggling) 1 else 0
@@ -320,7 +321,8 @@ private class HomeDropTarget(
         val android = event.toAndroidDragEvent()
         val full = Offset(android.x, android.y) - origin()
         val inset = insets()
-        drag.move(inset.local(full), inset.area(size()), grid())
+        val shape = grid()
+        drag.move(inset.local(full, size(), shape), inset.block(size(), shape), shape)
         val side = when {
             full.x < edgePx -> -1
             full.x > size().width - edgePx -> 1

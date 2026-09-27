@@ -19,6 +19,7 @@ object HomeMetrics {
     val iconSize = 56.dp
     val minCellWidth = 60.dp
     val minCellHeight = 72.dp
+    val maxCellHeight = 84.dp
     val cellInset = 4.dp
     const val labelLineFallback = 1.45f
     val labelGap = 4.dp
