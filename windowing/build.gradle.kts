@@ -11,4 +11,5 @@ dependencies {
     implementation(project(":designsystem"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.hiddenapibypass)
 }

@@ -79,6 +79,7 @@ import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarHost
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarLayout
 import com.paraskcd.influentiallauncher.taskbar.presentation.rememberAboveTaskbarOffset
 import com.paraskcd.influentiallauncher.windowing.infrastructure.DialogWindowSetup
+import com.paraskcd.influentiallauncher.windowing.presentation.LocalBackdropAlpha
 import com.paraskcd.influentiallauncher.windowing.presentation.isLandscape
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -305,7 +306,7 @@ fun Desktop(activity: ComponentActivity) {
                     .padding(end = taskbarEdge)
             )
         }
-        CompositionLocalProvider(LocalWallpaperInk provides gridInk) {
+        CompositionLocalProvider(LocalWallpaperInk provides gridInk, LocalBackdropAlpha provides fade.asState()) {
         HomeScreenHost(
             onAppLaunched = appLaunched,
             onOverviewChange = { homeOverview = it },
