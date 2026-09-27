@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -96,14 +98,17 @@ fun PageOverview(
                 }
             }
             item(key = AddKey) {
-                Box(
-                    modifier = Modifier
-                        .width(cardWidth)
-                        .height(cardHeight)
-                        .infGlassSurface(RoundedCornerShape(HomeMetrics.pageCornerRadius), specular = false)
-                        .clickable(onClickLabel = stringResource(R.string.home_add_page), onClick = onAdd)
-                ) {
-                    AddPageTile()
+                Column(verticalArrangement = Arrangement.spacedBy(InfSpacing.s3)) {
+                    Box(
+                        modifier = Modifier
+                            .width(cardWidth)
+                            .height(cardHeight)
+                            .infGlassSurface(RoundedCornerShape(HomeMetrics.pageCornerRadius), specular = false)
+                            .clickable(onClickLabel = stringResource(R.string.home_add_page), onClick = onAdd)
+                    ) {
+                        AddPageTile()
+                    }
+                    Spacer(modifier = Modifier.height(DsMetrics.iconButtonSize))
                 }
             }
         }
