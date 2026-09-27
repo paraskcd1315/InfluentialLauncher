@@ -9,6 +9,7 @@ data class InfColors(
     val brand: Color,
     val brandText: Color,
     val brandTint: Color,
+    val onBrand: Color,
     val bgBase: Color,
     val surface: Color,
     val surfaceContainer: Color,

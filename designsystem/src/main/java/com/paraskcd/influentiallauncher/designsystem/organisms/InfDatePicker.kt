@@ -155,7 +155,7 @@ private fun ChipGrid(labels: List<String>, active: Int, onSelect: (Int) -> Unit)
                             text = label,
                             fontSize = DsMetrics.pickerTextSize,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (on) Color.White else colors.textPrimary
+                            color = if (on) colors.onBrand else colors.textPrimary
                         )
                     }
                 }
@@ -191,7 +191,7 @@ private fun DayCell(
                 text = date.dayOfMonth.toString(),
                 fontSize = DsMetrics.settingsItemTextSize,
                 fontWeight = if (selected || today) FontWeight.Bold else FontWeight.Normal,
-                color = if (selected) Color.White else colors.textPrimary
+                color = if (selected) colors.onBrand else colors.textPrimary
             )
         }
     }

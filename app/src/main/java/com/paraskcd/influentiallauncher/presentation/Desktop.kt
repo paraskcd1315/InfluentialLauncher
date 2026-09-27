@@ -199,6 +199,7 @@ fun Desktop(activity: ComponentActivity) {
     val navigationBottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     val taskbarEdge = if (landscape) maxOf(DesktopMetrics.landscapeInset, cutoutStart + DesktopMetrics.windowGap)
         else screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
+    val landscapeGridMargin = maxOf(statusTop, navigationBottom) + DesktopMetrics.windowGap
     val pillTop = statusTop + DesktopMetrics.windowGap
     val belowPill = pillTop + StatusBarLayout.height + DesktopMetrics.windowGap
     val introZoom = if (introPlaying) 1f - fade.value else 0f
@@ -285,9 +286,8 @@ fun Desktop(activity: ComponentActivity) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    top = if (landscape) statusTop + DesktopMetrics.windowGap else headerHeight + DesktopMetrics.windowGap,
-                    bottom = if (landscape) navigationBottom + StatusBarLayout.height + DesktopMetrics.windowGap * 2
-                        else aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap
+                    top = if (landscape) landscapeGridMargin else headerHeight + DesktopMetrics.windowGap,
+                    bottom = if (landscape) landscapeGridMargin else aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap
                 )
                 .graphicsLayer {
                     alpha = fade.value

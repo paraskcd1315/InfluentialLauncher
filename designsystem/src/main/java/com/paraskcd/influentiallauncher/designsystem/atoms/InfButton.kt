@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
@@ -30,6 +29,6 @@ fun InfButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier,
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = InfSpacing.s5)
     ) {
-        Text(text = label, fontSize = DsMetrics.buttonTextSize, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1)
+        Text(text = label, fontSize = DsMetrics.buttonTextSize, fontWeight = FontWeight.SemiBold, color = InfTheme.colors.onBrand, maxLines = 1)
     }
 }

@@ -58,7 +58,7 @@ fun InfToggleTile(
         animationSpec = tween(InfMotion.durMorphMs, easing = InfMotion.easeIos),
         label = "toggleFill"
     )
-    val tint = if (checked) Color.White else colors.textPrimary
+    val tint = if (checked) colors.onBrand else colors.textPrimary
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(InfSpacing.s2),
@@ -91,7 +91,7 @@ fun InfToggleTile(
                     modifier = Modifier
                         .width(DsMetrics.hairlineThickness)
                         .fillMaxHeight()
-                        .background(if (checked) Color.White.copy(alpha = MoreDividerAlpha) else colors.hairline)
+                        .background(if (checked) colors.onBrand.copy(alpha = MoreDividerAlpha) else colors.hairline)
                 )
                 Box(
                     contentAlignment = Alignment.Center,
