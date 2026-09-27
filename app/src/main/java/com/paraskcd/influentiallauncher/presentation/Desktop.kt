@@ -5,6 +5,7 @@ import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +35,7 @@ import com.paraskcd.influentiallauncher.clock.presentation.ClockHeader
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.infrastructure.NotificationShade
 import com.paraskcd.influentiallauncher.infrastructure.SpotlightSearchLauncher
+import com.paraskcd.influentiallauncher.infrastructure.WallpaperZoom
 import com.paraskcd.influentiallauncher.presentation.model.DesktopAction
 import com.paraskcd.influentiallauncher.presentation.utils.DesktopMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.StartMenuHost
@@ -114,6 +117,13 @@ fun Desktop(activity: ComponentActivity) {
     val systemBarShown = startOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
+    val startZoom by animateFloatAsState(
+        targetValue = if (startOpen) DesktopMetrics.startWallpaperZoom else 0f,
+        animationSpec = tween(InfMotion.durPushMs, easing = InfMotion.easeIos),
+        label = "startWallpaperZoom"
+    )
+    val wallpaperZoom = maxOf(startZoom, 1f - fade.value)
+    SideEffect { WallpaperZoom.set(activity.window, wallpaperZoom) }
 
     Box(
         modifier = Modifier
