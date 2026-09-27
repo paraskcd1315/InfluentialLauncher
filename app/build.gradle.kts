@@ -46,6 +46,9 @@ dependencies {
     implementation(project(":contacts"))
     implementation(project(":settings"))
     implementation(project(":timetracking"))
+    implementation(project(":media"))
+    implementation(project(":weather"))
+    implementation(project(":glance"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

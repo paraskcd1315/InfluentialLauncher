@@ -10,4 +10,6 @@ object DesktopMetrics {
     const val searchStatusBarAlpha = 0.01f
     const val leaveTimeoutMs = 1_500L
     const val startWallpaperZoom = 0.5f
+    const val wallpaperZoomMax = 0.6f
+    const val unlockIntroMs = 520
 }

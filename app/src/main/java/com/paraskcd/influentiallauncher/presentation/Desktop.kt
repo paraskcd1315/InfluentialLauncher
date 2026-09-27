@@ -1,15 +1,22 @@
 package com.paraskcd.influentiallauncher.presentation
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -28,10 +35,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.paraskcd.influentiallauncher.clock.presentation.ClockHeader
+import com.paraskcd.influentiallauncher.glance.presentation.GlanceHost
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.infrastructure.NotificationShade
 import com.paraskcd.influentiallauncher.infrastructure.SpotlightSearchLauncher
@@ -56,6 +65,7 @@ fun Desktop(activity: ComponentActivity) {
     var hiddenFor by remember { mutableStateOf<DesktopAction?>(null) }
     var left by remember { mutableStateOf(false) }
     var direction by remember { mutableFloatStateOf(-1f) }
+    var introPending by remember { mutableStateOf(false) }
     val hidden = hiddenFor != null
     val aboveTaskbar = rememberAboveTaskbarOffset()
     val density = LocalDensity.current
@@ -86,12 +96,38 @@ fun Desktop(activity: ComponentActivity) {
             if (hiddenFor != DesktopAction.Notifications) return@OnWindowFocusChangeListener
             if (!hasFocus) left = true else if (left) reveal()
         }
+        val screen = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                when (intent.action) {
+                    Intent.ACTION_SCREEN_OFF -> if (hiddenFor == null) {
+                        startOpen = false
+                        direction = -1f
+                        introPending = true
+                        scope.launch { fade.snapTo(0f) }
+                    }
+                    Intent.ACTION_USER_PRESENT -> if (introPending) {
+                        introPending = false
+                        scope.launch { fade.animateTo(1f, tween(DesktopMetrics.unlockIntroMs, easing = InfMotion.easeIos)) }
+                    }
+                }
+            }
+        }
         activity.lifecycle.addObserver(observer)
         activity.window.decorView.viewTreeObserver.addOnWindowFocusChangeListener(focus)
+        ContextCompat.registerReceiver(
+            activity,
+            screen,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_USER_PRESENT)
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         onDispose {
             activity.removeOnNewIntentListener(listener)
             activity.lifecycle.removeObserver(observer)
             activity.window.decorView.viewTreeObserver.removeOnWindowFocusChangeListener(focus)
+            activity.unregisterReceiver(screen)
         }
     }
     LaunchedEffect(hiddenFor) {
@@ -117,12 +153,12 @@ fun Desktop(activity: ComponentActivity) {
     val systemBarShown = startOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
-    val startZoom by animateFloatAsState(
-        targetValue = if (startOpen) DesktopMetrics.startWallpaperZoom else 0f,
-        animationSpec = tween(InfMotion.durPushMs, easing = InfMotion.easeIos),
-        label = "startWallpaperZoom"
+    val zoomTarget = maxOf(if (startOpen) DesktopMetrics.startWallpaperZoom else 0f, 1f - fade.value) * DesktopMetrics.wallpaperZoomMax
+    val wallpaperZoom by animateFloatAsState(
+        targetValue = zoomTarget,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessLow),
+        label = "wallpaperZoom"
     )
-    val wallpaperZoom = maxOf(startZoom, 1f - fade.value)
     SideEffect { WallpaperZoom.set(activity.window, wallpaperZoom) }
 
     Box(
@@ -152,15 +188,17 @@ fun Desktop(activity: ComponentActivity) {
                 )
             }
     ) {
-        ClockHeader(
+        Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .graphicsLayer {
                     alpha = fade.value
                     translationY = direction * (1f - fade.value) * clockLift
-                },
-            sideInset = taskbarEdge
-        )
+                }
+        ) {
+            ClockHeader(sideInset = taskbarEdge)
+            GlanceHost(modifier = Modifier.padding(horizontal = taskbarEdge))
+        }
     }
     TaskbarHost(
         startOpen = startOpen,
