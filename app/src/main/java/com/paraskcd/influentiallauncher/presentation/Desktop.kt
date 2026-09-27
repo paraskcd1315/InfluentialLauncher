@@ -1,5 +1,6 @@
 package com.paraskcd.influentiallauncher.presentation
 
+import android.app.KeyguardManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -95,12 +96,24 @@ fun Desktop(activity: ComponentActivity) {
     }
 
     DisposableEffect(activity) {
+        val keyguard = activity.getSystemService(KeyguardManager::class.java)
+        val playIntro = {
+            if (introPending) {
+                introPending = false
+                scope.launch {
+                    fade.animateTo(1f, tween(DesktopMetrics.unlockIntroMs, easing = InfMotion.easeIos))
+                    introPlaying = false
+                }
+            }
+        }
         val listener = Consumer<Intent> {
             startOpen = false
             controlOpen = false
+            playIntro()
         }
         activity.addOnNewIntentListener(listener)
         val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && keyguard?.isKeyguardLocked != true) playIntro()
             if (hiddenFor != DesktopAction.Search && hiddenFor != DesktopAction.App) return@LifecycleEventObserver
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> left = true
@@ -123,13 +136,8 @@ fun Desktop(activity: ComponentActivity) {
                         introPlaying = true
                         scope.launch { fade.snapTo(0f) }
                     }
-                    Intent.ACTION_USER_PRESENT -> if (introPending) {
-                        introPending = false
-                        scope.launch {
-                            fade.animateTo(1f, tween(DesktopMetrics.unlockIntroMs, easing = InfMotion.easeIos))
-                            introPlaying = false
-                        }
-                    }
+                    Intent.ACTION_USER_PRESENT -> playIntro()
+                    Intent.ACTION_SCREEN_ON -> if (keyguard?.isKeyguardLocked != true) playIntro()
                 }
             }
         }
@@ -140,6 +148,7 @@ fun Desktop(activity: ComponentActivity) {
             screen,
             IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_SCREEN_ON)
                 addAction(Intent.ACTION_USER_PRESENT)
             },
             ContextCompat.RECEIVER_NOT_EXPORTED
