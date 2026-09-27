@@ -41,6 +41,7 @@ fun InfWindow(
     focusable: Boolean = false,
     fullScreen: Boolean = false,
     liftAboveIme: Boolean = true,
+    showStatusBar: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
@@ -99,6 +100,9 @@ fun InfWindow(
         LaunchedEffect(visible, configured) {
             if (!configured) return@LaunchedEffect
             reveal.animateTo(if (visible) 1f else 0f, tween(InfMotion.durMorphMs, easing = InfMotion.easeIos))
+        }
+        LaunchedEffect(visible, showStatusBar, focusable) {
+            if (focusable) DialogWindowSetup.setStatusBar(window, visible = visible && showStatusBar)
         }
         val shown = configured && (visible || reveal.value > 0f)
         val progress = reveal.value

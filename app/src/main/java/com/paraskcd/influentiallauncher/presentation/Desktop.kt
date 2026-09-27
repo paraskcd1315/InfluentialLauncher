@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -26,6 +27,7 @@ import com.paraskcd.influentiallauncher.statusbar.presentation.StatusBarLayout
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarHost
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarLayout
 import com.paraskcd.influentiallauncher.taskbar.presentation.rememberAboveTaskbarOffset
+import com.paraskcd.influentiallauncher.windowing.infrastructure.DialogWindowSetup
 
 @Composable
 fun Desktop(activity: ComponentActivity) {
@@ -40,6 +42,7 @@ fun Desktop(activity: ComponentActivity) {
         onDispose { activity.removeOnNewIntentListener(listener) }
     }
     BackHandler(enabled = startOpen) { startOpen = false }
+    LaunchedEffect(startOpen) { DialogWindowSetup.setStatusBar(activity.window, visible = startOpen) }
     val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
 
     Box(

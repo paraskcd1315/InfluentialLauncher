@@ -7,6 +7,9 @@ import android.view.View
 import android.view.ViewOutlineProvider
 import android.view.Window
 import android.view.WindowManager
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 object DialogWindowSetup {
     fun configure(
@@ -82,6 +85,13 @@ object DialogWindowSetup {
         val current = window.attributes.flags and flag != 0
         if (current == on) return
         if (on) window.addFlags(flag) else window.clearFlags(flag)
+    }
+
+    fun setStatusBar(window: Window, visible: Boolean) {
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            if (visible) show(WindowInsetsCompat.Type.statusBars()) else hide(WindowInsetsCompat.Type.statusBars())
+        }
     }
 
     fun setBlur(window: Window, radius: Int) {

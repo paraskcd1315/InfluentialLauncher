@@ -24,7 +24,8 @@ fun StartSearchWindow(
         widthFraction = widthFraction,
         visible = visible,
         focusable = true,
-        liftAboveIme = false
+        liftAboveIme = false,
+        showStatusBar = true
     ) {
         InfSearchField(
             value = value,

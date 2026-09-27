@@ -32,7 +32,8 @@ fun StartMenuWindow(
         offsetY = offsetY,
         widthFraction = StartMenuMetrics.widthFraction,
         visible = open,
-        focusable = true
+        focusable = true,
+        showStatusBar = true
     ) {
         val progress by animateFloatAsState(
             targetValue = if (open) 1f else 0f,
