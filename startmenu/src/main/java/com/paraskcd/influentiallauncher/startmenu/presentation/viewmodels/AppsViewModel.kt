@@ -5,6 +5,7 @@ import android.graphics.Rect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
@@ -46,8 +47,8 @@ class AppsViewModel @Inject constructor(
         _query.value = value
     }
 
-    fun launch(id: AppId, sourceBounds: Rect?) {
-        installedApps.launch(id, sourceBounds)
+    fun launch(id: AppId, origin: LaunchOrigin?) {
+        installedApps.launch(id, origin)
     }
 
     fun togglePin(target: PinTarget, id: AppId) {

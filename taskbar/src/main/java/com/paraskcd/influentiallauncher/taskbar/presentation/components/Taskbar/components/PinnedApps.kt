@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.foundation.horizontalFadingEdges
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -30,7 +31,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 fun PinnedApps(
     apps: List<LauncherApp>,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
-    onLaunch: (AppId, Rect?) -> Unit,
+    onLaunch: (AppId, LaunchOrigin?) -> Unit,
     onReorder: (List<AppId>) -> Unit,
     onMenu: (LauncherApp) -> Unit,
     modifier: Modifier = Modifier

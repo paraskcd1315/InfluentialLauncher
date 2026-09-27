@@ -50,6 +50,7 @@ fun StartMenuHost(
     tabsOffsetY: Dp,
     bottomOffset: Dp,
     onClose: () -> Unit,
+    onAppLaunched: () -> Unit,
     viewModel: StartMenuViewModel = hiltViewModel(),
     appsViewModel: AppsViewModel = hiltViewModel(),
     contactsViewModel: ContactsViewModel = hiltViewModel(),
@@ -105,7 +106,7 @@ fun StartMenuHost(
     )
     StartMenuWindow(open = open, offsetY = bottomOffset, height = menuHeight, onClose = onClose) {
         when (selected) {
-            StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose, onScrub = { scrubLetter = it }, viewModel = appsViewModel)
+            StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose, onLaunched = onAppLaunched, onScrub = { scrubLetter = it }, viewModel = appsViewModel)
             StartMenuTab.Calendar -> CalendarTab(open = open, onClose = onClose, timeTracking = timeTracking)
             StartMenuTab.Contacts -> ContactsTab(open = open, onClose = onClose, onScrub = { scrubLetter = it }, viewModel = contactsViewModel)
             StartMenuTab.Settings -> SettingsTab(

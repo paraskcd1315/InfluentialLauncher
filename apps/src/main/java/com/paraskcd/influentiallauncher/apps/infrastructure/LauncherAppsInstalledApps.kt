@@ -15,6 +15,7 @@ import android.util.Log
 import android.util.LruCache
 import androidx.core.graphics.drawable.toBitmap
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -49,8 +50,8 @@ class LauncherAppsInstalledApps @Inject constructor(
         awaitClose { launcherApps.unregisterCallback(callback) }
     }.flowOn(Dispatchers.IO)
 
-    override fun launch(id: AppId, sourceBounds: Rect?): Boolean = runCatching {
-        launcherApps.startMainActivity(ComponentName(id.packageName, id.activityName), user, sourceBounds, null)
+    override fun launch(id: AppId, origin: LaunchOrigin?): Boolean = runCatching {
+        launcherApps.startMainActivity(ComponentName(id.packageName, id.activityName), user, origin?.bounds, origin?.options)
     }.onFailure { Log.w(LogTag, "launch failed for ${id.key}", it) }.isSuccess
 
     override fun openInfo(id: AppId, sourceBounds: Rect?): Boolean = runCatching {

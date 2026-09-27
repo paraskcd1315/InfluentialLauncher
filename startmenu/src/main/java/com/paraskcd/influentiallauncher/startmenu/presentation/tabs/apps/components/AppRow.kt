@@ -1,7 +1,6 @@
 package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components
 
 import android.graphics.Bitmap
-import android.graphics.Rect
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,10 +16,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.toAndroidRectF
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextOverflow
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
+import com.paraskcd.influentiallauncher.apps.infrastructure.LaunchOrigins
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfGroupedCard
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -34,24 +38,21 @@ fun AppRow(
     index: Int,
     count: Int,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
-    onLaunch: (AppId, Rect?) -> Unit,
+    onLaunch: (AppId, LaunchOrigin?) -> Unit,
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var bounds by remember { mutableStateOf<Rect?>(null) }
+    val view = LocalView.current
+    var iconBounds by remember { mutableStateOf<Rect?>(null) }
     InfGroupedCard(index = index, count = count, modifier = modifier) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(StartMenuMetrics.rowIconGap),
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .onGloballyPositioned { coordinates ->
-                    val box = coordinates.boundsInWindow()
-                    bounds = Rect(box.left.toInt(), box.top.toInt(), box.right.toInt(), box.bottom.toInt())
-                }
                 .combinedClickable(
                     onClickLabel = entry.app.label,
-                    onClick = { onLaunch(entry.app.id, bounds) },
+                    onClick = { onLaunch(entry.app.id, iconBounds?.let { LaunchOrigins.scaleUp(view, it.toAndroidRectF()) }) },
                     onLongClick = onLongPress
                 )
                 .padding(StartMenuMetrics.rowPadding)
@@ -60,7 +61,8 @@ fun AppRow(
                 key = entry.app.id.key,
                 size = StartMenuMetrics.rowIconSize,
                 load = { loadIcon(entry.app.id, it) },
-                version = loadIcon
+                version = loadIcon,
+                modifier = Modifier.onGloballyPositioned { iconBounds = it.boundsInWindow() }
             )
             Text(
                 text = entry.app.label,

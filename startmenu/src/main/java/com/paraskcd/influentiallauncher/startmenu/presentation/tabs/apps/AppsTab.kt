@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -46,6 +47,7 @@ import kotlinx.coroutines.launch
 fun AppsTab(
     open: Boolean,
     onClose: () -> Unit,
+    onLaunched: () -> Unit,
     onScrub: (Char?) -> Unit,
     viewModel: AppsViewModel = hiltViewModel()
 ) {
@@ -70,9 +72,9 @@ fun AppsTab(
     val pinnedKeys = content?.pinned?.map { it.app.id.key }
     LaunchedEffect(pinnedKeys) { listState.scrollToItem(0) }
 
-    val launch: (AppId, Rect?) -> Unit = { id, bounds ->
-        onClose()
-        viewModel.launch(id, bounds)
+    val launch: (AppId, LaunchOrigin?) -> Unit = { id, origin ->
+        onLaunched()
+        viewModel.launch(id, origin)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

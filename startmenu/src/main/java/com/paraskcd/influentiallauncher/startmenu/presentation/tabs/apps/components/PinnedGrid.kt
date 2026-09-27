@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuApp
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
 
@@ -16,7 +17,7 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMe
 fun PinnedGrid(
     apps: List<StartMenuApp>,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
-    onLaunch: (AppId, Rect?) -> Unit,
+    onLaunch: (AppId, LaunchOrigin?) -> Unit,
     onLongPress: (StartMenuApp) -> Unit,
     modifier: Modifier = Modifier
 ) {

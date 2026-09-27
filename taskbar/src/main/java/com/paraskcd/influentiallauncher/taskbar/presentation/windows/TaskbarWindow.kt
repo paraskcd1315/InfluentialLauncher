@@ -5,6 +5,7 @@ import android.graphics.Rect
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.Taskbar
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
@@ -17,7 +18,7 @@ fun TaskbarWindow(
     startOpen: Boolean,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onStartClick: () -> Unit,
-    onLaunch: (AppId, Rect?) -> Unit,
+    onLaunch: (AppId, LaunchOrigin?) -> Unit,
     onReorder: (List<AppId>) -> Unit,
     onMenu: (LauncherApp) -> Unit,
     visible: Boolean,

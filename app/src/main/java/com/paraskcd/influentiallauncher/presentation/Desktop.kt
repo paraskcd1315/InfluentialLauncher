@@ -72,7 +72,7 @@ fun Desktop(activity: ComponentActivity) {
         val listener = Consumer<Intent> { startOpen = false }
         activity.addOnNewIntentListener(listener)
         val observer = LifecycleEventObserver { _, event ->
-            if (hiddenFor != DesktopAction.Search) return@LifecycleEventObserver
+            if (hiddenFor != DesktopAction.Search && hiddenFor != DesktopAction.App) return@LifecycleEventObserver
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> left = true
                 Lifecycle.Event.ON_RESUME -> if (left) reveal()
@@ -97,6 +97,7 @@ fun Desktop(activity: ComponentActivity) {
         val opened = when (action) {
             DesktopAction.Search -> SpotlightSearchLauncher.open(activity)
             DesktopAction.Notifications -> NotificationShade.expand(activity)
+            DesktopAction.App -> true
         }
         if (!opened) {
             reveal()
@@ -106,6 +107,10 @@ fun Desktop(activity: ComponentActivity) {
         if (!left) reveal()
     }
     BackHandler(enabled = startOpen) { startOpen = false }
+    val appLaunched = {
+        startOpen = false
+        hiddenFor = DesktopAction.App
+    }
     val systemBarShown = startOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
@@ -150,7 +155,7 @@ fun Desktop(activity: ComponentActivity) {
     TaskbarHost(
         startOpen = startOpen,
         onStartClick = { startOpen = !startOpen },
-        onAppLaunched = { startOpen = false },
+        onAppLaunched = appLaunched,
         visible = !hidden,
         alpha = fade.value
     )
@@ -164,6 +169,7 @@ fun Desktop(activity: ComponentActivity) {
         open = startOpen && !hidden,
         tabsOffsetY = aboveTaskbar,
         bottomOffset = aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap,
-        onClose = { startOpen = false }
+        onClose = { startOpen = false },
+        onAppLaunched = appLaunched
     )
 }

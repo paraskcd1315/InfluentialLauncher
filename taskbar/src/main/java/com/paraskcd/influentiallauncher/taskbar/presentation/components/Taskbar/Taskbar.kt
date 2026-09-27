@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.PinnedApps
@@ -25,7 +26,7 @@ fun Taskbar(
     startOpen: Boolean,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onStartClick: () -> Unit,
-    onLaunch: (AppId, Rect?) -> Unit,
+    onLaunch: (AppId, LaunchOrigin?) -> Unit,
     onReorder: (List<AppId>) -> Unit,
     onMenu: (LauncherApp) -> Unit,
     modifier: Modifier = Modifier

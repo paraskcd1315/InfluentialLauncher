@@ -5,6 +5,7 @@ import android.graphics.Rect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
@@ -28,8 +29,8 @@ class TaskbarViewModel @Inject constructor(
     val startPins: StateFlow<List<AppId>> = pinnedApps.pinnedIds(PinTarget.Start)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptyList())
 
-    fun launch(id: AppId, sourceBounds: Rect?) {
-        installedApps.launch(id, sourceBounds)
+    fun launch(id: AppId, origin: LaunchOrigin?) {
+        installedApps.launch(id, origin)
     }
 
     fun reorder(order: List<AppId>) {
