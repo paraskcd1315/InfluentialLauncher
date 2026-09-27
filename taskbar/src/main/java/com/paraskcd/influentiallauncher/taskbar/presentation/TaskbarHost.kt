@@ -23,6 +23,7 @@ fun TaskbarHost(
     onStartClick: () -> Unit,
     onAppLaunched: () -> Unit,
     visible: Boolean = true,
+    alpha: Float = 1f,
     viewModel: TaskbarViewModel = hiltViewModel()
 ) {
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
@@ -43,7 +44,8 @@ fun TaskbarHost(
         },
         onReorder = viewModel::reorder,
         onMenu = { menuApp = it },
-        visible = visible
+        visible = visible,
+        alpha = alpha
     )
     TaskbarAppSheet(
         app = menuApp,

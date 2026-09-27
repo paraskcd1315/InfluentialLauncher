@@ -42,6 +42,7 @@ fun InfWindow(
     fullScreen: Boolean = false,
     liftAboveIme: Boolean = true,
     showStatusBar: Boolean = false,
+    alpha: Float = 1f,
     content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
@@ -105,7 +106,7 @@ fun InfWindow(
             if (focusable) DialogWindowSetup.setStatusBar(window, visible = visible && showStatusBar)
         }
         val shown = configured && (visible || reveal.value > 0f)
-        val progress = reveal.value
+        val progress = reveal.value * alpha.coerceIn(0f, 1f)
         SideEffect {
             DialogWindowSetup.place(window, offsetYPx, alpha = progress)
             DialogWindowSetup.setVisible(window, shown, focusable = focusable && visible)

@@ -16,6 +16,7 @@ fun StatusBarHost(
     offsetX: Dp,
     offsetY: Dp,
     visible: Boolean,
+    alpha: Float = 1f,
     viewModel: StatusBarViewModel = hiltViewModel()
 ) {
     val status by viewModel.status.collectAsStateWithLifecycle()
@@ -26,7 +27,8 @@ fun StatusBarHost(
         gravity = Gravity.BOTTOM or Gravity.END,
         offsetX = offsetX,
         offsetY = offsetY,
-        visible = visible && current != null
+        visible = visible && current != null,
+        alpha = alpha
     ) {
         if (current != null) StatusPill(status = current)
     }

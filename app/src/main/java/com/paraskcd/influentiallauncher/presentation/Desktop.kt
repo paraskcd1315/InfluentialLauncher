@@ -3,7 +3,7 @@ package com.paraskcd.influentiallauncher.presentation
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -15,11 +15,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -37,7 +38,7 @@ import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarHost
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarLayout
 import com.paraskcd.influentiallauncher.taskbar.presentation.rememberAboveTaskbarOffset
 import com.paraskcd.influentiallauncher.windowing.infrastructure.DialogWindowSetup
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun Desktop(activity: ComponentActivity) {
@@ -47,12 +48,11 @@ fun Desktop(activity: ComponentActivity) {
     val aboveTaskbar = rememberAboveTaskbarOffset()
     val density = LocalDensity.current
     val screenWidth = with(density) { LocalWindowInfo.current.containerSize.width.toDp() }
-    val swipeThreshold = with(density) { DesktopMetrics.searchSwipe.toPx() }
-    val desktopAlpha by animateFloatAsState(
-        targetValue = if (searching) 0f else 1f,
-        animationSpec = tween(InfMotion.durMorphMs, easing = InfMotion.easeIos),
-        label = "desktopFade"
-    )
+    val swipeDistance = with(density) { DesktopMetrics.searchSwipe.toPx() }
+    val clockLift = with(density) { DesktopMetrics.searchClockLift.toPx() }
+    val fade = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
+    val settle = { target: Float -> scope.launch { fade.animateTo(target, tween(InfMotion.durMorphMs, easing = InfMotion.easeIos)) } }
 
     DisposableEffect(activity) {
         val listener = Consumer<Intent> { startOpen = false }
@@ -63,6 +63,7 @@ fun Desktop(activity: ComponentActivity) {
                 Lifecycle.Event.ON_RESUME -> if (leftForSearch) {
                     leftForSearch = false
                     searching = false
+                    settle(1f)
                 }
                 else -> Unit
             }
@@ -75,27 +76,35 @@ fun Desktop(activity: ComponentActivity) {
     }
     LaunchedEffect(searching) {
         if (!searching) return@LaunchedEffect
-        delay(InfMotion.durMorphMs.toLong())
-        if (!SpotlightSearchLauncher.open(activity)) searching = false
+        fade.animateTo(0f, tween(InfMotion.durMorphMs, easing = InfMotion.easeIos))
+        if (!SpotlightSearchLauncher.open(activity)) {
+            searching = false
+            settle(1f)
+        }
     }
     BackHandler(enabled = startOpen) { startOpen = false }
-    LaunchedEffect(startOpen) { DialogWindowSetup.setStatusBar(activity.window, visible = startOpen) }
+    val systemBarShown = startOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
+    LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) { detectTapGestures { startOpen = false } }
-            .pointerInput(Unit) {
+            .pointerInput(startOpen, searching) {
+                if (startOpen || searching) return@pointerInput
                 var dragged = 0f
                 detectVerticalDragGestures(
                     onDragStart = { dragged = 0f },
                     onDragEnd = {
-                        if (dragged <= -swipeThreshold && !startOpen) searching = true
+                        if (-dragged / swipeDistance >= DesktopMetrics.searchCommit) searching = true else settle(1f)
                     },
+                    onDragCancel = { settle(1f) },
                     onVerticalDrag = { change, amount ->
                         change.consume()
-                        dragged += amount
+                        dragged = (dragged + amount).coerceAtMost(0f)
+                        val progress = (-dragged / swipeDistance).coerceIn(0f, 1f)
+                        scope.launch { fade.snapTo(1f - progress) }
                     }
                 )
             }
@@ -103,7 +112,10 @@ fun Desktop(activity: ComponentActivity) {
         ClockHeader(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .alpha(desktopAlpha),
+                .graphicsLayer {
+                    alpha = fade.value
+                    translationY = -(1f - fade.value) * clockLift
+                },
             sideInset = taskbarEdge
         )
     }
@@ -111,12 +123,14 @@ fun Desktop(activity: ComponentActivity) {
         startOpen = startOpen,
         onStartClick = { startOpen = !startOpen },
         onAppLaunched = { startOpen = false },
-        visible = !searching
+        visible = !searching,
+        alpha = fade.value
     )
     StatusBarHost(
         offsetX = taskbarEdge,
         offsetY = aboveTaskbar,
-        visible = !startOpen && !searching
+        visible = !startOpen && !searching,
+        alpha = fade.value
     )
     StartMenuHost(
         open = startOpen && !searching,
