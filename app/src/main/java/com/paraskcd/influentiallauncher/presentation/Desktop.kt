@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,6 +56,7 @@ import com.paraskcd.influentiallauncher.infrastructure.WallpaperZoom
 import com.paraskcd.influentiallauncher.presentation.model.DesktopAction
 import com.paraskcd.influentiallauncher.presentation.utils.DesktopMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.StartMenuHost
+import com.paraskcd.influentiallauncher.statusbar.presentation.SearchPillHost
 import com.paraskcd.influentiallauncher.statusbar.presentation.StatusBarHost
 import com.paraskcd.influentiallauncher.statusbar.presentation.StatusBarLayout
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarHost
@@ -176,6 +178,7 @@ fun Desktop(activity: ComponentActivity) {
     val layoutDirection = LocalLayoutDirection.current
     val cutoutStart = with(density) { WindowInsets.displayCutout.getLeft(density, layoutDirection).toDp() }
     val statusTop = with(density) { WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp() }
+    val navigationBottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     val taskbarEdge = if (landscape) maxOf(DesktopMetrics.landscapeInset, cutoutStart + DesktopMetrics.windowGap)
         else screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
     val pillTop = statusTop + DesktopMetrics.windowGap
@@ -257,6 +260,16 @@ fun Desktop(activity: ComponentActivity) {
         active = controlOpen,
         onClick = { controlOpen = !controlOpen },
         fromTop = landscape
+    )
+    SearchPillHost(
+        offsetX = taskbarEdge,
+        offsetY = if (landscape) navigationBottom + DesktopMetrics.windowGap else aboveTaskbar,
+        visible = !startOpen && !hidden,
+        onClick = {
+            controlOpen = false
+            hiddenFor = DesktopAction.Search
+        },
+        alpha = fade.value
     )
     ControlCenterHost(
         open = controlOpen && !hidden,
