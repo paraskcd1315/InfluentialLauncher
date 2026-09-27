@@ -203,7 +203,7 @@ fun Desktop(activity: ComponentActivity) {
                 }
         ) {
             ClockHeader(sideInset = taskbarEdge)
-            GlanceHost(modifier = Modifier.padding(horizontal = taskbarEdge))
+            GlanceHost(horizontalInset = taskbarEdge)
         }
     }
     TaskbarHost(

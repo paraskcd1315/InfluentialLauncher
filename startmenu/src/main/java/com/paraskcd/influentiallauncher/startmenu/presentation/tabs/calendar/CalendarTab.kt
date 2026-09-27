@@ -20,6 +20,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -83,10 +86,29 @@ fun CalendarTab(
         else -> null
     }
 
+    val density = LocalDensity.current
+    var headerHeight by remember { mutableStateOf(0.dp) }
+    Box(modifier = Modifier.fillMaxSize()) {
+        DayTimeline(
+            date = date,
+            entries = entries,
+            events = dayEvents.filterNot { it.allDay },
+            onMove = timeTracking::move,
+            onOpenEvent = {
+                onClose()
+                viewModel.open(it)
+            },
+            onDay = { viewModel.setDay(date.plusDays(it)) },
+            topPadding = headerHeight + TimelineMetrics.sectionGap,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = StartMenuMetrics.listPadding)
+        )
     Column(
         verticalArrangement = Arrangement.spacedBy(TimelineMetrics.sectionGap),
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
             .padding(top = StartMenuMetrics.listTopPlain)
     ) {
         Column(
@@ -145,20 +167,7 @@ fun CalendarTab(
                     .padding(InfSpacing.s3)
             )
         }
-        DayTimeline(
-            date = date,
-            entries = entries,
-            events = dayEvents.filterNot { it.allDay },
-            onMove = timeTracking::move,
-            onOpenEvent = {
-                onClose()
-                viewModel.open(it)
-            },
-            onDay = { viewModel.setDay(date.plusDays(it)) },
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = StartMenuMetrics.listPadding)
-        )
+    }
     }
 
     DatePickerSheet(date = picking, onPick = viewModel::setDay, onDismiss = { picking = null })

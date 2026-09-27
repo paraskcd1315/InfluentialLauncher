@@ -5,6 +5,7 @@ import android.graphics.Rect
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -18,6 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
@@ -34,7 +37,9 @@ fun PinnedApps(
     onLaunch: (AppId, LaunchOrigin?) -> Unit,
     onReorder: (List<AppId>) -> Unit,
     onMenu: (LauncherApp) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
+    fadeStartInset: Dp = 0.dp
 ) {
     var order by remember { mutableStateOf(apps) }
     var moved by remember { mutableStateOf(false) }
@@ -54,7 +59,8 @@ fun PinnedApps(
     LazyRow(
         state = listState,
         horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
-        modifier = modifier.horizontalFadingEdges(listState)
+        contentPadding = contentPadding,
+        modifier = modifier.horizontalFadingEdges(listState, startInset = fadeStartInset)
     ) {
         items(order, key = { it.id.key }) { app ->
             ReorderableItem(reorderState, key = app.id.key) { dragging ->

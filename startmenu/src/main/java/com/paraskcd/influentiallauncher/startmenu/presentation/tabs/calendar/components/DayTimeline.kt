@@ -58,7 +58,8 @@ fun DayTimeline(
     onMove: (TimeEntry, Instant, Instant?) -> Unit,
     onOpenEvent: (CalendarEvent) -> Unit,
     onDay: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    topPadding: Dp = 0.dp
 ) {
     val colors = InfTheme.colors
     val density = LocalDensity.current
@@ -108,7 +109,7 @@ fun DayTimeline(
         val eventsWidth = contentWidth - trackerWidth - TimelineMetrics.columnGap
         val trackerLeft = TimelineMetrics.gutterWidth + TimelineMetrics.columnGap
         val eventsLeft = trackerLeft + trackerWidth + TimelineMetrics.columnGap
-        Box(modifier = Modifier.fillMaxWidth().height(hourHeight * TimelineMetrics.hours + TimelineMetrics.fabSize + TimelineMetrics.fabInset * 2)) {
+        Box(modifier = Modifier.fillMaxWidth().padding(top = topPadding).height(hourHeight * TimelineMetrics.hours + TimelineMetrics.fabSize + TimelineMetrics.fabInset * 2)) {
             repeat(TimelineMetrics.hours) { hour ->
                 Box(
                     modifier = Modifier

@@ -9,28 +9,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 fun Modifier.horizontalFadingEdges(
     state: ScrollableState,
-    edgeWidth: Dp = DsMetrics.fadeEdge
+    edgeWidth: Dp = DsMetrics.fadeEdge,
+    startInset: Dp = 0.dp,
+    endInset: Dp = 0.dp
 ): Modifier = this
     .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
     .drawWithContent {
         drawContent()
         val width = edgeWidth.toPx()
+        val start = startInset.toPx()
+        val end = size.width - endInset.toPx()
         if (state.canScrollBackward) {
             drawRect(
-                brush = Brush.horizontalGradient(listOf(Color.Transparent, Color.Black), startX = 0f, endX = width),
+                brush = Brush.horizontalGradient(listOf(Color.Transparent, Color.Black), startX = start, endX = start + width),
                 blendMode = BlendMode.DstIn
             )
         }
         if (state.canScrollForward) {
             drawRect(
-                brush = Brush.horizontalGradient(
-                    listOf(Color.Black, Color.Transparent),
-                    startX = size.width - width,
-                    endX = size.width
-                ),
+                brush = Brush.horizontalGradient(listOf(Color.Black, Color.Transparent), startX = end - width, endX = end),
                 blendMode = BlendMode.DstIn
             )
         }

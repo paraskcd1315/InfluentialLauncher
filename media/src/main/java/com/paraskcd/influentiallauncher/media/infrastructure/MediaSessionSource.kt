@@ -1,5 +1,6 @@
 package com.paraskcd.influentiallauncher.media.infrastructure
 
+import android.app.ActivityOptions
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -90,7 +91,14 @@ class MediaSessionSource @Inject constructor(
 
     override fun open() {
         val controller = active ?: return
-        val sent = runCatching { controller.sessionActivity?.send() }.isSuccess && controller.sessionActivity != null
+        val options = ActivityOptions.makeBasic()
+            .setPendingIntentBackgroundActivityStartMode(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED)
+            .toBundle()
+        val sent = controller.sessionActivity?.let { activity ->
+            runCatching { activity.send(context, 0, null, null, null, null, options) }
+                .onFailure { Log.w(LogTag, "session activity failed", it) }
+                .isSuccess
+        } ?: false
         if (sent) return
         context.packageManager.getLaunchIntentForPackage(controller.packageName)
             ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

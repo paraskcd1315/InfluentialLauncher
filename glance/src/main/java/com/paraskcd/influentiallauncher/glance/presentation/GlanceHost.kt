@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,7 +41,11 @@ import com.paraskcd.influentiallauncher.glance.presentation.utils.GlanceMetrics
 import com.paraskcd.influentiallauncher.glance.presentation.viewmodels.GlanceViewModel
 
 @Composable
-fun GlanceHost(modifier: Modifier = Modifier, viewModel: GlanceViewModel = hiltViewModel()) {
+fun GlanceHost(
+    modifier: Modifier = Modifier,
+    horizontalInset: Dp = 0.dp,
+    viewModel: GlanceViewModel = hiltViewModel()
+) {
     val cards by viewModel.cards.collectAsStateWithLifecycle()
     val locationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { viewModel.refresh() }
     LifecycleResumeEffect(Unit) {
@@ -50,10 +57,12 @@ fun GlanceHost(modifier: Modifier = Modifier, viewModel: GlanceViewModel = hiltV
     val leading = cards.first().key
     LaunchedEffect(leading) { pager.animateScrollToPage(0) }
 
-    Column(modifier = modifier.padding(top = GlanceMetrics.topGap)) {
+    Column(modifier = modifier.fillMaxWidth().padding(top = GlanceMetrics.topGap)) {
         HorizontalPager(
             state = pager,
             key = { cards.getOrNull(it)?.key ?: it },
+            contentPadding = PaddingValues(horizontal = horizontalInset),
+            pageSpacing = horizontalInset,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(GlanceMetrics.height)
@@ -84,7 +93,10 @@ fun GlanceHost(modifier: Modifier = Modifier, viewModel: GlanceViewModel = hiltV
             }
         }
         if (cards.size > 1) {
-            Row(horizontalArrangement = Arrangement.spacedBy(GlanceMetrics.dotGap)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(GlanceMetrics.dotGap),
+                modifier = Modifier.padding(start = horizontalInset)
+            ) {
                 repeat(cards.size) { index ->
                     Box(
                         modifier = Modifier
