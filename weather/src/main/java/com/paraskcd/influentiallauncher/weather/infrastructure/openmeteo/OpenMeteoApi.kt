@@ -3,11 +3,27 @@ package com.paraskcd.influentiallauncher.weather.infrastructure.openmeteo
 object OpenMeteoApi {
     const val ForecastBaseUrl = "https://api.open-meteo.com/v1"
     const val AirQualityBaseUrl = "https://air-quality-api.open-meteo.com/v1"
+    const val GeocodingBaseUrl = "https://geocoding-api.open-meteo.com/v1"
     const val AutoTimezone = "auto"
+    const val JsonFormat = "json"
 
     object Paths {
         const val Forecast = "/forecast"
         const val AirQuality = "/air-quality"
+        const val Search = "/search"
+    }
+
+    object Geocoding {
+        const val Name = "name"
+        const val Count = "count"
+        const val Language = "language"
+        const val Format = "format"
+        const val Results = "results"
+        const val Latitude = "latitude"
+        const val Longitude = "longitude"
+        const val Region = "admin1"
+        const val Province = "admin2"
+        const val CountryCode = "country_code"
     }
 
     object Query {

@@ -12,6 +12,7 @@ import com.paraskcd.influentiallauncher.weather.domain.model.WeatherReport
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherSourceName
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherWarning
 import com.paraskcd.influentiallauncher.weather.domain.ports.AirQualityProvider
+import com.paraskcd.influentiallauncher.weather.domain.ports.SavedPlaces
 import com.paraskcd.influentiallauncher.weather.domain.ports.WarningProvider
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherProvider
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherSource
@@ -19,6 +20,7 @@ import com.paraskcd.influentiallauncher.weather.infrastructure.location.DeviceLo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -28,6 +30,7 @@ import javax.inject.Singleton
 class ChainedWeatherSource @Inject constructor(
     @ApplicationContext private val context: Context,
     private val locator: DeviceLocator,
+    private val savedPlaces: SavedPlaces,
     private val providers: List<@JvmSuppressWildcards WeatherProvider>,
     private val airQuality: AirQualityProvider,
     private val warnings: WarningProvider
@@ -38,9 +41,9 @@ class ChainedWeatherSource @Inject constructor(
     private val placeLock = Mutex()
     private val forecastLock = Mutex()
     private val extrasLock = Mutex()
-    private var place: Cached<Place>? = null
-    private val forecasts = mutableMapOf<WeatherSourceName, Cached<Forecast>>()
-    private var extras: Cached<Extras>? = null
+    private var devicePlace: Cached<Place>? = null
+    private val forecasts = mutableMapOf<Pair<String, WeatherSourceName>, Cached<Forecast>>()
+    private val extras = mutableMapOf<String, Cached<Extras>>()
 
     override fun hasPermission(): Boolean =
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
@@ -59,6 +62,7 @@ class ChainedWeatherSource @Inject constructor(
         val found = extras.await()
         forecast?.let {
             WeatherReport(
+                place = here,
                 forecast = it,
                 sources = sources.map { provider -> provider.name },
                 airQuality = found.airQuality,
@@ -77,19 +81,20 @@ class ChainedWeatherSource @Inject constructor(
     }
 
     private suspend fun forecastFrom(provider: WeatherProvider, here: Place, force: Boolean): Forecast? = forecastLock.withLock {
-        val cached = forecasts[provider.name]
+        val key = here.key() to provider.name
+        val cached = forecasts[key]
         if (!force && cached?.fresh() == true) return@withLock cached.value
         val fetched = runCatching { provider.forecast(here) }
             .onFailure { Log.w(LogTag, "${provider.name} failed", it) }
             .getOrNull()
         if (fetched == null) return@withLock cached?.value
         Log.d(LogTag, "weather from ${provider.name}")
-        forecasts[provider.name] = Cached(fetched)
+        forecasts[key] = Cached(fetched)
         fetched
     }
 
     private suspend fun extras(here: Place, force: Boolean): Extras = extrasLock.withLock {
-        extras?.let { if (!force && it.fresh()) return@withLock it.value }
+        extras[here.key()]?.let { if (!force && it.fresh()) return@withLock it.value }
         coroutineScope {
             val air = async {
                 runCatching { airQuality.airQuality(here) }.onFailure { Log.w(LogTag, "air quality failed", it) }.getOrNull()
@@ -98,15 +103,20 @@ class ChainedWeatherSource @Inject constructor(
                 if (!warnings.covers(here)) emptyList()
                 else runCatching { warnings.warnings(here) }.onFailure { Log.w(LogTag, "warnings failed", it) }.getOrDefault(emptyList())
             }
-            Extras(air.await(), alerts.await()).also { extras = Cached(it) }
+            Extras(air.await(), alerts.await()).also { extras[here.key()] = Cached(it) }
         }
     }
 
-    private suspend fun place(force: Boolean): Place? = placeLock.withLock {
-        place?.let { if (!force && it.fresh()) return@withLock it.value }
+    private suspend fun place(force: Boolean): Place? {
+        savedPlaces.selected.first()?.let { return it }
+        return devicePlace(force)
+    }
+
+    private suspend fun devicePlace(force: Boolean): Place? = placeLock.withLock {
+        devicePlace?.let { if (!force && it.fresh()) return@withLock it.value }
         if (!hasPermission()) return@withLock null
-        val found = locator.place() ?: return@withLock place?.value
-        place = Cached(found)
+        val found = locator.place() ?: return@withLock devicePlace?.value
+        devicePlace = Cached(found)
         found
     }
 

@@ -39,6 +39,8 @@ import com.paraskcd.influentiallauncher.glance.presentation.components.WeatherGl
 import com.paraskcd.influentiallauncher.glance.presentation.components.WeatherGlanceSkeleton
 import com.paraskcd.influentiallauncher.glance.presentation.model.GlanceCard
 import com.paraskcd.influentiallauncher.glance.presentation.utils.GlanceMetrics
+import com.paraskcd.influentiallauncher.glance.presentation.sheets.PlacesSheet
+import com.paraskcd.influentiallauncher.glance.presentation.sheets.RemovePlaceSheet
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.WeatherSheet
 import com.paraskcd.influentiallauncher.glance.presentation.viewmodels.GlanceViewModel
 import com.paraskcd.influentiallauncher.glance.presentation.viewmodels.WeatherViewModel
@@ -52,7 +54,30 @@ fun GlanceHost(
 ) {
     val cards by viewModel.cards.collectAsStateWithLifecycle()
     val weatherSheet by weatherViewModel.sheet.collectAsStateWithLifecycle()
-    WeatherSheet(state = weatherSheet, onSelect = weatherViewModel::select, onDismiss = weatherViewModel::dismiss)
+    val picker by weatherViewModel.picker.collectAsStateWithLifecycle()
+    val removing by weatherViewModel.removing.collectAsStateWithLifecycle()
+    val places by weatherViewModel.places.collectAsStateWithLifecycle()
+    val selectedPlace by weatherViewModel.selectedPlace.collectAsStateWithLifecycle()
+    WeatherSheet(
+        state = weatherSheet,
+        onSelect = weatherViewModel::select,
+        savedKeys = places.map { it.key() }.toSet(),
+        onPlaces = weatherViewModel::openPicker,
+        onToggleSaved = weatherViewModel::toggleSaved,
+        onDismiss = weatherViewModel::dismiss
+    )
+    PlacesSheet(
+        picker = picker,
+        places = places,
+        selected = selectedPlace,
+        onSearch = weatherViewModel::search,
+        onPick = weatherViewModel::pick,
+        onAdd = weatherViewModel::add,
+        onRemove = weatherViewModel::askRemove,
+        onToggleAdding = weatherViewModel::toggleAdding,
+        onDismiss = weatherViewModel::closePicker
+    )
+    RemovePlaceSheet(place = removing, onConfirm = weatherViewModel::confirmRemove, onDismiss = weatherViewModel::cancelRemove)
     val locationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { viewModel.refresh() }
     LifecycleResumeEffect(Unit) {
         viewModel.refresh()

@@ -8,6 +8,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material3.Icon
+import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.Lucide
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +54,8 @@ fun InfBottomSheet(
     leading: (@Composable () -> Unit)? = null,
     edgeToEdge: Boolean = false,
     header: (@Composable ColumnScope.() -> Unit)? = null,
+    onTitleClick: (() -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val colors = InfTheme.colors
@@ -102,13 +109,34 @@ fun InfBottomSheet(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         leading?.invoke()
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = colors.textPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(InfSpacing.s1),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                                .then(if (onTitleClick != null) Modifier.clip(InfShapes.md).clickable(onClick = onTitleClick) else Modifier)
+                        ) {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleLarge,
+                                color = colors.textPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false)
+                            )
+                            if (onTitleClick != null) {
+                                Icon(
+                                    imageVector = Lucide.ChevronDown,
+                                    contentDescription = null,
+                                    tint = colors.textSecondary,
+                                    modifier = Modifier.size(DsMetrics.actionIconSize)
+                                )
+                            }
+                        }
+                        if (trailing != null) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            trailing()
+                        }
                     }
                     header?.invoke(this)
                 }

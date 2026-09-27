@@ -18,7 +18,13 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.BookmarkCheck
+import com.composables.icons.lucide.BookmarkPlus
+import com.composables.icons.lucide.Lucide
+import com.paraskcd.influentiallauncher.designsystem.atoms.InfIconButton
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
+import com.paraskcd.influentiallauncher.glance.presentation.utils.PlaceLabels
+import com.paraskcd.influentiallauncher.weather.domain.model.Place
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfSegmented
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -40,13 +46,29 @@ import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurre
 fun WeatherSheet(
     state: WeatherSheetState?,
     onSelect: (WeatherSourceName) -> Unit,
+    savedKeys: Set<String>,
+    onPlaces: () -> Unit,
+    onToggleSaved: (Place) -> Unit,
     onDismiss: () -> Unit
 ) {
     InfSheetWindow(
         item = state,
-        title = { it.report?.forecast?.now?.place ?: stringResource(R.string.weather_title) },
+        title = { current -> current.report?.place?.let(PlaceLabels::nameOf) ?: stringResource(R.string.weather_title) },
         onDismiss = onDismiss,
         edgeToEdge = true,
+        onTitleClick = { onPlaces() },
+        trailing = { current ->
+            val place = current.report?.place
+            if (place != null) {
+                val saved = place.key() in savedKeys
+                InfIconButton(
+                    icon = if (saved) Lucide.BookmarkCheck else Lucide.BookmarkPlus,
+                    contentDescription = stringResource(if (saved) R.string.weather_unsave_location else R.string.weather_save_location),
+                    tint = if (saved) InfTheme.colors.brandText else InfTheme.colors.textPrimary,
+                    onClick = { onToggleSaved(place) }
+                )
+            }
+        },
         header = { current ->
             val sources = current.report?.sources.orEmpty()
             if (sources.size > 1) {
