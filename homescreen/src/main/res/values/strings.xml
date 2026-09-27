@@ -11,4 +11,10 @@
     <string name="home_delete_page">Delete page</string>
     <string name="home_delete_title">Delete page %1$d?</string>
     <string name="home_delete_confirm">Delete page and its apps</string>
+    <string name="home_edit">Edit Home Screen</string>
+    <string name="home_pin_taskbar">Pin to taskbar</string>
+    <string name="home_unpin_taskbar">Unpin from taskbar</string>
+    <string name="home_info">App info</string>
+    <string name="home_uninstall">Uninstall</string>
+    <string name="home_done">Done</string>
 </resources>

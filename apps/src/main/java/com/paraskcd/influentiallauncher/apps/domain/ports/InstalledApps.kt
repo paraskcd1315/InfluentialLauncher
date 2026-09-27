@@ -17,4 +17,6 @@ interface InstalledApps {
     fun uninstall(id: AppId): Boolean
 
     suspend fun icon(id: AppId, sizePx: Int, tint: Int?, background: Int? = null): Bitmap?
+
+    fun cachedIcon(id: AppId, sizePx: Int, tint: Int?, background: Int? = null): Bitmap?
 }

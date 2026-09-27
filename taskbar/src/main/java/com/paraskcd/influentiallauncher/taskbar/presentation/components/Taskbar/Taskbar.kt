@@ -21,6 +21,7 @@ import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.PinnedApps
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.PinnedAppsSkeleton
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.StartButton
@@ -34,8 +35,10 @@ fun Taskbar(
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onStartClick: () -> Unit,
     onLaunch: (AppId, LaunchOrigin?) -> Unit,
-    onReorder: (List<AppId>) -> Unit,
     onMenu: (LauncherApp) -> Unit,
+    wiggling: Boolean,
+    onDragApp: (LauncherApp) -> Unit,
+    onDrop: (AppDragPayload, Int) -> Unit,
     modifier: Modifier = Modifier,
     vertical: Boolean = false
 ) {
@@ -59,9 +62,11 @@ fun Taskbar(
             PinnedApps(
                 apps = pinned,
                 loadIcon = loadIcon,
+                wiggling = wiggling,
                 onLaunch = onLaunch,
-                onReorder = onReorder,
                 onMenu = onMenu,
+                onDragApp = onDragApp,
+                onDrop = onDrop,
                 vertical = vertical,
                 contentPadding = if (vertical) {
                     PaddingValues(top = appsStart, bottom = TaskbarMetrics.barPaddingHorizontal, start = TaskbarMetrics.barPaddingVertical, end = TaskbarMetrics.barPaddingVertical)

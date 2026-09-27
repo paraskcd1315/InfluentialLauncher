@@ -2,16 +2,19 @@ package com.paraskcd.influentiallauncher.taskbar.presentation.windows
 
 import android.graphics.Bitmap
 import android.view.Gravity
+import android.view.View
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
+import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.Taskbar
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
 import com.paraskcd.influentiallauncher.windowing.presentation.InfWindow
@@ -25,8 +28,10 @@ fun TaskbarWindow(
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onStartClick: () -> Unit,
     onLaunch: (AppId, LaunchOrigin?) -> Unit,
-    onReorder: (List<AppId>) -> Unit,
     onMenu: (LauncherApp) -> Unit,
+    wiggling: Boolean,
+    onDragApp: (View, LauncherApp) -> Unit,
+    onDrop: (AppDragPayload, Int) -> Unit,
     visible: Boolean,
     alpha: Float
 ) {
@@ -43,14 +48,17 @@ fun TaskbarWindow(
         visible = visible,
         alpha = alpha
     ) {
+        val touchedWindowView = LocalView.current
         Taskbar(
             pinned = pinned,
             startOpen = startOpen,
             loadIcon = loadIcon,
             onStartClick = onStartClick,
             onLaunch = onLaunch,
-            onReorder = onReorder,
             onMenu = onMenu,
+            wiggling = wiggling,
+            onDragApp = { app -> onDragApp(touchedWindowView, app) },
+            onDrop = onDrop,
             vertical = vertical,
             modifier = if (vertical) Modifier.height(screenHeight * TaskbarMetrics.heightFraction) else Modifier
         )

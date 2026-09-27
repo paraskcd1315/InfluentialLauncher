@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":designsystem"))
     implementation(project(":windowing"))
     implementation(project(":apps"))
+    implementation(project(":pins"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.datastore.preferences)

@@ -8,30 +8,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
+import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
+import com.paraskcd.influentiallauncher.homescreen.presentation.drag.DragSource
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 
 @Stable
 class HomeDragState {
-    var app by mutableStateOf<LauncherApp?>(null)
-        private set
-    var pointer by mutableStateOf(Offset.Zero)
-        private set
-    var grab by mutableStateOf(Offset.Zero)
+    var payload by mutableStateOf<AppDragPayload?>(null)
         private set
     var hoverIndex by mutableIntStateOf(-1)
         private set
 
-    val dragging: Boolean get() = app != null
+    val app: LauncherApp? get() = payload?.app
+    val dragging: Boolean get() = payload != null
+    val fromHome: Boolean get() = payload?.source == DragSource.Home
 
-    fun start(picked: LauncherApp, at: Offset, cellTopLeft: Offset, fromIndex: Int) {
-        app = picked
-        pointer = at
-        grab = at - cellTopLeft
-        hoverIndex = fromIndex
+    fun begin(dragged: AppDragPayload) {
+        payload = dragged
+        hoverIndex = -1
     }
 
     fun move(to: Offset, area: IntSize, count: Int) {
-        pointer = to
         val cellWidth = area.width / HomeMetrics.columns.toFloat()
         val cellHeight = area.height / HomeMetrics.rows.toFloat()
         if (cellWidth <= 0f || cellHeight <= 0f) return
@@ -40,7 +37,8 @@ class HomeDragState {
         val insideX = (to.x - column * cellWidth) / cellWidth
         val insideY = (to.y - row * cellHeight) / cellHeight
         val margin = (1f - HomeMetrics.hoverCore) / 2f
-        if (insideX < margin || insideX > 1f - margin || insideY < margin || insideY > 1f - margin) return
+        val nearEdge = insideX < margin || insideX > 1f - margin || insideY < margin || insideY > 1f - margin
+        if (nearEdge && hoverIndex >= 0) return
         hoverIndex = (row * HomeMetrics.columns + column).coerceIn(0, count)
     }
 
@@ -48,8 +46,12 @@ class HomeDragState {
         if (hoverIndex > count) hoverIndex = count
     }
 
+    fun leave() {
+        hoverIndex = -1
+    }
+
     fun end() {
-        app = null
+        payload = null
         hoverIndex = -1
     }
 }

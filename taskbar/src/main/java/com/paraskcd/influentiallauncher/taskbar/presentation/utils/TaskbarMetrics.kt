@@ -23,5 +23,6 @@ object TaskbarMetrics {
     val aboveGap = InfSpacing.s2
     const val skeletonTileCount = 4
     const val skeletonAlpha = 0.10f
-    const val draggingScale = 1.12f
+    const val wiggleDegrees = 2.2f
+    const val wiggleMs = 130
 }

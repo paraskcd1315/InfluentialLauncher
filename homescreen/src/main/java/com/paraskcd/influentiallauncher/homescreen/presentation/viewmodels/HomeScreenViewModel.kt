@@ -7,9 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
+import com.paraskcd.influentiallauncher.homescreen.domain.usecase.EditMode
+import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeDock
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreen
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenPage
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenState
+import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
+import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,17 +25,25 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    private val home: HomeScreen
+    private val home: HomeScreen,
+    private val dock: HomeDock,
+    private val editMode: EditMode,
+    private val pinnedApps: PinnedApps
 ) : ViewModel() {
 
     val state: StateFlow<HomeScreenState?> = home.state
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
 
-    private val _wiggling = MutableStateFlow(false)
-    val wiggling: StateFlow<Boolean> = _wiggling.asStateFlow()
+    val wiggling: StateFlow<Boolean> = editMode.active
+
+    val taskbarIds: StateFlow<List<AppId>> = pinnedApps.pinnedIds(PinTarget.Taskbar)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptyList())
 
     private val _overview = MutableStateFlow(false)
     val overview: StateFlow<Boolean> = _overview.asStateFlow()
+
+    private val _menu = MutableStateFlow<LauncherApp?>(null)
+    val menu: StateFlow<LauncherApp?> = _menu.asStateFlow()
 
     private val _removing = MutableStateFlow<LauncherApp?>(null)
     val removing: StateFlow<LauncherApp?> = _removing.asStateFlow()
@@ -41,15 +53,13 @@ class HomeScreenViewModel @Inject constructor(
 
     fun startWiggle() {
         _overview.value = false
-        _wiggling.value = true
+        editMode.start()
     }
 
-    fun stopWiggle() {
-        _wiggling.value = false
-    }
+    fun stopWiggle() = editMode.stop()
 
     fun openOverview() {
-        _wiggling.value = false
+        editMode.stop()
         _overview.value = true
     }
 
@@ -57,15 +67,37 @@ class HomeScreenViewModel @Inject constructor(
         _overview.value = false
     }
 
+    fun openMenu(app: LauncherApp) {
+        _menu.value = app
+    }
+
+    fun closeMenu() {
+        _menu.value = null
+    }
+
     fun launch(app: AppId, origin: LaunchOrigin?): Boolean = home.launch(app, origin)
 
     suspend fun icon(app: AppId, sizePx: Int, tint: Int, background: Int): Bitmap? = home.icon(app, sizePx, tint, background)
+
+    fun cachedIcon(app: AppId, sizePx: Int, tint: Int, background: Int): Bitmap? = home.cachedIcon(app, sizePx, tint, background)
 
     fun move(app: AppId, pageId: String, index: Int) = run { home.move(app, pageId, index) }
 
     fun moveToNewPage(app: AppId) = run {
         val id = home.addPage()
         home.move(app, id, 0)
+    }
+
+    fun fromTaskbar(app: AppId, pageId: String?, index: Int) = run { dock.toHome(app, pageId, index) }
+
+    fun toggleTaskbar(app: AppId) = run { pinnedApps.toggle(PinTarget.Taskbar, app) }
+
+    fun openInfo(app: AppId) {
+        home.openInfo(app)
+    }
+
+    fun uninstall(app: AppId) {
+        home.uninstall(app)
     }
 
     fun addPage() = run { home.addPage() }
