@@ -37,7 +37,7 @@ fun <T : Any> InfSheetWindow(
             retained = null
         }
     }
-    val current = retained ?: return
+    val current = item ?: retained ?: return
     InfWindow(
         cornerRadius = 0.dp,
         onDismissRequest = onDismiss,
