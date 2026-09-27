@@ -17,6 +17,8 @@ fun StatusBarHost(
     offsetY: Dp,
     visible: Boolean,
     alpha: Float = 1f,
+    active: Boolean = false,
+    onClick: () -> Unit = {},
     viewModel: StatusBarViewModel = hiltViewModel()
 ) {
     val status by viewModel.status.collectAsStateWithLifecycle()
@@ -30,6 +32,6 @@ fun StatusBarHost(
         visible = visible && current != null,
         alpha = alpha
     ) {
-        if (current != null) StatusPill(status = current)
+        if (current != null) StatusPill(status = current, active = active, onClick = onClick)
     }
 }

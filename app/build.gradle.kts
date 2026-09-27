@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":media"))
     implementation(project(":weather"))
     implementation(project(":glance"))
+    implementation(project(":controlcenter"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -40,6 +40,7 @@ import androidx.core.util.Consumer
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.paraskcd.influentiallauncher.clock.presentation.ClockHeader
+import com.paraskcd.influentiallauncher.controlcenter.presentation.ControlCenterHost
 import com.paraskcd.influentiallauncher.glance.presentation.GlanceHost
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.infrastructure.NotificationShade
@@ -62,6 +63,7 @@ import kotlin.math.sign
 @Composable
 fun Desktop(activity: ComponentActivity) {
     var startOpen by rememberSaveable { mutableStateOf(false) }
+    var controlOpen by rememberSaveable { mutableStateOf(false) }
     var hiddenFor by remember { mutableStateOf<DesktopAction?>(null) }
     var left by remember { mutableStateOf(false) }
     var direction by remember { mutableFloatStateOf(-1f) }
@@ -83,7 +85,10 @@ fun Desktop(activity: ComponentActivity) {
     }
 
     DisposableEffect(activity) {
-        val listener = Consumer<Intent> { startOpen = false }
+        val listener = Consumer<Intent> {
+            startOpen = false
+            controlOpen = false
+        }
         activity.addOnNewIntentListener(listener)
         val observer = LifecycleEventObserver { _, event ->
             if (hiddenFor != DesktopAction.Search && hiddenFor != DesktopAction.App) return@LifecycleEventObserver
@@ -102,6 +107,7 @@ fun Desktop(activity: ComponentActivity) {
                 when (intent.action) {
                     Intent.ACTION_SCREEN_OFF -> if (hiddenFor == null) {
                         startOpen = false
+                        controlOpen = false
                         direction = -1f
                         introPending = true
                         introPlaying = true
@@ -153,9 +159,10 @@ fun Desktop(activity: ComponentActivity) {
     BackHandler(enabled = startOpen) { startOpen = false }
     val appLaunched = {
         startOpen = false
+        controlOpen = false
         hiddenFor = DesktopAction.App
     }
-    val systemBarShown = startOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
+    val systemBarShown = startOpen || controlOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
     val introZoom = if (introPlaying) 1f - fade.value else 0f
@@ -172,9 +179,14 @@ fun Desktop(activity: ComponentActivity) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) { detectTapGestures { startOpen = false } }
-            .pointerInput(startOpen, hidden) {
-                if (startOpen || hidden) return@pointerInput
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    startOpen = false
+                    controlOpen = false
+                }
+            }
+            .pointerInput(startOpen, controlOpen, hidden) {
+                if (startOpen || controlOpen || hidden) return@pointerInput
                 var dragged = 0f
                 detectVerticalDragGestures(
                     onDragStart = { dragged = 0f },
@@ -210,7 +222,10 @@ fun Desktop(activity: ComponentActivity) {
     }
     TaskbarHost(
         startOpen = startOpen,
-        onStartClick = { startOpen = !startOpen },
+        onStartClick = {
+            startOpen = !startOpen
+            controlOpen = false
+        },
         onAppLaunched = appLaunched,
         visible = !hidden,
         alpha = fade.value
@@ -219,7 +234,15 @@ fun Desktop(activity: ComponentActivity) {
         offsetX = taskbarEdge,
         offsetY = aboveTaskbar,
         visible = !startOpen && !hidden,
-        alpha = fade.value
+        alpha = fade.value,
+        active = controlOpen,
+        onClick = { controlOpen = !controlOpen }
+    )
+    ControlCenterHost(
+        open = controlOpen && !hidden,
+        offsetX = taskbarEdge,
+        offsetY = aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap,
+        onClose = { controlOpen = false }
     )
     StartMenuHost(
         open = startOpen && !hidden,

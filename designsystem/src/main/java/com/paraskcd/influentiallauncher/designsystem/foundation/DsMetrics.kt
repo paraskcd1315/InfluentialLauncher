@@ -46,4 +46,11 @@ object DsMetrics {
     val pickerTextSize = 13.sp
     val pickerChipHeight = 36.dp
     val groupGap = 2.dp
+    val toggleTileHeight = 52.dp
+    val toggleTileMoreWidth = 36.dp
+    val toggleTileGlyph = 20.dp
+    val sliderHeight = 40.dp
+    val sliderTrack = 4.dp
+    val sliderThumb = 20.dp
+    const val sliderThumbCore = 0.5f
 }

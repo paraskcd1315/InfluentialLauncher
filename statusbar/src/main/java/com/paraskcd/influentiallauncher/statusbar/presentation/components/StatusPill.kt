@@ -1,5 +1,7 @@
 package com.paraskcd.influentiallauncher.statusbar.presentation.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
@@ -12,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -24,8 +27,11 @@ import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurre
 @Composable
 fun StatusPill(
     status: StatusState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    active: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
+    val shape = RoundedCornerShape(StatusBarMetrics.cornerRadius)
     val tint = InfTheme.colors.textPrimary
     val batteryDescription = if (status.battery.charging) {
         stringResource(R.string.statusbar_battery_charging, status.battery.percent)
@@ -41,7 +47,9 @@ fun StatusPill(
         horizontalArrangement = Arrangement.spacedBy(StatusBarMetrics.iconGap),
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .infPanelSurface(RoundedCornerShape(StatusBarMetrics.cornerRadius), blurred = LocalWindowBlurred.current)
+            .infPanelSurface(shape, blurred = LocalWindowBlurred.current)
+            .background(if (active) InfTheme.colors.brandTint else Color.Transparent, shape)
+            .clickable(onClickLabel = stringResource(R.string.statusbar_open_controls), onClick = onClick)
             .heightIn(min = StatusBarMetrics.minHeight)
             .padding(horizontal = StatusBarMetrics.paddingHorizontal, vertical = StatusBarMetrics.paddingVertical)
     ) {
