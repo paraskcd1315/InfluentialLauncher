@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.exp
+import kotlin.math.tan
 
 @Singleton
 class AndroidDeviceTiltSource @Inject constructor(
@@ -33,17 +34,23 @@ class AndroidDeviceTiltSource @Inject constructor(
         }
         val display = context.getSystemService(DisplayManager::class.java)?.getDisplay(Display.DEFAULT_DISPLAY)
         val max = TiltMetrics.MaxAngleRadians
+        val tanMax = tan(max)
         var aroundX = 0f
         var aroundY = 0f
+        var shownX = 0f
+        var shownY = 0f
         var lastNanos = 0L
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 if (lastNanos != 0L) {
                     val seconds = (event.timestamp - lastNanos) * TiltMetrics.NanosToSeconds
                     val keep = exp(-seconds / TiltMetrics.RecenterSeconds)
+                    val follow = 1f - exp(-seconds / TiltMetrics.SmoothingSeconds)
                     aroundX = ((aroundX + event.values[0] * seconds) * keep).coerceIn(-max, max)
                     aroundY = ((aroundY + event.values[1] * seconds) * keep).coerceIn(-max, max)
-                    trySend(tiltOnScreen(aroundY / max, aroundX / max, display?.rotation ?: 0))
+                    shownX += (tan(aroundY) / tanMax - shownX) * follow
+                    shownY += (tan(aroundX) / tanMax - shownY) * follow
+                    trySend(tiltOnScreen(shownX, shownY, display?.rotation ?: 0))
                 }
                 lastNanos = event.timestamp
             }
