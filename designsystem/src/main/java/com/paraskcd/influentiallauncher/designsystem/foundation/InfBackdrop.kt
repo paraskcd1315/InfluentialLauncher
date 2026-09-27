@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.graphics.Shape
 import com.paraskcd.influentiallauncher.designsystem.theme.InfGlass
-import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
+import androidx.compose.ui.graphics.Color
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.blur.HazeBlurStyle
@@ -32,12 +32,11 @@ fun Modifier.infBackdropSource(backdrop: InfBackdrop): Modifier = hazeSource(bac
 @Composable
 fun Modifier.infBackdropBlur(shape: Shape): Modifier {
     val backdrop = LocalInfBackdrop.current ?: return this
-    val base = InfTheme.colors.bgBase
     return hazeBlur(
         input = HazeInput.Sources(backdrop.state),
         style = HazeBlurStyle {
             blurRadius(InfGlass.backdropBlur)
-            backgroundColor(base)
+            backgroundColor(Color.Transparent)
             noiseFactor(0f)
             blurredEdgeTreatment(BlurredEdgeTreatment(shape))
         }
