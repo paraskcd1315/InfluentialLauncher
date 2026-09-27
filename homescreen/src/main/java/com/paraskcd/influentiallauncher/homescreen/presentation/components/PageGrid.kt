@@ -23,12 +23,13 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.homescreen.domain.model.HomeLayout
-import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
+import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 import kotlin.math.roundToInt
 
 @Composable
 fun PageGrid(
     slots: List<LauncherApp?>,
+    grid: HomeGrid,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     wiggle: Float,
     onRemove: ((LauncherApp) -> Unit)?,
@@ -36,14 +37,14 @@ fun PageGrid(
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val density = LocalDensity.current
-        val cellWidth = maxWidth / HomeMetrics.columns
-        val cellHeight = maxHeight / HomeMetrics.rows
+        val cellWidth = maxWidth / grid.columns
+        val cellHeight = maxHeight / grid.rows
         val cellWidthPx = with(density) { cellWidth.toPx() }
         val cellHeightPx = with(density) { cellHeight.toPx() }
         slots.take(HomeLayout.PageCapacity).forEachIndexed { index, app ->
             val target = IntOffset(
-                ((index % HomeMetrics.columns) * cellWidthPx).roundToInt(),
-                ((index / HomeMetrics.columns) * cellHeightPx).roundToInt()
+                ((index % grid.columns) * cellWidthPx).roundToInt(),
+                ((index / grid.columns) * cellHeightPx).roundToInt()
             )
             if (app == null) {
                 Box(

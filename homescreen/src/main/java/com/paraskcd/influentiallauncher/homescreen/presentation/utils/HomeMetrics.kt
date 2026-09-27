@@ -4,8 +4,6 @@ import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 
 object HomeMetrics {
-    const val columns = 4
-    const val rows = 4
     const val hoverCore = 0.7f
     const val wiggleDegrees = 2.2f
     const val wiggleMs = 130
@@ -19,7 +17,7 @@ object HomeMetrics {
     const val labelShadowAlpha = 0.35f
     const val labelShadowBlur = 12f
     val iconSize = 56.dp
-    val labelGap = 6.dp
+    val labelGap = 4.dp
     val badgeSize = 22.dp
     val badgeGlyph = 14.dp
     val edgeZone = 28.dp

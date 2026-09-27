@@ -34,6 +34,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.homescreen.R
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenPage
+import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 
 @Composable
@@ -45,6 +46,7 @@ fun PageOverview(
     onSetHome: (HomeScreenPage) -> Unit,
     onDelete: (HomeScreenPage) -> Unit,
     onAdd: () -> Unit,
+    grid: HomeGrid,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     modifier: Modifier = Modifier
 ) {
@@ -77,7 +79,7 @@ fun PageOverview(
                             .clickable(onClickLabel = stringResource(R.string.home_open_page, index + 1)) { onOpen(index) }
                             .padding(InfSpacing.s2)
                     ) {
-                        PageMap(apps = page.apps, loadIcon = loadIcon)
+                        PageMap(apps = page.apps, grid = grid, loadIcon = loadIcon)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(InfSpacing.s3)) {
                         val home = index == homeIndex

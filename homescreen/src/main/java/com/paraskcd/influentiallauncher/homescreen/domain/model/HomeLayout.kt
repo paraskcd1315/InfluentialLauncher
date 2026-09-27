@@ -14,6 +14,6 @@ data class HomeLayout(
     val homeIndex: Int get() = pages.indexOfFirst { it.id == homePageId }.coerceAtLeast(0)
 
     companion object {
-        const val PageCapacity = 16
+        const val PageCapacity = 24
     }
 }

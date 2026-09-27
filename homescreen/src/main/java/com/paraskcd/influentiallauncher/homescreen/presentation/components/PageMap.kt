@@ -15,20 +15,21 @@ import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
 import com.paraskcd.influentiallauncher.homescreen.domain.model.HomeLayout
+import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 
 @Composable
-fun PageMap(apps: List<LauncherApp>, loadIcon: suspend (AppId, Int) -> Bitmap?, modifier: Modifier = Modifier) {
+fun PageMap(apps: List<LauncherApp>, grid: HomeGrid, loadIcon: suspend (AppId, Int) -> Bitmap?, modifier: Modifier = Modifier) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val cellWidth = maxWidth / HomeMetrics.columns
-        val cellHeight = maxHeight / HomeMetrics.rows
+        val cellWidth = maxWidth / grid.columns
+        val cellHeight = maxHeight / grid.rows
         val icon = min(cellWidth, cellHeight) * HomeMetrics.mapIconFraction
         apps.take(HomeLayout.PageCapacity).forEachIndexed { index, app ->
             key(app.id.key) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .offset(x = cellWidth * (index % HomeMetrics.columns), y = cellHeight * (index / HomeMetrics.columns))
+                        .offset(x = cellWidth * (index % grid.columns), y = cellHeight * (index / grid.columns))
                         .size(cellWidth, cellHeight)
                 ) {
                     InfAsyncIcon(key = app.id.key, size = icon, load = { loadIcon(app.id, it) }, version = loadIcon)

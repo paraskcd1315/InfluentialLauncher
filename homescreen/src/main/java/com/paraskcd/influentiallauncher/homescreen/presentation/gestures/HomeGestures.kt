@@ -10,11 +10,12 @@ import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.unit.IntSize
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenPage
-import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
+import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 
 class HomeGestures(
     private val pager: PagerState,
     private val pages: () -> List<HomeScreenPage>,
+    private val grid: () -> HomeGrid,
     private val wiggling: () -> Boolean,
     private val overview: () -> Boolean,
     private val onTapApp: (LauncherApp, RectF) -> Unit,
@@ -70,16 +71,18 @@ class HomeGestures(
     }
 
     private fun slotAt(position: Offset, area: IntSize): Int {
-        val column = (position.x / (area.width / HomeMetrics.columns.toFloat())).toInt().coerceIn(0, HomeMetrics.columns - 1)
-        val row = (position.y / (area.height / HomeMetrics.rows.toFloat())).toInt().coerceIn(0, HomeMetrics.rows - 1)
-        return row * HomeMetrics.columns + column
+        val shape = grid()
+        val column = (position.x / (area.width / shape.columns.toFloat())).toInt().coerceIn(0, shape.columns - 1)
+        val row = (position.y / (area.height / shape.rows.toFloat())).toInt().coerceIn(0, shape.rows - 1)
+        return row * shape.columns + column
     }
 
     private fun cellRect(slot: Int, area: IntSize): RectF {
-        val width = area.width / HomeMetrics.columns.toFloat()
-        val height = area.height / HomeMetrics.rows.toFloat()
-        val left = (slot % HomeMetrics.columns) * width
-        val top = (slot / HomeMetrics.columns) * height
+        val shape = grid()
+        val width = area.width / shape.columns.toFloat()
+        val height = area.height / shape.rows.toFloat()
+        val left = (slot % shape.columns) * width
+        val top = (slot / shape.columns) * height
         return RectF(left, top, left + width, top + height)
     }
 

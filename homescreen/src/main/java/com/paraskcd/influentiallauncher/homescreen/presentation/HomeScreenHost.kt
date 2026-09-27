@@ -70,8 +70,10 @@ import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.DeletePag
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.HomeAppSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.RemoveAppSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.state.HomeDragState
+import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 import com.paraskcd.influentiallauncher.homescreen.presentation.viewmodels.HomeScreenViewModel
+import com.paraskcd.influentiallauncher.windowing.presentation.isLandscape
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -108,6 +110,8 @@ fun HomeScreenHost(
     val latestPages by rememberUpdatedState(pages)
     val latestWiggling by rememberUpdatedState(wiggling)
     val latestOverview by rememberUpdatedState(overview)
+    val grid = HomeGrid.of(isLandscape())
+    val latestGrid by rememberUpdatedState(grid)
     val wiggle = wiggleAngle(wiggling)
     val overviewProgress by animateFloatAsState(
         targetValue = if (overview) 1f else 0f,
@@ -125,6 +129,7 @@ fun HomeScreenHost(
         HomeGestures(
             pager = pager,
             pages = { latestPages },
+            grid = { latestGrid },
             wiggling = { latestWiggling },
             overview = { latestOverview },
             onTapApp = { app, cell ->
@@ -154,6 +159,7 @@ fun HomeScreenHost(
             drag = drag,
             origin = { areaOrigin },
             size = { areaSize },
+            grid = { latestGrid },
             countOn = { pageIndex -> countOn(latestPages, pageIndex, drag) },
             edgePx = with(density) { HomeMetrics.edgeZone.toPx() },
             flip = { side ->
@@ -211,6 +217,7 @@ fun HomeScreenHost(
                     onSetHome = { viewModel.setHome(it.id) },
                     onDelete = viewModel::askDelete,
                     onAdd = viewModel::addPage,
+                    grid = grid,
                     loadIcon = loadIcon,
                     modifier = Modifier.graphicsLayer {
                         val scale = lerp(HomeMetrics.overviewCardsScale, 1f, overviewProgress)
@@ -239,6 +246,7 @@ fun HomeScreenHost(
                     } else {
                         PageGrid(
                             slots = slotsFor(page, index, pager.currentPage, drag),
+                            grid = grid,
                             loadIcon = loadIcon,
                             wiggle = wiggle,
                             onRemove = if (wiggling) viewModel::askRemove else null
@@ -282,6 +290,7 @@ private class HomeDropTarget(
     private val drag: HomeDragState,
     private val origin: () -> Offset,
     private val size: () -> IntSize,
+    private val grid: () -> HomeGrid,
     private val countOn: (Int) -> Int,
     private val edgePx: Float,
     private val flip: (Int) -> Job,
@@ -298,7 +307,7 @@ private class HomeDropTarget(
     override fun onMoved(event: DragAndDropEvent) {
         val android = event.toAndroidDragEvent()
         val local = Offset(android.x, android.y) - origin()
-        drag.move(local, size(), countOn(currentPage()))
+        drag.move(local, size(), grid(), countOn(currentPage()))
         val side = when {
             local.x < edgePx -> -1
             local.x > size().width - edgePx -> 1
