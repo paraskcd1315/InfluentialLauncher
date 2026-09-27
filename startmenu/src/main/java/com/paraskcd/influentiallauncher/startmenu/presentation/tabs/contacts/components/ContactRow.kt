@@ -72,7 +72,7 @@ fun ContactRow(
                     icon = Lucide.MessageCircle,
                     contentDescription = stringResource(R.string.startmenu_whatsapp),
                     tint = colors.success,
-                    enabled = contact.whatsAppDataId != null,
+                    enabled = contact.canWhatsApp,
                     onClick = { onWhatsApp(contact) }
                 )
             }

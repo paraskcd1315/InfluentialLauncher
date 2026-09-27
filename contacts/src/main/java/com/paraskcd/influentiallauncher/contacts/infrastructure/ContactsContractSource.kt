@@ -13,6 +13,8 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.provider.ContactsContract
+import android.telephony.PhoneNumberUtils
+import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -86,11 +89,29 @@ class ContactsContractSource @Inject constructor(
     }
 
     override fun whatsApp(contact: Contact): Boolean {
-        val dataId = contact.whatsAppDataId ?: return false
-        val intent = Intent(Intent.ACTION_VIEW)
-            .setDataAndType(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, dataId), WhatsAppChatMime)
-            .setPackage(WhatsAppPackage)
-        return launch(intent, "whatsapp failed")
+        val dataId = contact.whatsAppDataId
+        if (dataId != null) {
+            val intent = Intent(Intent.ACTION_VIEW)
+                .setDataAndType(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, dataId), WhatsAppChatMime)
+                .setPackage(WhatsAppPackage)
+            if (launch(intent, "whatsapp chat failed")) return true
+        }
+        val number = contact.phone?.let(::internationalDigits) ?: return false
+        val link = Intent(Intent.ACTION_VIEW, (WhatsAppLink + number).toUri()).setPackage(WhatsAppPackage)
+        return launch(link, "whatsapp link failed")
+    }
+
+    private fun internationalDigits(number: String): String? {
+        val trimmed = number.trim()
+        val international = when {
+            trimmed.startsWith("+") -> trimmed
+            trimmed.startsWith(InternationalPrefix) -> "+" + trimmed.removePrefix(InternationalPrefix)
+            else -> {
+                val country = context.getSystemService(TelephonyManager::class.java)?.simCountryIso?.uppercase(Locale.ROOT)
+                country?.let { PhoneNumberUtils.formatNumberToE164(trimmed, it) } ?: trimmed
+            }
+        }
+        return international.filter(Char::isDigit).takeIf { it.isNotEmpty() }
     }
 
     private fun launch(intent: Intent, failure: String): Boolean = runCatching {
@@ -166,6 +187,8 @@ class ContactsContractSource @Inject constructor(
         const val LogTag = "ContactsSource"
         const val WhatsAppPackage = "com.whatsapp"
         const val WhatsAppChatMime = "vnd.android.cursor.item/vnd.com.whatsapp.profile"
+        const val WhatsAppLink = "https://wa.me/"
+        const val InternationalPrefix = "00"
         val PhoneProjection = arrayOf(
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
             ContactsContract.CommonDataKinds.Phone.NUMBER,

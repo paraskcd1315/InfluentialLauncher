@@ -46,7 +46,7 @@ fun ContactMenuSheet(
             if (current.phone != null) {
                 add(InfAction(Lucide.Phone, stringResource(R.string.startmenu_call), colors.textPrimary) { onCall(current) })
             }
-            if (current.whatsAppDataId != null) {
+            if (current.canWhatsApp) {
                 add(InfAction(Lucide.MessageCircle, stringResource(R.string.startmenu_whatsapp), colors.success) { onWhatsApp(current) })
             }
             add(InfAction(Lucide.UserRound, stringResource(R.string.startmenu_open_contact), colors.textPrimary) { onOpen(current) })

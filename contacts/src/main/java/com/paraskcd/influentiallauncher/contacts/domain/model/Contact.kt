@@ -8,4 +8,6 @@ data class Contact(
     val photoUri: String?,
     val phone: String?,
     val whatsAppDataId: Long?
-)
+) {
+    val canWhatsApp: Boolean get() = whatsAppDataId != null || phone != null
+}
