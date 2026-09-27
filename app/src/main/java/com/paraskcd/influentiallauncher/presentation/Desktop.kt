@@ -37,7 +37,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.util.lerp
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.fillMaxWidth
 import com.paraskcd.influentiallauncher.homescreen.presentation.HomeScreenHost
@@ -188,6 +190,7 @@ fun Desktop(activity: ComponentActivity) {
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val landscape = isLandscape()
     var headerHeight by remember { mutableStateOf(0.dp) }
+    var homeOverview by remember { mutableStateOf(false) }
     val layoutDirection = LocalLayoutDirection.current
     val cutoutStart = with(density) { WindowInsets.displayCutout.getLeft(density, layoutDirection).toDp() }
     val statusTop = with(density) { WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp() }
@@ -197,7 +200,13 @@ fun Desktop(activity: ComponentActivity) {
     val pillTop = statusTop + DesktopMetrics.windowGap
     val belowPill = pillTop + StatusBarLayout.height + DesktopMetrics.windowGap
     val introZoom = if (introPlaying) 1f - fade.value else 0f
-    val zoomTarget = maxOf(if (startOpen) DesktopMetrics.startWallpaperZoom else 0f, introZoom) * DesktopMetrics.wallpaperZoomMax
+    val chrome by animateFloatAsState(
+        targetValue = if (homeOverview) 0f else 1f,
+        animationSpec = tween(DesktopMetrics.overviewMs, easing = InfMotion.easeIos),
+        label = "desktopChrome"
+    )
+    val chromeAlpha = fade.value * chrome
+    val zoomTarget = maxOf(if (startOpen || homeOverview) DesktopMetrics.startWallpaperZoom else 0f, introZoom) * DesktopMetrics.wallpaperZoomMax
     val wallpaperZoom = animateFloatAsState(
         targetValue = zoomTarget,
         animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessLow),
@@ -216,8 +225,8 @@ fun Desktop(activity: ComponentActivity) {
                     controlOpen = false
                 }
             }
-            .pointerInput(startOpen, controlOpen, hidden) {
-                if (startOpen || controlOpen || hidden) return@pointerInput
+            .pointerInput(startOpen, controlOpen, hidden, homeOverview) {
+                if (startOpen || controlOpen || hidden || homeOverview) return@pointerInput
                 var dragged = 0f
                 detectVerticalDragGestures(
                     onDragStart = { dragged = 0f },
@@ -246,8 +255,12 @@ fun Desktop(activity: ComponentActivity) {
                 .padding(top = if (landscape) StatusBarLayout.height + DesktopMetrics.windowGap else 0.dp)
                 .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
                 .graphicsLayer {
-                    alpha = fade.value
+                    alpha = chromeAlpha
                     translationY = direction * (1f - fade.value) * clockLift
+                    val scale = lerp(DesktopMetrics.overviewChromeScale, 1f, chrome)
+                    scaleX = scale
+                    scaleY = scale
+                    transformOrigin = TransformOrigin(0f, 0f)
                 }
         ) {
             ClockHeader(sideInset = taskbarEdge)
@@ -255,6 +268,7 @@ fun Desktop(activity: ComponentActivity) {
         }
         HomeScreenHost(
             onAppLaunched = appLaunched,
+            onOverviewChange = { homeOverview = it },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
@@ -274,14 +288,14 @@ fun Desktop(activity: ComponentActivity) {
             controlOpen = false
         },
         onAppLaunched = appLaunched,
-        visible = !hidden,
-        alpha = fade.value
+        visible = !hidden && !homeOverview,
+        alpha = chromeAlpha
     )
     StatusBarHost(
         offsetX = taskbarEdge,
         offsetY = if (landscape) pillTop else aboveTaskbar,
-        visible = !startOpen && !hidden,
-        alpha = fade.value,
+        visible = !startOpen && !hidden && !homeOverview,
+        alpha = chromeAlpha,
         active = controlOpen,
         onClick = { controlOpen = !controlOpen },
         fromTop = landscape
@@ -289,12 +303,12 @@ fun Desktop(activity: ComponentActivity) {
     SearchPillHost(
         offsetX = taskbarEdge,
         offsetY = if (landscape) navigationBottom + DesktopMetrics.windowGap else aboveTaskbar,
-        visible = !startOpen && !hidden,
+        visible = !startOpen && !hidden && !homeOverview,
         onClick = {
             controlOpen = false
             hiddenFor = DesktopAction.Search
         },
-        alpha = fade.value
+        alpha = chromeAlpha
     )
     ControlCenterHost(
         open = controlOpen && !hidden,

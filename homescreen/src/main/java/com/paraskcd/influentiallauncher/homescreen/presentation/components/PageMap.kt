@@ -1,0 +1,39 @@
+package com.paraskcd.influentiallauncher.homescreen.presentation.components
+
+import android.graphics.Bitmap
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.min
+import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
+import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
+import com.paraskcd.influentiallauncher.homescreen.domain.model.HomeLayout
+import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
+
+@Composable
+fun PageMap(apps: List<LauncherApp>, loadIcon: suspend (AppId, Int) -> Bitmap?, modifier: Modifier = Modifier) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val cellWidth = maxWidth / HomeMetrics.columns
+        val cellHeight = maxHeight / HomeMetrics.rows
+        val icon = min(cellWidth, cellHeight) * HomeMetrics.mapIconFraction
+        apps.take(HomeLayout.PageCapacity).forEachIndexed { index, app ->
+            key(app.id.key) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .offset(x = cellWidth * (index % HomeMetrics.columns), y = cellHeight * (index / HomeMetrics.columns))
+                        .size(cellWidth, cellHeight)
+                ) {
+                    InfAsyncIcon(key = app.id.key, size = icon, load = { loadIcon(app.id, it) }, version = loadIcon)
+                }
+            }
+        }
+    }
+}

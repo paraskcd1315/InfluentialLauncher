@@ -4,6 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.RectF
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.util.lerp
+import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -75,6 +79,7 @@ import kotlin.math.roundToInt
 fun HomeScreenHost(
     onAppLaunched: () -> Unit,
     modifier: Modifier = Modifier,
+    onOverviewChange: (Boolean) -> Unit = {},
     viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -99,6 +104,12 @@ fun HomeScreenHost(
     val latestWiggling by rememberUpdatedState(wiggling)
     val latestOverview by rememberUpdatedState(overview)
     val wiggle = wiggleAngle(wiggling)
+    val overviewProgress by animateFloatAsState(
+        targetValue = if (overview) 1f else 0f,
+        animationSpec = tween(HomeMetrics.overviewMs, easing = InfMotion.easeIos),
+        label = "homeOverview"
+    )
+    LaunchedEffect(overview) { onOverviewChange(overview) }
 
     BackHandler(enabled = wiggling || overview) {
         viewModel.stopWiggle()
@@ -144,7 +155,7 @@ fun HomeScreenHost(
                 }
                 .pointerInput(Unit) { with(gestures) { detect() } }
         ) {
-            if (overview) {
+            if (overviewProgress > 0f) {
                 PageOverview(
                     pages = pages,
                     homeIndex = current.homeIndex,
@@ -155,14 +166,28 @@ fun HomeScreenHost(
                     },
                     onSetHome = { viewModel.setHome(it.id) },
                     onDelete = viewModel::askDelete,
-                    onAdd = viewModel::addPage
+                    onAdd = viewModel::addPage,
+                    loadIcon = loadIcon,
+                    modifier = Modifier.graphicsLayer {
+                        val scale = lerp(HomeMetrics.overviewCardsScale, 1f, overviewProgress)
+                        scaleX = scale
+                        scaleY = scale
+                        alpha = overviewProgress
+                    }
                 )
-            } else {
+            }
+            if (overviewProgress < 1f) {
                 HorizontalPager(
                     state = pager,
-                    userScrollEnabled = !drag.dragging,
+                    userScrollEnabled = !drag.dragging && !overview,
                     beyondViewportPageCount = 1,
-                    key = { pages.getOrNull(it)?.id ?: AddPageKey }
+                    key = { pages.getOrNull(it)?.id ?: AddPageKey },
+                    modifier = Modifier.graphicsLayer {
+                        val scale = lerp(1f, HomeMetrics.overviewPagerScale, overviewProgress)
+                        scaleX = scale
+                        scaleY = scale
+                        alpha = 1f - overviewProgress
+                    }
                 ) { index ->
                     val page = pages.getOrNull(index)
                     if (page == null) {

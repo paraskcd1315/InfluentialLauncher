@@ -5,15 +5,10 @@
     <string name="home_remove_confirm">Remove from Home</string>
     <string name="home_cancel">Cancel</string>
     <string name="home_add_page">Add page</string>
-    <string name="home_page_number">Page %1$d</string>
     <string name="home_open_page">Open page %1$d</string>
     <string name="home_is_home">Home page</string>
     <string name="home_make_home">Make this the home page</string>
     <string name="home_delete_page">Delete page</string>
     <string name="home_delete_title">Delete page %1$d?</string>
     <string name="home_delete_confirm">Delete page and its apps</string>
-    <plurals name="home_page_apps">
-        <item quantity="one">%1$d app</item>
-        <item quantity="other">%1$d apps</item>
-    </plurals>
 </resources>

@@ -12,6 +12,10 @@ object HomeMetrics {
     const val liftedScale = 1.12f
     const val edgePageMs = 550L
     const val overviewCardFraction = 0.62f
+    const val mapIconFraction = 0.62f
+    const val overviewPagerScale = 0.8f
+    const val overviewCardsScale = 1.25f
+    const val overviewMs = 320
     const val labelShadowAlpha = 0.35f
     const val labelShadowBlur = 12f
     val iconSize = 56.dp
