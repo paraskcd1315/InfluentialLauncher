@@ -28,16 +28,26 @@ internal object ThemedIconRenderer {
     private const val SingleColourShare = 0.9f
     private const val BadgeCoverage = 0.15f
     private const val QuantizeMask = 0x00F0F0F0
+    private const val PlateCoverage = 0.6f
+    private const val LogoCoverage = 0.01f
 
     fun render(icon: Drawable, tint: Int, sizePx: Int): Bitmap {
         val adaptive = icon as? AdaptiveIconDrawable
         val layer = adaptive?.monochrome ?: adaptive?.foreground
         return if (layer != null) {
             val source = layer.mutate().toBitmap(sizePx, sizePx)
-            onCircle(silhouette(source), tint, sizePx, sizePx)
+            val shape = silhouette(source)
+            if (shape == null && adaptive?.monochrome == null) {
+                val iconSize = (sizePx * PlainIconScale).roundToInt()
+                val composite = silhouette(icon.toBitmap(iconSize, iconSize))
+                onCircle(composite ?: source, tint, sizePx, if (composite != null) iconSize else sizePx)
+            } else {
+                onCircle(shape ?: source, tint, sizePx, sizePx)
+            }
         } else {
             val iconSize = (sizePx * PlainIconScale).roundToInt()
-            onCircle(silhouette(icon.toBitmap().scale(iconSize, iconSize)), tint, sizePx, iconSize)
+            val source = icon.toBitmap().scale(iconSize, iconSize)
+            onCircle(silhouette(source) ?: source, tint, sizePx, iconSize)
         }
     }
 
@@ -64,25 +74,30 @@ internal object ThemedIconRenderer {
         return bitmap
     }
 
-    private fun silhouette(source: Bitmap): Bitmap {
+    private fun silhouette(source: Bitmap): Bitmap? {
         val width = source.width
         val height = source.height
         val pixels = IntArray(width * height)
         source.getPixels(pixels, 0, width, 0, 0, width, height)
         val opaque = pixels.filter { Color.alpha(it) >= OpaqueAlpha }
         if (opaque.isEmpty()) return source
+        val plate = opaque.size >= pixels.size * PlateCoverage
         val colours = opaque.groupingBy { it and QuantizeMask }.eachCount()
         val (base, baseCount) = colours.maxBy { it.value }
-        if (baseCount >= opaque.size * SingleColourShare || baseCount < pixels.size * BadgeCoverage) return source
+        if (!plate && baseCount >= opaque.size * SingleColourShare) return source
+        if (baseCount < pixels.size * BadgeCoverage) return source
         val backgroundRed = Color.red(base)
         val backgroundGreen = Color.green(base)
         val backgroundBlue = Color.blue(base)
+        var visible = 0
         for (index in pixels.indices) {
             val pixel = pixels[index]
             val distance = abs(Color.red(pixel) - backgroundRed) + abs(Color.green(pixel) - backgroundGreen) + abs(Color.blue(pixel) - backgroundBlue)
             val alpha = (distance * ContrastGain).roundToInt().coerceAtMost(ChannelMax) * Color.alpha(pixel) / ChannelMax
+            if (alpha >= VisibleAlpha) visible++
             pixels[index] = if (alpha < VisibleAlpha) Color.TRANSPARENT else Color.argb(alpha, ChannelMax, ChannelMax, ChannelMax)
         }
+        if (visible < pixels.size * LogoCoverage) return null
         return createBitmap(width, height).apply { setPixels(pixels, 0, width, 0, 0, width, height) }
     }
 }
