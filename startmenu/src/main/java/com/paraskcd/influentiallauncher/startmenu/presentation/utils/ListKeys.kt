@@ -5,4 +5,5 @@ object ListKeys {
     const val PinnedGrid = "pinned:grid"
     const val AllAppsHeader = "all:header"
     const val HeaderPrefix = "header:"
+    const val FavouritePrefix = "favourite:"
 }

@@ -37,7 +37,6 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.ListSkeleton
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.PermissionPrompt
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.contacts.components.ContactRow
-import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.contacts.components.PinnedContacts
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.contacts.sheets.ContactMenuSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.LetterIndex
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.ListKeys
@@ -136,7 +135,7 @@ fun ContactsTab(
             available = sections.map { it.letter }.toSet(),
             scrubberPadding = PaddingValues(top = listTop, bottom = StartMenuMetrics.listBottom),
             onJump = { letter ->
-                val leading = if (favourites.isEmpty()) 0 else FavouriteItems
+                val leading = if (favourites.isEmpty()) 0 else favourites.size + 1
                 val index = LetterIndex.headerIndices(leading, sections.map { it.letter to it.contacts.size })[letter]
                 if (index != null) scope.launch { listState.scrollToItem(index) }
             },
@@ -160,8 +159,17 @@ fun ContactsTab(
                 ) {
                     if (favourites.isNotEmpty()) {
                         item(key = ListKeys.PinnedHeader) { InfSectionHeader(text = stringResource(R.string.startmenu_favourites)) }
-                        item(key = ListKeys.PinnedGrid) {
-                            PinnedContacts(contacts = favourites, loadPhoto = viewModel::photo, onOpen = openContact, onLongPress = longPress)
+                        itemsIndexed(favourites, key = { _, contact -> ListKeys.FavouritePrefix + contact.id }) { index, contact ->
+                            ContactRow(
+                                contact = contact,
+                                index = index,
+                                count = favourites.size,
+                                loadPhoto = viewModel::photo,
+                                onOpen = openContact,
+                                onLongPress = longPress,
+                                onCall = call,
+                                onWhatsApp = whatsApp
+                            )
                         }
                     }
                     sections.forEach { section ->
@@ -195,5 +203,3 @@ fun ContactsTab(
         onOpen = openContact
     )
 }
-
-private const val FavouriteItems = 2
