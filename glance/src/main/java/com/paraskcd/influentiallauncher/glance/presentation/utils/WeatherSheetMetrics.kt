@@ -3,7 +3,6 @@ package com.paraskcd.influentiallauncher.glance.presentation.utils
 import androidx.compose.ui.unit.dp
 
 object WeatherSheetMetrics {
-    const val maxHeightFraction = 0.85f
     const val placesMaxFraction = 0.5f
     const val tileColumns = 2
     const val rainShownFromPercent = 20

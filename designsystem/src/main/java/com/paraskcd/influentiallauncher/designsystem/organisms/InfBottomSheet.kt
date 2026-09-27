@@ -9,7 +9,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.material3.Icon
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.Lucide
@@ -46,6 +47,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun InfBottomSheet(
     visible: Boolean,
@@ -78,7 +80,10 @@ fun InfBottomSheet(
         }
         AnimatedVisibility(
             visibleState = panelState,
-            modifier = Modifier.align(Alignment.BottomCenter),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .windowInsetsPadding(WindowInsets.statusBarsIgnoringVisibility)
+                .padding(top = InfSpacing.s2),
             enter = slideInVertically(tween(InfMotion.durPushMs, easing = InfMotion.easeIos)) { it } +
                 fadeIn(tween(InfMotion.durMorphMs)),
             exit = slideOutVertically(tween(InfMotion.durPushMs, easing = InfMotion.easeIos)) { it } +
@@ -109,34 +114,31 @@ fun InfBottomSheet(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         leading?.invoke()
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(InfSpacing.s1),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .weight(1f, fill = false)
-                                .then(if (onTitleClick != null) Modifier.clip(InfShapes.md).clickable(onClick = onTitleClick) else Modifier)
-                        ) {
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleLarge,
-                                color = colors.textPrimary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
-                            if (onTitleClick != null) {
-                                Icon(
-                                    imageVector = Lucide.ChevronDown,
-                                    contentDescription = null,
-                                    tint = colors.textSecondary,
-                                    modifier = Modifier.size(DsMetrics.actionIconSize)
+                        Box(modifier = Modifier.weight(1f)) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(InfSpacing.s1),
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = if (onTitleClick != null) Modifier.clip(InfShapes.md).clickable(onClick = onTitleClick) else Modifier
+                            ) {
+                                Text(
+                                    text = title,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = colors.textPrimary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false)
                                 )
+                                if (onTitleClick != null) {
+                                    Icon(
+                                        imageVector = Lucide.ChevronDown,
+                                        contentDescription = null,
+                                        tint = colors.textSecondary,
+                                        modifier = Modifier.size(DsMetrics.actionIconSize)
+                                    )
+                                }
                             }
                         }
-                        if (trailing != null) {
-                            Spacer(modifier = Modifier.weight(1f))
-                            trailing()
-                        }
+                        trailing?.invoke()
                     }
                     header?.invoke(this)
                 }
@@ -148,9 +150,12 @@ fun InfBottomSheet(
                 )
                 Column(
                     modifier = if (edgeToEdge) {
-                        Modifier.fillMaxWidth()
+                        Modifier
+                            .weight(1f, fill = false)
+                            .fillMaxWidth()
                     } else {
                         Modifier
+                            .weight(1f, fill = false)
                             .fillMaxWidth()
                             .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
                             .padding(InfSpacing.s5)

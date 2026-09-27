@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -14,10 +13,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.BookmarkCheck
 import com.composables.icons.lucide.BookmarkPlus
 import com.composables.icons.lucide.Lucide
@@ -36,7 +33,6 @@ import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.Wa
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WeatherExtras
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WeatherNow
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WeatherSheetSkeleton
-import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherSheetMetrics
 import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherVisuals
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherSourceName
 import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
@@ -83,13 +79,11 @@ fun WeatherSheet(
             }
         }
     ) { current ->
-        val maxHeight = (LocalConfiguration.current.screenHeightDp * WeatherSheetMetrics.maxHeightFraction).dp
         val report = current.report
         Column(
             verticalArrangement = Arrangement.spacedBy(InfSpacing.s5),
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = maxHeight)
                 .verticalScroll(rememberScrollState())
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(vertical = InfSpacing.s5)
