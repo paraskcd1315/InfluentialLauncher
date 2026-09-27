@@ -8,4 +8,5 @@ object DesktopMetrics {
     val searchClockLift = 48.dp
     const val searchCommit = 0.5f
     const val searchStatusBarAlpha = 0.01f
+    const val leaveTimeoutMs = 1_500L
 }
