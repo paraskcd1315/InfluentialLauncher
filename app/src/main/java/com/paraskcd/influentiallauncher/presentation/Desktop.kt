@@ -233,7 +233,6 @@ fun Desktop(activity: ComponentActivity) {
     }
     val tilt = LocalWindowParallax.current
     val wallpaperDrift = with(density) { DesktopMetrics.wallpaperParallax.toPx() }
-    val contentDrift = with(density) { DesktopMetrics.contentParallax.toPx() }
     LaunchedEffect(Unit) {
         snapshotFlow { tilt.value }.collect {
             WallpaperShift.set(activity.window, (it.x * wallpaperDrift).roundToInt(), (it.y * wallpaperDrift).roundToInt())
@@ -281,8 +280,7 @@ fun Desktop(activity: ComponentActivity) {
                 .onGloballyPositioned { headerBounds = it.boundsInWindow() }
                 .graphicsLayer {
                     alpha = chromeAlpha
-                    translationX = -tilt.value.x * contentDrift
-                    translationY = direction * (1f - fade.value) * clockLift - tilt.value.y * contentDrift
+                    translationY = direction * (1f - fade.value) * clockLift
                     val scale = lerp(DesktopMetrics.overviewChromeScale, 1f, chrome)
                     scaleX = scale
                     scaleY = scale
@@ -318,8 +316,7 @@ fun Desktop(activity: ComponentActivity) {
                 .onGloballyPositioned { gridBounds = it.boundsInWindow() }
                 .graphicsLayer {
                     alpha = fade.value
-                    translationX = -tilt.value.x * contentDrift
-                    translationY = direction * (1f - fade.value) * clockLift - tilt.value.y * contentDrift
+                    translationY = direction * (1f - fade.value) * clockLift
                 }
         )
         }
