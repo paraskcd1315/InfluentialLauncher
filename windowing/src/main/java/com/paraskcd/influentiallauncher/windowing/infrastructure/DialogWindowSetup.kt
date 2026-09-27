@@ -76,9 +76,9 @@ object DialogWindowSetup {
         }
     }
 
-    fun setVisible(window: Window, visible: Boolean, focusable: Boolean) {
+    fun setVisible(window: Window, visible: Boolean, focusable: Boolean, touchable: Boolean = true) {
         window.decorView.visibility = if (visible) View.VISIBLE else View.INVISIBLE
-        setFlag(window, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, on = !visible)
+        setFlag(window, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, on = !(visible && touchable))
         setFlag(window, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, on = !(visible && focusable))
     }
 

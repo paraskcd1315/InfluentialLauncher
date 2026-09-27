@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -47,6 +48,11 @@ fun InfWindow(
     liftAboveIme: Boolean = true,
     showStatusBar: Boolean = false,
     alpha: Float = 1f,
+    touchable: Boolean = true,
+    animated: Boolean = true,
+    elevation: Dp = WindowMetrics.Elevation,
+    parallaxShift: Dp = WindowMetrics.ParallaxShift,
+    onShownChange: ((Boolean) -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
@@ -70,13 +76,13 @@ fun InfWindow(
         val cornerRadiusPx = with(density) { cornerRadius.toPx() }
         val offsetXPx = with(density) { offsetX.roundToPx() }
         val marginPx = with(density) { horizontalMargin.roundToPx() }
-        val elevationPx = with(density) { WindowMetrics.Elevation.toPx() }
+        val elevationPx = with(density) { elevation.toPx() }
         val blurAvailable by rememberWindowBlurAvailable()
         val blur = remember { Animatable(0f) }
         val reveal = remember { Animatable(0f) }
         var configured by remember { mutableStateOf(false) }
 
-        remember(cornerRadiusPx, offsetXPx, gravity, fillWidth, marginPx, widthFraction, screenWidthDp, fullScreen) {
+        remember(cornerRadiusPx, gravity, fillWidth, marginPx, widthFraction, screenWidthDp, fullScreen) {
             val displayWidth = DialogWindowSetup.displayWidth(window)
             val width = when {
                 fullScreen -> displayWidth
@@ -105,7 +111,8 @@ fun InfWindow(
         }
         LaunchedEffect(visible, configured) {
             if (!configured) return@LaunchedEffect
-            reveal.animateTo(if (visible) 1f else 0f, tween(InfMotion.durMorphMs, easing = InfMotion.easeIos))
+            val target = if (visible) 1f else 0f
+            if (animated) reveal.animateTo(target, tween(InfMotion.durMorphMs, easing = InfMotion.easeIos)) else reveal.snapTo(target)
         }
         LaunchedEffect(visible, showStatusBar, focusable) {
             if (focusable) DialogWindowSetup.setStatusBar(window, visible = visible && showStatusBar)
@@ -119,12 +126,15 @@ fun InfWindow(
                 appliedBlur[0] = blurRadius
                 DialogWindowSetup.setBlur(window, blurRadius)
             }
-            DialogWindowSetup.setVisible(window, shown, focusable = focusable && visible)
+            DialogWindowSetup.setVisible(window, shown, focusable = focusable && visible, touchable = touchable)
         }
+        val fullyShown = configured && visible && reveal.value >= 1f
+        LaunchedEffect(fullyShown) { onShownChange?.invoke(fullyShown) }
+        DisposableEffect(Unit) { onDispose { onShownChange?.invoke(false) } }
         val baseX = rememberUpdatedState(offsetXPx)
         val baseY = rememberUpdatedState(offsetYPx)
         val shownAlpha = rememberUpdatedState(progress)
-        val drift = if (fullScreen) 0f else with(density) { WindowMetrics.ParallaxShift.toPx() }
+        val drift = if (fullScreen) 0f else with(density) { parallaxShift.toPx() }
         val xSign = if (gravity and Gravity.HORIZONTAL_GRAVITY_MASK == Gravity.RIGHT) -1f else 1f
         val ySign = if (gravity and Gravity.VERTICAL_GRAVITY_MASK == Gravity.BOTTOM) -1f else 1f
         LaunchedEffect(window, drift, xSign, ySign) {

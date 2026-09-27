@@ -27,6 +27,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.homescreen.presentation.state.GridSlot
+import com.paraskcd.influentiallauncher.homescreen.presentation.state.HomeIconSpots
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 import kotlin.math.roundToInt
@@ -38,7 +39,8 @@ fun PageGrid(
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     wiggle: Float,
     onRemove: ((LauncherApp) -> Unit)?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    spots: HomeIconSpots? = null
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val density = LocalDensity.current
@@ -70,6 +72,7 @@ fun PageGrid(
                         loadIcon = loadIcon,
                         iconSize = iconSize,
                         onRemove = onRemove?.let { remove -> { remove(slot.app) } },
+                        spots = spots,
                         modifier = Modifier
                             .offset { position }
                             .size(cellWidth, cellHeight)

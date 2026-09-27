@@ -32,7 +32,11 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
 import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxShadow
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.homescreen.R
-import com.paraskcd.influentiallauncher.windowing.presentation.infBackdropBlur
+import com.paraskcd.influentiallauncher.homescreen.presentation.state.HomeIconSpots
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 
 
@@ -42,9 +46,13 @@ fun HomeAppCell(
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     modifier: Modifier = Modifier,
     iconSize: Dp = HomeMetrics.iconSize,
-    onRemove: (() -> Unit)? = null
+    onRemove: (() -> Unit)? = null,
+    spots: HomeIconSpots? = null
 ) {
     val ink = LocalWallpaperInk.current
+    if (spots != null) {
+        DisposableEffect(app.id.key, spots) { onDispose { spots.remove(app.id.key) } }
+    }
     Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -57,8 +65,9 @@ fun HomeAppCell(
                     load = { loadIcon(app.id, it) },
                     version = loadIcon,
                     modifier = Modifier
+                        .then(if (spots == null) Modifier else Modifier.onGloballyPositioned { spots.place(app, it.boundsInWindow()) })
                         .infParallaxShadow(LocalParallax.current)
-                        .infBackdropBlur()
+                        .alpha(if (spots?.isShown(app.id.key) == true) 0f else 1f)
                 )
                 if (onRemove != null) {
                     val label = stringResource(R.string.home_remove_app, app.label)

@@ -76,6 +76,10 @@ import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 import com.paraskcd.influentiallauncher.homescreen.presentation.viewmodels.HomeScreenViewModel
 import com.paraskcd.influentiallauncher.windowing.presentation.isLandscape
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
+import com.paraskcd.influentiallauncher.homescreen.presentation.state.HomeIconSpots
+import com.paraskcd.influentiallauncher.homescreen.presentation.windows.HomeIconWindows
+import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -87,6 +91,8 @@ fun HomeScreenHost(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     onOverviewChange: (Boolean) -> Unit = {},
+    iconWindows: Boolean = false,
+    iconParallax: Dp = 0.dp,
     viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -135,6 +141,11 @@ fun HomeScreenHost(
         label = "homeOverview"
     )
     LaunchedEffect(overview) { onOverviewChange(overview) }
+    val tilt = LocalParallax.current
+    val iconDriftPx = with(density) { iconParallax.toPx() }
+    val spots = remember(tilt, iconDriftPx) { HomeIconSpots { tilt.value * iconDriftPx } }
+    val iconsInWindows = iconWindows && !wiggling && !overview && overviewProgress == 0f && !drag.dragging && !pager.isScrollInProgress
+    HomeIconWindows(spots = spots, visible = iconsInWindows, parallaxShift = iconParallax, loadIcon = loadIcon)
 
     BackHandler(enabled = wiggling || overview) {
         viewModel.stopWiggle()
@@ -258,7 +269,8 @@ fun HomeScreenHost(
                                 grid = grid,
                                 loadIcon = loadIcon,
                                 wiggle = wiggle,
-                                onRemove = if (wiggling) viewModel::askRemove else null
+                                onRemove = if (wiggling) viewModel::askRemove else null,
+                                spots = spots
                             )
                         }
                     }

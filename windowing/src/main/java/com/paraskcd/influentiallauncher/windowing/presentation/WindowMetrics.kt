@@ -8,6 +8,4 @@ object WindowMetrics {
     const val ShadowAlpha = 0.6f
     val Elevation = 16.dp
     val ImeGap = 8.dp
-    val ParallaxShift = 5.dp
-    val IconBlurRadius = 20.dp
-}
+    val ParallaxShift = 5.dp}
