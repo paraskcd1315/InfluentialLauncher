@@ -1,10 +1,13 @@
 package com.paraskcd.influentiallauncher.controlcenter.infrastructure.shell
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.provider.Settings
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.paraskcd.influentiallauncher.controlcenter.domain.model.ShellAccess
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -49,11 +52,14 @@ class ShizukuShell @Inject constructor(
         if (current == ShellAccess.Ready && !granted) {
             granted = true
             scope.launch {
-                run(ShellCommands.GrantSecureSettings.format(context.packageName))
-                run(ShellCommands.AllowWriteSettings.format(context.packageName))
+                if (!hasSecureSettings()) run(ShellCommands.GrantSecureSettings.format(context.packageName))
+                if (!Settings.System.canWrite(context)) run(ShellCommands.AllowWriteSettings.format(context.packageName))
             }
         }
     }
+
+    private fun hasSecureSettings(): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
 
     fun requestAccess() {
         when (compute()) {

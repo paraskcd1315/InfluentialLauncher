@@ -41,7 +41,10 @@ fun ToggleGrid(
 ) {
     val pages = ToggleVisuals.order.chunked(ControlCenterMetrics.columns * ControlCenterMetrics.rows)
     val pager = rememberPagerState { pages.size }
-    val labelHeight = with(LocalDensity.current) { MaterialTheme.typography.labelMedium.lineHeight.toDp() }
+    val label = MaterialTheme.typography.labelMedium
+    val labelHeight = with(LocalDensity.current) {
+        if (label.lineHeight.isSp) label.lineHeight.toDp() else label.fontSize.toDp() * ControlCenterMetrics.lineHeightFallback
+    }
     val rowHeight = DsMetrics.toggleTileHeight + InfSpacing.s2 + labelHeight
     val pageHeight = rowHeight * ControlCenterMetrics.rows + InfSpacing.s4 * (ControlCenterMetrics.rows - 1)
     Box(modifier = modifier.fillMaxWidth()) {

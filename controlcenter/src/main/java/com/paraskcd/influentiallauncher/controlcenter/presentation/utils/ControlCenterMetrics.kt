@@ -14,4 +14,5 @@ object ControlCenterMetrics {
     const val rows = 2
     const val dotIdleAlpha = 0.35f
     const val riseFraction = 0.08f
+    const val lineHeightFallback = 1.45f
 }
