@@ -41,7 +41,10 @@ object BackdropBlur {
     fun create(view: View, blurRadiusPx: Int, colorArgb: Int): Drawable? {
         val calls = api ?: return null
         return runCatching {
-            val root = calls.viewRoot.invoke(view) ?: return null
+            val root = calls.viewRoot.invoke(view) ?: run {
+                Log.w(LogTag, "no view root yet")
+                return null
+            }
             (calls.create.invoke(root) as Drawable).also {
                 calls.blurRadius.invoke(it, blurRadiusPx)
                 calls.color.invoke(it, colorArgb)

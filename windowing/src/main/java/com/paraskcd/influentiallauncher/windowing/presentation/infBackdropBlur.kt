@@ -1,5 +1,6 @@
 package com.paraskcd.influentiallauncher.windowing.presentation
 
+import android.graphics.drawable.Drawable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -22,9 +23,11 @@ fun Modifier.infBackdropBlur(
     val view = LocalView.current
     val alpha = LocalBackdropAlpha.current
     val radiusPx = with(LocalDensity.current) { blurRadius.toPx().roundToInt() }
-    val drawable = remember(view, radiusPx, tint) { BackdropBlur.create(view, radiusPx, tint.toArgb()) }
-        ?: return this
+    val holder = remember(view, radiusPx, tint) { arrayOfNulls<Drawable>(1) }
     return drawBehind {
+        val drawable = holder[0]
+            ?: BackdropBlur.create(view, radiusPx, tint.toArgb())?.also { holder[0] = it }
+            ?: return@drawBehind
         drawable.setBounds(0, 0, size.width.roundToInt(), size.height.roundToInt())
         BackdropBlur.setCornerRadius(drawable, size.minDimension / 2f)
         drawable.alpha = (alpha.value.coerceIn(0f, 1f) * 255).roundToInt()
