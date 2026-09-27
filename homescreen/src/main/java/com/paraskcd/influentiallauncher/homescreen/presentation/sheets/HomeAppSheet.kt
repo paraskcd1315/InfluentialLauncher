@@ -4,8 +4,8 @@ import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.composables.icons.lucide.Info
-import com.composables.icons.lucide.LayoutGrid
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Move
 import com.composables.icons.lucide.Pin
 import com.composables.icons.lucide.PinOff
 import com.composables.icons.lucide.SquareMinus
@@ -43,7 +43,7 @@ fun HomeAppSheet(
     ) { current ->
         InfActionList(
             actions = listOf(
-                InfAction(Lucide.LayoutGrid, stringResource(R.string.home_edit), colors.textPrimary, onEdit),
+                InfAction(Lucide.Move, stringResource(R.string.home_edit), colors.textPrimary, onEdit),
                 InfAction(
                     icon = if (onTaskbar) Lucide.PinOff else Lucide.Pin,
                     label = stringResource(if (onTaskbar) R.string.home_unpin_taskbar else R.string.home_pin_taskbar),

@@ -25,4 +25,7 @@ object TaskbarMetrics {
     const val skeletonAlpha = 0.10f
     const val wiggleDegrees = 2.2f
     const val wiggleMs = 130
+    val edgeZone = 40.dp
+    const val edgeScrollFraction = 0.25f
+    const val edgeScrollFrameMs = 16L
 }

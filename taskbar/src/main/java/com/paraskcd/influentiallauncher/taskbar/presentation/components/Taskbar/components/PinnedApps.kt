@@ -7,6 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,6 +35,7 @@ import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
@@ -44,6 +47,10 @@ import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDrag
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.DragSource
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun PinnedApps(
@@ -65,12 +72,16 @@ fun PinnedApps(
     val latestApps by rememberUpdatedState(apps)
     val latestDrop by rememberUpdatedState(onDrop)
     val wiggle = wiggleAngle(wiggling)
-    val target = remember {
+    val scope = rememberCoroutineScope()
+    val edgePx = with(LocalDensity.current) { TaskbarMetrics.edgeZone.toPx() }
+    val target = remember(vertical, edgePx) {
         TaskbarDropTarget(
             drag = drag,
             origin = { origin },
             vertical = vertical,
             listState = listState,
+            scope = scope,
+            edgePx = edgePx,
             apps = { latestApps },
             onDrop = { payload, index -> latestDrop(payload, index) }
         )
@@ -134,9 +145,15 @@ private class TaskbarDropTarget(
     private val origin: () -> Offset,
     private val vertical: Boolean,
     private val listState: LazyListState,
+    private val scope: CoroutineScope,
+    private val edgePx: Float,
     private val apps: () -> List<LauncherApp>,
     private val onDrop: (AppDragPayload, Int) -> Unit
 ) : DragAndDropTarget {
+    private var along = 0f
+    private var edge = 0
+    private var edgeJob: Job? = null
+
     override fun onStarted(event: DragAndDropEvent) {
         drag.payload = AppDrag.payloadOf(event.toAndroidDragEvent())
         drag.hoverIndex = -1
@@ -145,28 +162,63 @@ private class TaskbarDropTarget(
     override fun onMoved(event: DragAndDropEvent) {
         val android = event.toAndroidDragEvent()
         val local = Offset(android.x, android.y) - origin()
-        val position = if (vertical) local.y else local.x
-        val dragged = drag.payload?.app?.id
-        val real = listState.layoutInfo.visibleItemsInfo.filter { (it.key as? String)?.startsWith(PlaceholderKey) != true }
-        val before = real.count { it.offset + it.size / 2 < position }
-        val firstVisible = apps().indexOfFirst { app -> app.id.key == real.firstOrNull()?.key }.coerceAtLeast(0)
-        val others = apps().count { it.id != dragged }
-        drag.hoverIndex = (firstVisible + before).coerceIn(0, others)
+        along = if (vertical) local.y else local.x
+        updateHover()
+        autoScroll()
     }
 
     override fun onExited(event: DragAndDropEvent) {
+        stopScroll()
         drag.hoverIndex = -1
     }
 
     override fun onDrop(event: DragAndDropEvent): Boolean {
+        stopScroll()
         val payload = AppDrag.payloadOf(event.toAndroidDragEvent()) ?: return false
         onDrop(payload, drag.hoverIndex.coerceAtLeast(0))
         return true
     }
 
     override fun onEnded(event: DragAndDropEvent) {
+        stopScroll()
         drag.payload = null
         drag.hoverIndex = -1
+    }
+
+    private fun updateHover() {
+        val info = listState.layoutInfo
+        val position = along + info.viewportStartOffset
+        val dragged = drag.payload?.app?.id
+        val others = apps().filter { it.id != dragged }
+        val real = info.visibleItemsInfo.filter { (it.key as? String)?.startsWith(PlaceholderKey) != true }
+        val before = real.count { it.offset + it.size / 2 < position }
+        val firstVisible = others.indexOfFirst { app -> app.id.key == real.firstOrNull()?.key }.coerceAtLeast(0)
+        drag.hoverIndex = (firstVisible + before).coerceIn(0, others.size)
+    }
+
+    private fun autoScroll() {
+        val info = listState.layoutInfo
+        val length = if (vertical) info.viewportSize.height else info.viewportSize.width
+        val contentStart = -info.viewportStartOffset.toFloat()
+        edge = when {
+            along > length - edgePx -> 1
+            along < contentStart + edgePx -> -1
+            else -> 0
+        }
+        if (edge == 0 || edgeJob?.isActive == true) return
+        edgeJob = scope.launch {
+            while (edge != 0 && (if (edge > 0) listState.canScrollForward else listState.canScrollBackward)) {
+                listState.scrollBy(edge * edgePx * TaskbarMetrics.edgeScrollFraction)
+                updateHover()
+                delay(TaskbarMetrics.edgeScrollFrameMs)
+            }
+        }
+    }
+
+    private fun stopScroll() {
+        edge = 0
+        edgeJob?.cancel()
+        edgeJob = null
     }
 }
 
