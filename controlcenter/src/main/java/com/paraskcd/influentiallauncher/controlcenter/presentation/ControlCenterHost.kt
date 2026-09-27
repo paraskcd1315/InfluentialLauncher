@@ -24,7 +24,6 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.windowing.presentation.InfWindow
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
-import com.paraskcd.influentiallauncher.windowing.presentation.isLandscape
 
 @Composable
 fun ControlCenterHost(
@@ -37,9 +36,8 @@ fun ControlCenterHost(
     viewModel: ControlCenterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val landscape = isLandscape()
-    val width = if (landscape) min(screenWidth - offsetX * 2, ControlCenterMetrics.landscapeWidth) else screenWidth * widthFraction
+    val configuration = LocalConfiguration.current
+    val width = min(configuration.screenWidthDp.dp, configuration.screenHeightDp.dp) * widthFraction
     InfWindow(
         cornerRadius = ControlCenterMetrics.cornerRadius,
         onDismissRequest = onClose,
@@ -66,7 +64,7 @@ fun ControlCenterHost(
         ) {
             val current = state
             if (current != null) {
-                ControlCenterPanel(state = current, viewModel = viewModel, onClose = onClose, sideBySide = landscape)
+                ControlCenterPanel(state = current, viewModel = viewModel, onClose = onClose)
             } else {
                 Box(modifier = Modifier.height(ControlCenterMetrics.cornerRadius * 2))
             }

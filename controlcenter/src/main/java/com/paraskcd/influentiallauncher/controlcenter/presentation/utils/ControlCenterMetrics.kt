@@ -5,7 +5,6 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfRadii
 
 object ControlCenterMetrics {
     val cornerRadius = InfRadii.xl
-    val landscapeWidth = 640.dp
     val gridEnd = 32.dp
     val sliderIcon = 20.dp
     val dot = 6.dp

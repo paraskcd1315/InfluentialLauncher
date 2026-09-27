@@ -96,11 +96,12 @@ fun StartMenuHost(
     val layoutDirection = LocalLayoutDirection.current
     val navigationBottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     val cutoutStart = with(density) { WindowInsets.displayCutout.getLeft(density, layoutDirection).toDp() }
-    val baseBottom = if (landscape) navigationBottom + StartMenuMetrics.windowGap else bottomOffset
+    val tabsBottom = navigationBottom + StartMenuMetrics.windowGap
+    val baseBottom = if (landscape) tabsBottom + StartMenuMetrics.tabsStrip + StartMenuMetrics.windowGap else bottomOffset
     val effectiveBottom = if (ime > baseBottom) maxOf(baseBottom, ime + WindowMetrics.ImeGap) else baseBottom
     val menuTop = statusTop + StartMenuMetrics.windowGap
     val menuHeight = screenHeight - menuTop - effectiveBottom
-    val menuEnd = endOffset + StartMenuMetrics.tabsStrip + StartMenuMetrics.windowGap
+    val menuEnd = endOffset
     val menuStart = cutoutStart + StartMenuMetrics.windowGap
     val menuWidth = if (landscape) screenWidth - menuStart - menuEnd else screenWidth * StartMenuMetrics.widthFraction
     val menuFraction = menuWidth / screenWidth
@@ -114,13 +115,12 @@ fun StartMenuHost(
 
     StartTabsWindow(
         open = open,
-        offsetY = tabsOffsetY,
+        offsetY = if (landscape) tabsBottom else tabsOffsetY,
         tabs = tabs,
         selected = selected,
         onSelect = { selectedName = it.name },
         onClose = onClose,
-        vertical = landscape,
-        offsetX = endOffset
+        offsetX = if (landscape) (menuStart - menuEnd) / 2f else 0.dp
     )
     StartMenuWindow(
         open = open,
