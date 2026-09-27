@@ -80,6 +80,7 @@ import kotlin.math.sign
 fun Desktop(activity: ComponentActivity) {
     var startOpen by rememberSaveable { mutableStateOf(false) }
     var controlOpen by rememberSaveable { mutableStateOf(false) }
+    var homeOverview by remember { mutableStateOf(false) }
     var hiddenFor by remember { mutableStateOf<DesktopAction?>(null) }
     var left by remember { mutableStateOf(false) }
     var direction by remember { mutableFloatStateOf(-1f) }
@@ -186,11 +187,10 @@ fun Desktop(activity: ComponentActivity) {
         controlOpen = false
         hiddenFor = DesktopAction.App
     }
-    val systemBarShown = startOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
+    val systemBarShown = startOpen || homeOverview || fade.value <= DesktopMetrics.searchStatusBarAlpha
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val landscape = isLandscape()
     var headerHeight by remember { mutableStateOf(0.dp) }
-    var homeOverview by remember { mutableStateOf(false) }
     val layoutDirection = LocalLayoutDirection.current
     val cutoutStart = with(density) { WindowInsets.displayCutout.getLeft(density, layoutDirection).toDp() }
     val statusTop = with(density) { WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp() }
