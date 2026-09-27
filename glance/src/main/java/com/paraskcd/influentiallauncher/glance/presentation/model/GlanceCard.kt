@@ -26,4 +26,8 @@ sealed interface GlanceCard {
     data object LocationAccess : GlanceCard {
         override val key: String = "weather:access"
     }
+
+    data object Loading : GlanceCard {
+        override val key: String = "weather"
+    }
 }

@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +29,7 @@ import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.Ho
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WarningList
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WeatherExtras
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WeatherNow
+import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WeatherSheetSkeleton
 import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherSheetMetrics
 import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherVisuals
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherSourceName
@@ -72,21 +72,17 @@ fun WeatherSheet(
                     equalWidth = true
                 )
             }
+            if (current.loading) {
+                WeatherSheetSkeleton()
+                return@Column
+            }
             if (report == null) {
-                SheetNote(stringResource(if (current.loading) R.string.weather_loading else R.string.weather_unavailable))
+                SheetNote(stringResource(R.string.weather_unavailable))
                 return@Column
             }
             val forecast = report.forecast
-            Column(
-                verticalArrangement = Arrangement.spacedBy(InfSpacing.s5),
-                modifier = Modifier.alpha(if (current.loading) WeatherSheetMetrics.loadingAlpha else 1f)
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(InfSpacing.s5)) {
                 WeatherNow(forecast = forecast, today = forecast.days.firstOrNull(), modifier = Modifier.padding(horizontal = InfSpacing.s5))
-                if (report.warnings.isNotEmpty()) {
-                    Section(stringResource(R.string.weather_warnings)) {
-                        WarningList(warnings = report.warnings, modifier = Modifier.padding(horizontal = InfSpacing.s5))
-                    }
-                }
                 if (forecast.hours.isNotEmpty()) {
                     Section(stringResource(R.string.weather_next_hours)) {
                         HourlyRow(hours = forecast.hours, horizontalInset = InfSpacing.s5)
@@ -99,6 +95,11 @@ fun WeatherSheet(
                 }
                 Section(stringResource(R.string.weather_extras)) {
                     WeatherExtras(forecast = forecast, airQuality = report.airQuality, modifier = Modifier.padding(horizontal = InfSpacing.s5))
+                }
+                if (report.warnings.isNotEmpty()) {
+                    Section(stringResource(R.string.weather_warnings)) {
+                        WarningList(warnings = report.warnings, modifier = Modifier.padding(horizontal = InfSpacing.s5))
+                    }
                 }
                 SheetNote(
                     stringResource(

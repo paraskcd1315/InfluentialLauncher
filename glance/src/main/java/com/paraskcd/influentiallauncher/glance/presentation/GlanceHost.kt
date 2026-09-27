@@ -36,6 +36,7 @@ import com.paraskcd.influentiallauncher.glance.presentation.components.GlanceTex
 import com.paraskcd.influentiallauncher.glance.presentation.components.MediaGlance
 import com.paraskcd.influentiallauncher.glance.presentation.components.TimerGlance
 import com.paraskcd.influentiallauncher.glance.presentation.components.WeatherGlance
+import com.paraskcd.influentiallauncher.glance.presentation.components.WeatherGlanceSkeleton
 import com.paraskcd.influentiallauncher.glance.presentation.model.GlanceCard
 import com.paraskcd.influentiallauncher.glance.presentation.utils.GlanceMetrics
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.WeatherSheet
@@ -93,6 +94,7 @@ fun GlanceHost(
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.clickable { locationLauncher.launch(viewModel.locationPermission) }
                     )
+                    GlanceCard.Loading -> WeatherGlanceSkeleton()
                     null -> Unit
                 }
             }

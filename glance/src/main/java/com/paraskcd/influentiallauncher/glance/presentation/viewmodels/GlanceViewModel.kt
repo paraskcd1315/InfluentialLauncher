@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.glance.presentation.model.GlanceCard
+import com.paraskcd.influentiallauncher.glance.presentation.model.WeatherLoad
 import com.paraskcd.influentiallauncher.glance.presentation.utils.GlanceOrder
 import com.paraskcd.influentiallauncher.media.domain.ports.MediaSource
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TimeEntry
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,23 +41,27 @@ class GlanceViewModel @Inject constructor(
 
     private val nowPlaying = refresh.flatMapLatest { if (media.hasAccess()) media.nowPlaying() else flowOf(null) }
 
+    private var lastWeather: WeatherLoad = WeatherLoad.Loading
+    private var lastTimers: List<TimeEntry> = emptyList()
+
     private val forecast = refresh.flatMapLatest {
-        flow {
+        flow<WeatherLoad> {
             while (true) {
-                emit(runCatching { weather.forecast()?.now }.onFailure { Log.w(LogTag, "weather failed", it) }.getOrNull())
+                val now = runCatching { weather.forecast()?.now }.onFailure { Log.w(LogTag, "weather failed", it) }.getOrNull()
+                emit(WeatherLoad.Ready(now).also { lastWeather = it })
                 delay(WeatherPollMs)
             }
         }
-    }
+    }.onStart { emit(lastWeather) }
 
     private val timers = timerRefresh.flatMapLatest {
         flow {
             while (true) {
-                emit(Tracker.entries.mapNotNull { tracker -> runCatching { tracking.running(tracker) }.getOrNull() })
+                emit(Tracker.entries.mapNotNull { tracker -> runCatching { tracking.running(tracker) }.getOrNull() }.also { lastTimers = it })
                 delay(TimerPollMs)
             }
         }
-    }
+    }.onStart { emit(lastTimers) }
 
     val cards: StateFlow<List<GlanceCard>> = combine(nowPlaying, timers, forecast, refresh) { playing, running, current, _ ->
         GlanceOrder.of(
@@ -65,7 +71,7 @@ class GlanceViewModel @Inject constructor(
             weather = current,
             locationAccess = weather.hasPermission()
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptyList())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), listOf(GlanceCard.Loading))
 
     fun refresh() {
         refresh.value += 1
