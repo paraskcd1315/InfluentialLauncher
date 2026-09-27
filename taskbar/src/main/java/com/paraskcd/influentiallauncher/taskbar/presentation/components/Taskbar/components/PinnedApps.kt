@@ -10,13 +10,14 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -72,7 +73,7 @@ fun PinnedApps(
                             scaleX = scale
                             scaleY = scale
                         }
-                        .background(if (dragging) draggingFill else Color.Transparent, RoundedCornerShape(TaskbarMetrics.pinCornerRadius))
+                        .background(if (dragging) draggingFill else Color.Transparent, CircleShape)
                         .longPressDraggableHandle(
                             onDragStarted = {
                                 moved = false
@@ -96,6 +97,7 @@ fun PinnedApps(
         LazyColumn(
             state = listState,
             verticalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
+            horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = contentPadding,
             modifier = modifier.verticalFadingEdges(listState, topInset = fadeInset),
             content = tiles
@@ -104,6 +106,7 @@ fun PinnedApps(
         LazyRow(
             state = listState,
             horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
+            verticalAlignment = Alignment.CenterVertically,
             contentPadding = contentPadding,
             modifier = modifier.horizontalFadingEdges(listState, startInset = fadeInset),
             content = tiles

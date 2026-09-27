@@ -5,8 +5,11 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,12 +42,8 @@ fun Taskbar(
     BoxWithConstraints(
         contentAlignment = if (vertical) Alignment.TopCenter else Alignment.CenterStart,
         modifier = modifier
-            .then(if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth())
+            .then(if (vertical) Modifier.fillMaxHeight().width(TaskbarMetrics.barHeight) else Modifier.fillMaxWidth().height(TaskbarMetrics.barHeight))
             .infPanelSurface(RoundedCornerShape(TaskbarMetrics.barCornerRadius), blurred = LocalWindowBlurred.current)
-            .then(
-                if (vertical) Modifier.padding(horizontal = TaskbarMetrics.barPaddingVertical)
-                else Modifier.padding(vertical = TaskbarMetrics.barPaddingVertical)
-            )
     ) {
         val length = if (vertical) maxHeight else maxWidth
         val count = pinned?.size ?: TaskbarMetrics.skeletonTileCount
@@ -65,12 +64,12 @@ fun Taskbar(
                 onMenu = onMenu,
                 vertical = vertical,
                 contentPadding = if (vertical) {
-                    PaddingValues(top = appsStart, bottom = TaskbarMetrics.barPaddingHorizontal)
+                    PaddingValues(top = appsStart, bottom = TaskbarMetrics.barPaddingHorizontal, start = TaskbarMetrics.barPaddingVertical, end = TaskbarMetrics.barPaddingVertical)
                 } else {
-                    PaddingValues(start = appsStart, end = TaskbarMetrics.barPaddingHorizontal)
+                    PaddingValues(start = appsStart, end = TaskbarMetrics.barPaddingHorizontal, top = TaskbarMetrics.barPaddingVertical, bottom = TaskbarMetrics.barPaddingVertical)
                 },
                 fadeInset = startEdge,
-                modifier = if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
             )
         }
         StartButton(
