@@ -10,8 +10,8 @@ import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.EditMode
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeDock
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreen
-import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenPage
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenState
+import com.paraskcd.influentiallauncher.homescreen.presentation.state.VisualPage
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,8 +48,8 @@ class HomeScreenViewModel @Inject constructor(
     private val _removing = MutableStateFlow<LauncherApp?>(null)
     val removing: StateFlow<LauncherApp?> = _removing.asStateFlow()
 
-    private val _deleting = MutableStateFlow<HomeScreenPage?>(null)
-    val deleting: StateFlow<HomeScreenPage?> = _deleting.asStateFlow()
+    private val _deleting = MutableStateFlow<VisualPage?>(null)
+    val deleting: StateFlow<VisualPage?> = _deleting.asStateFlow()
 
     fun startWiggle() {
         _overview.value = false
@@ -102,7 +102,7 @@ class HomeScreenViewModel @Inject constructor(
 
     fun addPage() = run { home.addPage() }
 
-    fun setHome(pageId: String) = run { home.setHome(pageId) }
+    fun setHome(screen: VisualPage) = run { home.setHomeScreen(screen.page.id, screen.start) }
 
     fun askRemove(app: LauncherApp) {
         _removing.value = app
@@ -117,17 +117,17 @@ class HomeScreenViewModel @Inject constructor(
         run { home.remove(app.id) }
     }
 
-    fun askDelete(page: HomeScreenPage) {
-        _deleting.value = page
+    fun askDelete(screen: VisualPage) {
+        _deleting.value = screen
     }
 
     fun cancelDelete() {
         _deleting.value = null
     }
 
-    fun confirmDelete(page: HomeScreenPage) {
+    fun confirmDelete(screen: VisualPage) {
         _deleting.value = null
-        run { home.deletePage(page.id) }
+        run { home.deleteScreen(screen.page.id, screen.start, screen.slots.size) }
     }
 
     private fun run(block: suspend () -> Unit) {

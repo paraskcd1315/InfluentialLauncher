@@ -42,6 +42,22 @@ object HomeEdits {
     fun deletePage(layout: HomeLayout, pageId: String, newId: () -> String): HomeLayout =
         normalize(layout.copy(pages = layout.pages.filterNot { it.id == pageId }), newId)
 
+    fun deleteRange(layout: HomeLayout, pageId: String, start: Int, count: Int, newId: () -> String): HomeLayout {
+        val page = layout.pages.firstOrNull { it.id == pageId } ?: return layout
+        val kept = page.apps.take(start) + page.apps.drop(start + count)
+        if (kept.all { it == null } && layout.pages.size > 1) return deletePage(layout, pageId, newId)
+        return layout.copy(pages = layout.pages.map { if (it.id == pageId) it.copy(apps = SlotPlacement.trimEnd(kept)) else it })
+    }
+
+    fun splitAt(layout: HomeLayout, pageId: String, start: Int, newPageId: String): HomeLayout {
+        val index = layout.pages.indexOfFirst { it.id == pageId }
+        val page = layout.pages.getOrNull(index) ?: return layout
+        if (start <= 0 || start >= page.apps.size) return layout
+        val head = page.copy(apps = SlotPlacement.trimEnd(page.apps.take(start)))
+        val tail = HomePage(newPageId, page.apps.drop(start))
+        return layout.copy(pages = layout.pages.toMutableList().apply { set(index, head); add(index + 1, tail) })
+    }
+
     fun setHome(layout: HomeLayout, pageId: String): HomeLayout =
         if (layout.pages.any { it.id == pageId }) layout.copy(homePageId = pageId) else layout
 

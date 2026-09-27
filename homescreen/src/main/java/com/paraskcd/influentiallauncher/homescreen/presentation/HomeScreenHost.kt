@@ -213,23 +213,20 @@ fun HomeScreenHost(
                 .pointerInput(Unit) { with(gestures) { detect() } }
         ) {
             if (overviewProgress > 0f) {
-                val currentPageId = visual.getOrNull(pager.currentPage)?.page?.id
                 PageOverview(
-                    pages = pages,
-                    homeIndex = current.homeIndex,
-                    currentIndex = pages.indexOfFirst { it.id == currentPageId }.coerceAtLeast(0),
+                    pages = visual,
+                    homeIndex = homeVisual,
+                    currentIndex = pager.currentPage.coerceAtMost(visual.lastIndex),
                     onOpen = { index ->
                         viewModel.closeOverview()
-                        val target = visual.indexOfFirst { it.page.id == pages.getOrNull(index)?.id }.coerceAtLeast(0)
-                        scope.launch { pager.scrollToPage(target) }
+                        scope.launch { pager.scrollToPage(index) }
                     },
-                    onSetHome = { viewModel.setHome(it.id) },
+                    onSetHome = viewModel::setHome,
                     onDelete = viewModel::askDelete,
                     onAdd = viewModel::addPage,
                     grid = grid,
                     loadIcon = loadIcon,
                     modifier = Modifier
-                        .padding(contentPadding)
                         .graphicsLayer {
                             val scale = lerp(HomeMetrics.overviewCardsScale, 1f, overviewProgress)
                             scaleX = scale
@@ -293,7 +290,7 @@ fun HomeScreenHost(
     RemoveAppSheet(app = removing, onConfirm = viewModel::confirmRemove, onDismiss = viewModel::cancelRemove)
     DeletePageSheet(
         page = deleting,
-        pageNumber = deleting?.let { page -> pages.indexOfFirst { it.id == page.id } + 1 } ?: 0,
+        pageNumber = deleting?.let { screen -> visual.indexOfFirst { it.key == screen.key } + 1 } ?: 0,
         onConfirm = viewModel::confirmDelete,
         onDismiss = viewModel::cancelDelete
     )

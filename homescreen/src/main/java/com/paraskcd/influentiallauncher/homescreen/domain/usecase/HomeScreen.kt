@@ -47,6 +47,14 @@ class HomeScreen @Inject constructor(
 
     suspend fun setHome(pageId: String) = store.update { HomeEdits.setHome(it, pageId) }
 
+    suspend fun deleteScreen(pageId: String, start: Int, count: Int) = store.update { HomeEdits.deleteRange(it, pageId, start, count, ::newId) }
+
+    suspend fun setHomeScreen(pageId: String, start: Int) {
+        if (start <= 0) return setHome(pageId)
+        val id = newId()
+        store.update { HomeEdits.setHome(HomeEdits.splitAt(it, pageId, start, id), id) }
+    }
+
     fun launch(app: AppId, origin: LaunchOrigin?) = installedApps.launch(app, origin)
 
     suspend fun icon(app: AppId, sizePx: Int, tint: Int?, background: Int?) = installedApps.icon(app, sizePx, tint, background)

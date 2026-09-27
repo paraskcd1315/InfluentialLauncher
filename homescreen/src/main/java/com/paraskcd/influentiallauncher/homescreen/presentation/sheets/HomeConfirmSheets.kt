@@ -10,7 +10,7 @@ import com.paraskcd.influentiallauncher.designsystem.organisms.InfAction
 import com.paraskcd.influentiallauncher.designsystem.organisms.InfActionList
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.homescreen.R
-import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenPage
+import com.paraskcd.influentiallauncher.homescreen.presentation.state.VisualPage
 import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
 
 @Composable
@@ -32,7 +32,7 @@ fun RemoveAppSheet(app: LauncherApp?, onConfirm: (LauncherApp) -> Unit, onDismis
 }
 
 @Composable
-fun DeletePageSheet(page: HomeScreenPage?, pageNumber: Int, onConfirm: (HomeScreenPage) -> Unit, onDismiss: () -> Unit) {
+fun DeletePageSheet(page: VisualPage?, pageNumber: Int, onConfirm: (VisualPage) -> Unit, onDismiss: () -> Unit) {
     val colors = InfTheme.colors
     InfSheetWindow(
         item = page,
