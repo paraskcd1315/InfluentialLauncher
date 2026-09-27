@@ -59,7 +59,7 @@ class HomeScreenViewModel @Inject constructor(
 
     fun launch(app: AppId, origin: LaunchOrigin?): Boolean = home.launch(app, origin)
 
-    suspend fun icon(app: AppId, sizePx: Int, tint: Int): Bitmap? = home.icon(app, sizePx, tint)
+    suspend fun icon(app: AppId, sizePx: Int, tint: Int, background: Int): Bitmap? = home.icon(app, sizePx, tint, background)
 
     fun move(app: AppId, pageId: String, index: Int) = run { home.move(app, pageId, index) }
 

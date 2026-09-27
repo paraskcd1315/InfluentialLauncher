@@ -64,14 +64,14 @@ class LauncherAppsInstalledApps @Inject constructor(
         context.startActivity(intent)
     }.onFailure { Log.w(LogTag, "uninstall failed for ${id.key}", it) }.isSuccess
 
-    override suspend fun icon(id: AppId, sizePx: Int, tint: Int?): Bitmap? {
-        val cacheKey = "${id.key}#$sizePx#${tint ?: 0}"
+    override suspend fun icon(id: AppId, sizePx: Int, tint: Int?, background: Int?): Bitmap? {
+        val cacheKey = "${id.key}#$sizePx#${tint ?: 0}#${background ?: 0}"
         iconCache.get(cacheKey)?.let { return it }
         return withContext(Dispatchers.IO) {
             runCatching {
                 val info = findActivity(id) ?: return@runCatching null
                 val drawable = info.getIcon(context.resources.displayMetrics.densityDpi)
-                if (tint != null) ThemedIconRenderer.render(drawable, tint, sizePx) else drawable.toBitmap(sizePx, sizePx)
+                if (tint != null) ThemedIconRenderer.render(drawable, tint, background, sizePx) else drawable.toBitmap(sizePx, sizePx)
             }.onFailure { Log.w(LogTag, "icon failed for ${id.key}", it) }.getOrNull()?.also { iconCache.put(cacheKey, it) }
         }
     }

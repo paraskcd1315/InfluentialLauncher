@@ -49,7 +49,7 @@ class HomeScreen @Inject constructor(
 
     fun launch(app: AppId, origin: LaunchOrigin?) = installedApps.launch(app, origin)
 
-    suspend fun icon(app: AppId, sizePx: Int, tint: Int?) = installedApps.icon(app, sizePx, tint)
+    suspend fun icon(app: AppId, sizePx: Int, tint: Int?, background: Int?) = installedApps.icon(app, sizePx, tint, background)
 
     private fun newId(): String = UUID.randomUUID().toString()
 }

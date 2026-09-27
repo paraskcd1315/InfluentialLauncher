@@ -90,7 +90,8 @@ fun HomeScreenHost(
     val current = state ?: return
     val pages = current.pages
     val tint = InfTheme.colors.brandText.toArgb()
-    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint) { { id, px -> viewModel.icon(id, px, tint) } }
+    val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
+    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
     val pageCount = pages.size + if (wiggling) 1 else 0
     val pager = rememberPagerState(initialPage = current.homeIndex) { pageCount }
     val drag = remember { HomeDragState() }

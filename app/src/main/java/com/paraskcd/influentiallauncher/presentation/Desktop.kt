@@ -278,7 +278,10 @@ fun Desktop(activity: ComponentActivity) {
                     bottom = if (landscape) navigationBottom + StatusBarLayout.height + DesktopMetrics.windowGap * 2
                         else aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap
                 )
-                .graphicsLayer { alpha = fade.value }
+                .graphicsLayer {
+                    alpha = fade.value
+                    translationY = direction * (1f - fade.value) * clockLift
+                }
         )
     }
     TaskbarHost(

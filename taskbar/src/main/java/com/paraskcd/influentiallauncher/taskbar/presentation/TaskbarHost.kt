@@ -29,7 +29,8 @@ fun TaskbarHost(
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
     val startPins by viewModel.startPins.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
-    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint) { { id, px -> viewModel.icon(id, px, tint) } }
+    val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
+    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
     var menuApp by remember { mutableStateOf<LauncherApp?>(null) }
 
     TaskbarWindow(

@@ -58,7 +58,8 @@ fun AppsTab(
     val content by viewModel.content.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
-    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint) { { id, px -> viewModel.icon(id, px, tint) } }
+    val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
+    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     var menuKey by remember { mutableStateOf<String?>(null) }

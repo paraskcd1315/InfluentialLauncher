@@ -69,7 +69,7 @@ class AppsViewModel @Inject constructor(
         installedApps.uninstall(id)
     }
 
-    suspend fun icon(id: AppId, sizePx: Int, tint: Int): Bitmap? = installedApps.icon(id, sizePx, tint)
+    suspend fun icon(id: AppId, sizePx: Int, tint: Int, background: Int): Bitmap? = installedApps.icon(id, sizePx, tint, background)
 
     private companion object {
         const val StopTimeoutMs = 5_000L

@@ -25,12 +25,20 @@ internal object ThemedIconRenderer {
     private const val VisibleAlpha = 24
     private const val ContrastGain = 3f
     private const val ChannelMax = 255
-    private const val BadgeCoverage = 0.15f
+    private const val DominantShare = 0.3f
     private const val QuantizeMask = 0x00F0F0F0
     private const val LogoCoverage = 0.01f
+    private const val LogoMaxShare = 0.6f
     private const val MinContrast = 96
+    private const val LuminanceThreshold = 0.3f
+    private const val LuminanceSoft = 0.15f
+    private const val RedWeight = 0.299f
+    private const val GreenWeight = 0.587f
+    private const val BlueWeight = 0.114f
+    private const val RingFraction = 0.02f
+    private const val RingColor = 0x1FFFFFFF
 
-    fun render(icon: Drawable, tint: Int, sizePx: Int): Bitmap {
+    fun render(icon: Drawable, tint: Int, background: Int?, sizePx: Int): Bitmap {
         val adaptive = icon as? AdaptiveIconDrawable
         val layer = adaptive?.monochrome ?: adaptive?.foreground
         return if (layer != null) {
@@ -39,31 +47,44 @@ internal object ThemedIconRenderer {
             if (shape == null && adaptive?.monochrome == null) {
                 val iconSize = (sizePx * PlainIconScale).roundToInt()
                 val composite = silhouette(icon.toBitmap(iconSize, iconSize))
-                onCircle(composite ?: source, tint, sizePx, if (composite != null) iconSize else sizePx)
+                onCircle(composite ?: source, tint, background, sizePx, if (composite != null) iconSize else sizePx)
             } else {
-                onCircle(shape ?: source, tint, sizePx, sizePx)
+                onCircle(shape ?: source, tint, background, sizePx, sizePx)
             }
         } else {
             val iconSize = (sizePx * PlainIconScale).roundToInt()
             val source = icon.toBitmap().scale(iconSize, iconSize)
-            onCircle(silhouette(source) ?: source, tint, sizePx, iconSize)
+            onCircle(silhouette(source) ?: source, tint, background, sizePx, iconSize)
         }
     }
 
-    private fun onCircle(shape: Bitmap, tint: Int, sizePx: Int, shapeSize: Int): Bitmap {
+    private fun onCircle(shape: Bitmap, tint: Int, background: Int?, sizePx: Int, shapeSize: Int): Bitmap {
         val bitmap = createBitmap(sizePx, sizePx)
         val canvas = Canvas(bitmap)
         val radius = sizePx / 2f
-        val circle = Paint().apply {
-            isAntiAlias = true
-            shader = RadialGradient(
-                radius, radius, radius,
-                intArrayOf(tint and RgbMask or GradientInnerAlpha, tint and RgbMask or GradientOuterAlpha),
-                floatArrayOf(0f, 1f),
-                Shader.TileMode.CLAMP
-            )
+        if (background != null) {
+            canvas.drawCircle(radius, radius, radius, Paint().apply {
+                isAntiAlias = true
+                color = background
+            })
+            val ring = sizePx * RingFraction
+            canvas.drawCircle(radius, radius, radius - ring / 2f, Paint().apply {
+                isAntiAlias = true
+                style = Paint.Style.STROKE
+                strokeWidth = ring
+                color = RingColor
+            })
+        } else {
+            canvas.drawCircle(radius, radius, radius, Paint().apply {
+                isAntiAlias = true
+                shader = RadialGradient(
+                    radius, radius, radius,
+                    intArrayOf(tint and RgbMask or GradientInnerAlpha, tint and RgbMask or GradientOuterAlpha),
+                    floatArrayOf(0f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+            })
         }
-        canvas.drawCircle(radius, radius, radius, circle)
         val offset = (sizePx - shapeSize) / 2f
         val tinted = Paint().apply {
             isAntiAlias = true
@@ -82,7 +103,7 @@ internal object ThemedIconRenderer {
         if (opaque.isEmpty()) return source
         val colours = opaque.groupingBy { it and QuantizeMask }.eachCount()
         val (base, baseCount) = colours.maxBy { it.value }
-        if (baseCount < pixels.size * BadgeCoverage) return source
+        if (baseCount < opaque.size * DominantShare) return byLuminance(source, pixels, opaque)
         val backgroundRed = Color.red(base)
         val backgroundGreen = Color.green(base)
         val backgroundBlue = Color.blue(base)
@@ -101,4 +122,24 @@ internal object ThemedIconRenderer {
         if (visible < pixels.size * LogoCoverage) return null
         return createBitmap(width, height).apply { setPixels(pixels, 0, width, 0, 0, width, height) }
     }
+
+    private fun byLuminance(source: Bitmap, pixels: IntArray, opaque: List<Int>): Bitmap? {
+        val median = opaque.map(::luminance).sorted()[opaque.size / 2]
+        val contrasting = opaque.count { abs(luminance(it) - median) >= LuminanceThreshold }
+        if (contrasting < opaque.size * LogoCoverage || contrasting > opaque.size * LogoMaxShare) return source
+        var visible = 0
+        for (index in pixels.indices) {
+            val pixel = pixels[index]
+            val difference = abs(luminance(pixel) - median)
+            val strength = ((difference - LuminanceSoft) / (LuminanceThreshold - LuminanceSoft)).coerceIn(0f, 1f)
+            val alpha = (strength * Color.alpha(pixel)).roundToInt()
+            if (alpha >= VisibleAlpha) visible++
+            pixels[index] = if (alpha < VisibleAlpha) Color.TRANSPARENT else Color.argb(alpha, ChannelMax, ChannelMax, ChannelMax)
+        }
+        if (visible < pixels.size * LogoCoverage) return null
+        return createBitmap(source.width, source.height).apply { setPixels(pixels, 0, source.width, 0, 0, source.width, source.height) }
+    }
+
+    private fun luminance(pixel: Int): Float =
+        (RedWeight * Color.red(pixel) + GreenWeight * Color.green(pixel) + BlueWeight * Color.blue(pixel)) / ChannelMax
 }
