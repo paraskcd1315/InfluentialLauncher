@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":weather"))
     implementation(project(":glance"))
     implementation(project(":controlcenter"))
+    implementation(project(":homescreen"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

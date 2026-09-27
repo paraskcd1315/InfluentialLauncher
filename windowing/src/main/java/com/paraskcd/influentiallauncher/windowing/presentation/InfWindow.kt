@@ -107,20 +107,23 @@ fun InfWindow(
         }
         val shown = configured && (visible || reveal.value > 0f)
         val progress = reveal.value * alpha.coerceIn(0f, 1f)
+        val blurRadius = if (shown) (blur.value * progress).toInt() else 0
+        val appliedBlur = remember { intArrayOf(-1) }
         SideEffect {
+            if (appliedBlur[0] != blurRadius) {
+                appliedBlur[0] = blurRadius
+                DialogWindowSetup.setBlur(window, blurRadius)
+            }
             DialogWindowSetup.place(window, offsetYPx, alpha = progress)
             DialogWindowSetup.setVisible(window, shown, focusable = focusable && visible)
         }
         LaunchedEffect(blurAvailable, shown) {
             if (!shown) {
                 blur.snapTo(0f)
-                DialogWindowSetup.setBlur(window, 0)
                 return@LaunchedEffect
             }
             val target = if (blurAvailable) WindowMetrics.BlurRadiusMax.toFloat() else 0f
-            blur.animateTo(target, tween(WindowMetrics.BlurRampMs)) {
-                DialogWindowSetup.setBlur(window, value.toInt())
-            }
+            blur.animateTo(target, tween(WindowMetrics.BlurRampMs))
         }
         CompositionLocalProvider(
             LocalWindowBlurred provides blurAvailable,

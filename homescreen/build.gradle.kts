@@ -5,21 +5,16 @@ plugins {
 }
 
 android {
-    namespace = "com.paraskcd.influentiallauncher.startmenu"
+    namespace = "com.paraskcd.influentiallauncher.homescreen"
 }
 
 dependencies {
     implementation(project(":designsystem"))
     implementation(project(":windowing"))
     implementation(project(":apps"))
-    implementation(project(":pins"))
-    implementation(project(":calendar"))
-    implementation(project(":contacts"))
-    implementation(project(":settings"))
-    implementation(project(":timetracking"))
-    implementation(project(":homescreen"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)

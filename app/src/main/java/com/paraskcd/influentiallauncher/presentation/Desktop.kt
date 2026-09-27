@@ -38,6 +38,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.foundation.layout.fillMaxWidth
+import com.paraskcd.influentiallauncher.homescreen.presentation.HomeScreenHost
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -184,6 +187,7 @@ fun Desktop(activity: ComponentActivity) {
     val systemBarShown = startOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val landscape = isLandscape()
+    var headerHeight by remember { mutableStateOf(0.dp) }
     val layoutDirection = LocalLayoutDirection.current
     val cutoutStart = with(density) { WindowInsets.displayCutout.getLeft(density, layoutDirection).toDp() }
     val statusTop = with(density) { WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp() }
@@ -238,10 +242,9 @@ fun Desktop(activity: ComponentActivity) {
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(
-                    top = if (landscape) StatusBarLayout.height + DesktopMetrics.windowGap else 0.dp,
-                    end = if (landscape) aboveTaskbar else 0.dp
-                )
+                .then(if (landscape) Modifier.fillMaxWidth(DesktopMetrics.landscapeHeaderFraction) else Modifier)
+                .padding(top = if (landscape) StatusBarLayout.height + DesktopMetrics.windowGap else 0.dp)
+                .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
                 .graphicsLayer {
                     alpha = fade.value
                     translationY = direction * (1f - fade.value) * clockLift
@@ -250,6 +253,19 @@ fun Desktop(activity: ComponentActivity) {
             ClockHeader(sideInset = taskbarEdge)
             GlanceHost(horizontalInset = taskbarEdge)
         }
+        HomeScreenHost(
+            onAppLaunched = appLaunched,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start = if (landscape) screenWidth * DesktopMetrics.landscapeHeaderFraction else taskbarEdge,
+                    end = if (landscape) aboveTaskbar else taskbarEdge,
+                    top = if (landscape) statusTop + DesktopMetrics.windowGap else headerHeight + DesktopMetrics.windowGap,
+                    bottom = if (landscape) navigationBottom + StatusBarLayout.height + DesktopMetrics.windowGap * 2
+                        else aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap
+                )
+                .graphicsLayer { alpha = fade.value }
+        )
     }
     TaskbarHost(
         startOpen = startOpen,

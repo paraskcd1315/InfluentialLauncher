@@ -12,6 +12,7 @@
     <string name="startmenu_pin_start">Pin to Start</string>
     <string name="startmenu_unpin_start">Unpin from Start</string>
     <string name="startmenu_pin_taskbar">Pin to taskbar</string>
+    <string name="startmenu_add_home">Add to Home</string>
     <string name="startmenu_unpin_taskbar">Unpin from taskbar</string>
     <string name="startmenu_info">App info</string>
     <string name="startmenu_uninstall">Uninstall</string>

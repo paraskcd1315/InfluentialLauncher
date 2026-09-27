@@ -1,0 +1,28 @@
+package com.paraskcd.influentiallauncher.homescreen.presentation.utils
+
+import androidx.compose.ui.unit.dp
+import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
+
+object HomeMetrics {
+    const val columns = 4
+    const val rows = 4
+    const val hoverCore = 0.7f
+    const val wiggleDegrees = 2.2f
+    const val wiggleMs = 130
+    const val liftedScale = 1.12f
+    const val edgePageMs = 550L
+    const val overviewCardFraction = 0.62f
+    const val labelShadowAlpha = 0.35f
+    const val labelShadowBlur = 12f
+    val iconSize = 56.dp
+    val labelGap = 6.dp
+    val badgeSize = 22.dp
+    val badgeGlyph = 14.dp
+    val edgeZone = 28.dp
+    val dot = 6.dp
+    val dotGap = 6.dp
+    val dotsGap = InfSpacing.s2
+    val miniIcon = 18.dp
+    val overviewGap = InfSpacing.s4
+    val pageCornerRadius = 24.dp
+}

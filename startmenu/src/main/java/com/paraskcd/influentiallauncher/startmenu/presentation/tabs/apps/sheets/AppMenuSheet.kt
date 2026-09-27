@@ -3,6 +3,7 @@ package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.LayoutGrid
 import com.composables.icons.lucide.Lucide
@@ -26,6 +27,7 @@ fun AppMenuSheet(
     onDismiss: () -> Unit,
     onToggleStart: (AppId) -> Unit,
     onToggleTaskbar: (AppId) -> Unit,
+    onAddToHome: (AppId) -> Unit,
     onInfo: (AppId) -> Unit,
     onUninstall: (AppId) -> Unit
 ) {
@@ -53,6 +55,7 @@ fun AppMenuSheet(
                     tint = colors.textPrimary,
                     run = { onToggleTaskbar(id) }
                 ),
+                InfAction(Lucide.House, stringResource(R.string.startmenu_add_home), colors.textPrimary) { onAddToHome(id) },
                 InfAction(Lucide.Info, stringResource(R.string.startmenu_info), colors.textPrimary) { onInfo(id) },
                 InfAction(Lucide.Trash2, stringResource(R.string.startmenu_uninstall), colors.dangerText) { onUninstall(id) }
             ),

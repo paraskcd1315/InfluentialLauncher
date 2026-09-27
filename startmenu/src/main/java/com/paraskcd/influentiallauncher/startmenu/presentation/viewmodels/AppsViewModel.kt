@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
+import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreen
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuContent
@@ -26,8 +27,13 @@ import javax.inject.Inject
 @HiltViewModel
 class AppsViewModel @Inject constructor(
     private val installedApps: InstalledApps,
-    private val pinnedApps: PinnedApps
+    private val pinnedApps: PinnedApps,
+    private val homeScreen: HomeScreen
 ) : ViewModel() {
+
+    fun addToHome(id: AppId) {
+        viewModelScope.launch { homeScreen.add(id) }
+    }
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()

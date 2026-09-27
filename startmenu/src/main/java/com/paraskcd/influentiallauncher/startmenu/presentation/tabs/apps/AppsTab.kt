@@ -183,6 +183,7 @@ fun AppsTab(
         onDismiss = { menuKey = null },
         onToggleStart = { viewModel.togglePin(PinTarget.Start, it) },
         onToggleTaskbar = { viewModel.togglePin(PinTarget.Taskbar, it) },
+        onAddToHome = viewModel::addToHome,
         onInfo = { id ->
             onClose()
             viewModel.openInfo(id, null)
