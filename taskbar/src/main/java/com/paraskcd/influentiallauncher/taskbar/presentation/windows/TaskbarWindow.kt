@@ -19,13 +19,15 @@ fun TaskbarWindow(
     onStartClick: () -> Unit,
     onLaunch: (AppId, Rect?) -> Unit,
     onReorder: (List<AppId>) -> Unit,
-    onMenu: (LauncherApp) -> Unit
+    onMenu: (LauncherApp) -> Unit,
+    visible: Boolean
 ) {
     InfWindow(
         cornerRadius = TaskbarMetrics.barCornerRadius,
         onDismissRequest = { },
         offsetY = offsetY,
-        widthFraction = TaskbarMetrics.widthFraction
+        widthFraction = TaskbarMetrics.widthFraction,
+        visible = visible
     ) {
         Taskbar(
             pinned = pinned,
