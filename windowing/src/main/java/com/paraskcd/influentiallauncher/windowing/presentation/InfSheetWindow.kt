@@ -20,6 +20,7 @@ fun <T : Any> InfSheetWindow(
     onDismiss: () -> Unit,
     leading: (@Composable (T) -> Unit)? = null,
     edgeToEdge: Boolean = false,
+    header: (@Composable ColumnScope.(T) -> Unit)? = null,
     content: @Composable ColumnScope.(T) -> Unit
 ) {
     var retained by remember { mutableStateOf(item) }
@@ -48,7 +49,8 @@ fun <T : Any> InfSheetWindow(
             onDismiss = onDismiss,
             title = title(current),
             leading = leading?.let { { it(current) } },
-            edgeToEdge = edgeToEdge
+            edgeToEdge = edgeToEdge,
+            header = header?.let { slot -> { slot(current) } }
         ) {
             content(current)
         }

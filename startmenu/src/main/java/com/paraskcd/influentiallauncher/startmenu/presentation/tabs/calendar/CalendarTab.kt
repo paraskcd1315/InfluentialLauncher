@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,7 +28,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBackdrop
+import com.paraskcd.influentiallauncher.designsystem.foundation.infBackdropSource
 import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.rememberInfBackdrop
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfSegmented
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
@@ -88,6 +92,7 @@ fun CalendarTab(
 
     val density = LocalDensity.current
     var headerHeight by remember { mutableStateOf(0.dp) }
+    val backdrop = rememberInfBackdrop()
     Box(modifier = Modifier.fillMaxSize()) {
         DayTimeline(
             date = date,
@@ -102,8 +107,10 @@ fun CalendarTab(
             topPadding = headerHeight + TimelineMetrics.sectionGap,
             modifier = Modifier
                 .fillMaxSize()
+                .infBackdropSource(backdrop)
                 .padding(horizontal = StartMenuMetrics.listPadding)
         )
+    CompositionLocalProvider(LocalInfBackdrop provides backdrop) {
     Column(
         verticalArrangement = Arrangement.spacedBy(TimelineMetrics.sectionGap),
         modifier = Modifier
@@ -167,6 +174,7 @@ fun CalendarTab(
                     .padding(InfSpacing.s3)
             )
         }
+    }
     }
     }
 

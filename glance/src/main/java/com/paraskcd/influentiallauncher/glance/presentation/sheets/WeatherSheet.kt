@@ -46,7 +46,20 @@ fun WeatherSheet(
         item = state,
         title = { it.report?.forecast?.now?.place ?: stringResource(R.string.weather_title) },
         onDismiss = onDismiss,
-        edgeToEdge = true
+        edgeToEdge = true,
+        header = { current ->
+            val sources = current.report?.sources.orEmpty()
+            if (sources.size > 1) {
+                InfSegmented(
+                    labels = sources.map { stringResource(WeatherVisuals.sourceOf(it)) },
+                    selected = sources.indexOf(current.selected).coerceAtLeast(0),
+                    onSelect = { onSelect(sources[it]) },
+                    blurred = LocalWindowBlurred.current,
+                    modifier = Modifier.fillMaxWidth(),
+                    equalWidth = true
+                )
+            }
+        }
     ) { current ->
         val maxHeight = (LocalConfiguration.current.screenHeightDp * WeatherSheetMetrics.maxHeightFraction).dp
         val report = current.report
@@ -59,19 +72,6 @@ fun WeatherSheet(
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(vertical = InfSpacing.s5)
         ) {
-            val sources = report?.sources.orEmpty()
-            if (sources.size > 1) {
-                InfSegmented(
-                    labels = sources.map { stringResource(WeatherVisuals.sourceOf(it)) },
-                    selected = sources.indexOf(current.selected).coerceAtLeast(0),
-                    onSelect = { onSelect(sources[it]) },
-                    blurred = LocalWindowBlurred.current,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = InfSpacing.s5),
-                    equalWidth = true
-                )
-            }
             if (current.loading) {
                 WeatherSheetSkeleton()
                 return@Column

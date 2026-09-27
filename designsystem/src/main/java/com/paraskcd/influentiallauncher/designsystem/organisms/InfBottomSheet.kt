@@ -48,6 +48,7 @@ fun InfBottomSheet(
     title: String,
     leading: (@Composable () -> Unit)? = null,
     edgeToEdge: Boolean = false,
+    header: (@Composable ColumnScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val colors = InfTheme.colors
@@ -109,6 +110,7 @@ fun InfBottomSheet(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
+                    header?.invoke(this)
                 }
                 Box(
                     modifier = Modifier

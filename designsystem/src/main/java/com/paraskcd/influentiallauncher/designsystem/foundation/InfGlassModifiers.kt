@@ -19,13 +19,15 @@ fun Modifier.infGlassSurface(
     panel: Boolean = false
 ): Modifier {
     val colors = InfTheme.colors
+    val overBackdrop = LocalInfBackdrop.current != null
     val fill = when {
-        panel -> colors.bgBase.copy(alpha = InfGlass.panelAlphaBlurred)
+        panel || (strong && overBackdrop) -> colors.bgBase.copy(alpha = InfGlass.panelAlphaBlurred)
         strong -> colors.glassStrongBg
         else -> colors.glassBg
     }
     return this
         .clip(shape)
+        .infBackdropBlur(shape)
         .background(fill)
         .border(InfGlass.borderWidth, colors.glassBorder, shape)
         .then(if (specular) Modifier.infSpecularEdge(shape) else Modifier)
