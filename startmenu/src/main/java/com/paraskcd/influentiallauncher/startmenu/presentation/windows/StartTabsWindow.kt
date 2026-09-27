@@ -2,8 +2,11 @@ package com.paraskcd.influentiallauncher.startmenu.presentation.windows
 
 import android.view.Gravity
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.paraskcd.influentiallauncher.designsystem.foundation.rotateVertically
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfSegmented
 import com.paraskcd.influentiallauncher.designsystem.theme.InfRadii
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuTab
@@ -18,20 +21,24 @@ fun StartTabsWindow(
     tabs: List<StartMenuTab>,
     selected: StartMenuTab,
     onSelect: (StartMenuTab) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    vertical: Boolean = false,
+    offsetX: Dp = 0.dp
 ) {
     InfWindow(
         cornerRadius = InfRadii.pill,
         onDismissRequest = onClose,
-        gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
-        offsetY = offsetY,
+        gravity = if (vertical) Gravity.END or Gravity.CENTER_VERTICAL else Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
+        offsetX = offsetX,
+        offsetY = if (vertical) 0.dp else offsetY,
         visible = open
     ) {
         InfSegmented(
             labels = tabs.map { stringResource(TabToggles.labelOf(it)) },
             selected = tabs.indexOf(selected).coerceAtLeast(0),
             onSelect = { onSelect(tabs[it]) },
-            blurred = LocalWindowBlurred.current
+            blurred = LocalWindowBlurred.current,
+            modifier = if (vertical) Modifier.rotateVertically(clockwise = true) else Modifier
         )
     }
 }

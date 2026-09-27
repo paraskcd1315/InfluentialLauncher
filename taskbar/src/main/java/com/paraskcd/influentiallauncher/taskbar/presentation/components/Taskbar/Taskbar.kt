@@ -1,9 +1,9 @@
 package com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar
 
 import android.graphics.Bitmap
-import android.graphics.Rect
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,19 +29,26 @@ fun Taskbar(
     onLaunch: (AppId, LaunchOrigin?) -> Unit,
     onReorder: (List<AppId>) -> Unit,
     onMenu: (LauncherApp) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    vertical: Boolean = false
 ) {
     val startEdge = TaskbarMetrics.barPaddingHorizontal + TaskbarMetrics.startSize
     val appsStart = startEdge + TaskbarMetrics.itemGap
     Box(
-        contentAlignment = Alignment.CenterStart,
+        contentAlignment = if (vertical) Alignment.TopCenter else Alignment.CenterStart,
         modifier = modifier
-            .fillMaxWidth()
+            .then(if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth())
             .infPanelSurface(RoundedCornerShape(TaskbarMetrics.barCornerRadius), blurred = LocalWindowBlurred.current)
-            .padding(vertical = TaskbarMetrics.barPaddingVertical)
+            .then(
+                if (vertical) Modifier.padding(horizontal = TaskbarMetrics.barPaddingVertical)
+                else Modifier.padding(vertical = TaskbarMetrics.barPaddingVertical)
+            )
     ) {
         if (pinned == null) {
-            PinnedAppsSkeleton(modifier = Modifier.padding(start = appsStart))
+            PinnedAppsSkeleton(
+                vertical = vertical,
+                modifier = if (vertical) Modifier.padding(top = appsStart) else Modifier.padding(start = appsStart)
+            )
         } else {
             PinnedApps(
                 apps = pinned,
@@ -49,11 +56,24 @@ fun Taskbar(
                 onLaunch = onLaunch,
                 onReorder = onReorder,
                 onMenu = onMenu,
-                contentPadding = PaddingValues(start = appsStart, end = TaskbarMetrics.barPaddingHorizontal),
-                fadeStartInset = startEdge,
-                modifier = Modifier.fillMaxWidth()
+                vertical = vertical,
+                contentPadding = if (vertical) {
+                    PaddingValues(top = appsStart, bottom = TaskbarMetrics.barPaddingHorizontal)
+                } else {
+                    PaddingValues(start = appsStart, end = TaskbarMetrics.barPaddingHorizontal)
+                },
+                fadeInset = startEdge,
+                modifier = if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
             )
         }
-        StartButton(open = startOpen, onClick = onStartClick, modifier = Modifier.padding(start = TaskbarMetrics.barPaddingHorizontal))
+        StartButton(
+            open = startOpen,
+            onClick = onStartClick,
+            modifier = if (vertical) {
+                Modifier.padding(top = TaskbarMetrics.barPaddingHorizontal)
+            } else {
+                Modifier.padding(start = TaskbarMetrics.barPaddingHorizontal)
+            }
+        )
     }
 }

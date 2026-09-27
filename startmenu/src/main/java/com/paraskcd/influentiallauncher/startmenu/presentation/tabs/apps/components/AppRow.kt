@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toAndroidRectF
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -26,6 +27,7 @@ import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.infrastructure.LaunchOrigins
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
+import com.paraskcd.influentiallauncher.designsystem.foundation.InfGroupedCorners
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfGroupedCard
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuApp
@@ -40,11 +42,12 @@ fun AppRow(
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onLaunch: (AppId, LaunchOrigin?) -> Unit,
     onLongPress: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shape: Shape = InfGroupedCorners.of(index, count)
 ) {
     val view = LocalView.current
     var iconBounds by remember { mutableStateOf<Rect?>(null) }
-    InfGroupedCard(index = index, count = count, modifier = modifier) {
+    InfGroupedCard(index = index, count = count, modifier = modifier, shape = shape) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(StartMenuMetrics.rowIconGap),
             verticalAlignment = Alignment.CenterVertically,

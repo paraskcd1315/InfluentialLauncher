@@ -3,6 +3,7 @@ package com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -13,9 +14,9 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
 
 @Composable
-fun PinnedAppsSkeleton(modifier: Modifier = Modifier) {
+fun PinnedAppsSkeleton(modifier: Modifier = Modifier, vertical: Boolean = false) {
     val fill = InfTheme.colors.textPrimary.copy(alpha = TaskbarMetrics.skeletonAlpha)
-    Row(horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap), modifier = modifier) {
+    val tiles: @Composable () -> Unit = {
         repeat(TaskbarMetrics.skeletonTileCount) {
             Box(
                 modifier = Modifier
@@ -24,5 +25,10 @@ fun PinnedAppsSkeleton(modifier: Modifier = Modifier) {
                     .background(fill)
             )
         }
+    }
+    if (vertical) {
+        Column(verticalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap), modifier = modifier) { tiles() }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap), modifier = modifier) { tiles() }
     }
 }

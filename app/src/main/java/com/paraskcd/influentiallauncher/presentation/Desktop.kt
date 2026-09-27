@@ -16,6 +16,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -34,6 +38,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
@@ -55,11 +61,13 @@ import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarHost
 import com.paraskcd.influentiallauncher.taskbar.presentation.TaskbarLayout
 import com.paraskcd.influentiallauncher.taskbar.presentation.rememberAboveTaskbarOffset
 import com.paraskcd.influentiallauncher.windowing.infrastructure.DialogWindowSetup
+import com.paraskcd.influentiallauncher.windowing.presentation.isLandscape
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.sign
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun Desktop(activity: ComponentActivity) {
     var startOpen by rememberSaveable { mutableStateOf(false) }
@@ -164,7 +172,14 @@ fun Desktop(activity: ComponentActivity) {
     }
     val systemBarShown = startOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
-    val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
+    val landscape = isLandscape()
+    val layoutDirection = LocalLayoutDirection.current
+    val cutoutStart = with(density) { WindowInsets.displayCutout.getLeft(density, layoutDirection).toDp() }
+    val statusTop = with(density) { WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp() }
+    val taskbarEdge = if (landscape) maxOf(DesktopMetrics.landscapeInset, cutoutStart + DesktopMetrics.windowGap)
+        else screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
+    val pillTop = statusTop + DesktopMetrics.windowGap
+    val belowPill = pillTop + StatusBarLayout.height + DesktopMetrics.windowGap
     val introZoom = if (introPlaying) 1f - fade.value else 0f
     val zoomTarget = maxOf(if (startOpen) DesktopMetrics.startWallpaperZoom else 0f, introZoom) * DesktopMetrics.wallpaperZoomMax
     val wallpaperZoom = animateFloatAsState(
@@ -211,6 +226,10 @@ fun Desktop(activity: ComponentActivity) {
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
+                .padding(
+                    top = if (landscape) StatusBarLayout.height + DesktopMetrics.windowGap else 0.dp,
+                    end = if (landscape) aboveTaskbar else 0.dp
+                )
                 .graphicsLayer {
                     alpha = fade.value
                     translationY = direction * (1f - fade.value) * clockLift
@@ -232,23 +251,26 @@ fun Desktop(activity: ComponentActivity) {
     )
     StatusBarHost(
         offsetX = taskbarEdge,
-        offsetY = aboveTaskbar,
+        offsetY = if (landscape) pillTop else aboveTaskbar,
         visible = !startOpen && !hidden,
         alpha = fade.value,
         active = controlOpen,
-        onClick = { controlOpen = !controlOpen }
+        onClick = { controlOpen = !controlOpen },
+        fromTop = landscape
     )
     ControlCenterHost(
         open = controlOpen && !hidden,
         offsetX = taskbarEdge,
-        offsetY = aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap,
+        offsetY = if (landscape) belowPill else aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap,
         widthFraction = TaskbarLayout.widthFraction,
-        onClose = { controlOpen = false }
+        onClose = { controlOpen = false },
+        fromTop = landscape
     )
     StartMenuHost(
         open = startOpen && !hidden,
         tabsOffsetY = aboveTaskbar,
         bottomOffset = aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap,
+        endOffset = aboveTaskbar,
         onClose = { startOpen = false },
         onAppLaunched = appLaunched
     )

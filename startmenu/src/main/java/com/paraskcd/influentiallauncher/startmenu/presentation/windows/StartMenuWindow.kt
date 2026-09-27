@@ -1,5 +1,6 @@
 package com.paraskcd.influentiallauncher.startmenu.presentation.windows
 
+import android.view.Gravity
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
@@ -24,13 +26,18 @@ fun StartMenuWindow(
     offsetY: Dp,
     height: Dp,
     onClose: () -> Unit,
+    widthFraction: Float = StartMenuMetrics.widthFraction,
+    offsetX: Dp = 0.dp,
+    fromEnd: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) {
     InfWindow(
         cornerRadius = StartMenuMetrics.cornerRadius,
         onDismissRequest = onClose,
+        gravity = if (fromEnd) Gravity.BOTTOM or Gravity.END else Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
+        offsetX = offsetX,
         offsetY = offsetY,
-        widthFraction = StartMenuMetrics.widthFraction,
+        widthFraction = widthFraction,
         visible = open,
         focusable = true,
         showStatusBar = true
@@ -45,7 +52,11 @@ fun StartMenuWindow(
                 .fillMaxWidth()
                 .height(height)
                 .graphicsLayer {
-                    translationY = (1f - progress) * size.height * StartMenuMetrics.riseFraction
+                    if (fromEnd) {
+                        translationX = (1f - progress) * size.width * StartMenuMetrics.slideFraction
+                    } else {
+                        translationY = (1f - progress) * size.height * StartMenuMetrics.riseFraction
+                    }
                     alpha = progress
                 }
                 .infPanelSurface(RoundedCornerShape(StartMenuMetrics.cornerRadius), blurred = LocalWindowBlurred.current),

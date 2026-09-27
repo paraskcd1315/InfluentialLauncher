@@ -33,7 +33,7 @@ fun TaskbarHost(
     var menuApp by remember { mutableStateOf<LauncherApp?>(null) }
 
     TaskbarWindow(
-        offsetY = rememberTaskbarOffset(),
+        offset = rememberTaskbarOffset(),
         pinned = pinned,
         startOpen = startOpen,
         loadIcon = loadIcon,

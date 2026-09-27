@@ -19,6 +19,7 @@ fun StatusBarHost(
     alpha: Float = 1f,
     active: Boolean = false,
     onClick: () -> Unit = {},
+    fromTop: Boolean = false,
     viewModel: StatusBarViewModel = hiltViewModel()
 ) {
     val status by viewModel.status.collectAsStateWithLifecycle()
@@ -26,7 +27,7 @@ fun StatusBarHost(
     InfWindow(
         cornerRadius = StatusBarMetrics.cornerRadius,
         onDismissRequest = { },
-        gravity = Gravity.BOTTOM or Gravity.END,
+        gravity = if (fromTop) Gravity.TOP or Gravity.START else Gravity.BOTTOM or Gravity.END,
         offsetX = offsetX,
         offsetY = offsetY,
         visible = visible && current != null,

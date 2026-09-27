@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,19 +38,45 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 fun ControlCenterPanel(
     state: ControlState,
     viewModel: ControlCenterViewModel,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    sideBySide: Boolean = false
 ) {
-    val colors = InfTheme.colors
-    Column {
+    val grid: @Composable (Modifier) -> Unit = { modifier ->
         ToggleGrid(
             state = state,
             onToggle = viewModel::toggle,
             onDetails = {
                 viewModel.openDetails(it)
                 onClose()
-            }
+            },
+            modifier = modifier
         )
-        Hairline()
+    }
+    if (sideBySide) {
+        val hairline = InfTheme.colors.hairline
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            grid(Modifier.weight(1f))
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .drawBehind {
+                        drawRect(hairline, size = Size(DsMetrics.hairlineThickness.toPx(), size.height))
+                    }
+            ) { Controls(state, viewModel, onClose) }
+        }
+    } else {
+        Column {
+            grid(Modifier)
+            Hairline()
+            Controls(state, viewModel, onClose)
+        }
+    }
+}
+
+@Composable
+private fun Controls(state: ControlState, viewModel: ControlCenterViewModel, onClose: () -> Unit) {
+    val colors = InfTheme.colors
+    Column {
         Column(
             verticalArrangement = Arrangement.spacedBy(InfSpacing.s4),
             modifier = Modifier.padding(InfSpacing.s5)

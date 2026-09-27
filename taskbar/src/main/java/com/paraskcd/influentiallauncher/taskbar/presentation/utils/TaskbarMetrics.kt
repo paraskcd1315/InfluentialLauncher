@@ -8,6 +8,8 @@ object TaskbarMetrics {
     const val widthFraction = 0.8f
     val barCornerRadius = DsMetrics.cornerLarge
     val floatDistance = 48.dp
+    val sideDistance = InfSpacing.s4
+    const val heightFraction = 0.85f
     val navigationGap = InfSpacing.s2
     val barPaddingVertical = 24.dp
     val barPaddingHorizontal = 8.dp

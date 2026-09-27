@@ -19,10 +19,11 @@ fun PinnedGrid(
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onLaunch: (AppId, LaunchOrigin?) -> Unit,
     onLongPress: (StartMenuApp) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    columns: Int = StartMenuMetrics.pinnedColumns
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        apps.chunked(StartMenuMetrics.pinnedColumns).forEach { row ->
+        apps.chunked(columns).forEach { row ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 row.forEach { entry ->
                     PinnedTile(
@@ -33,7 +34,7 @@ fun PinnedGrid(
                         modifier = Modifier.weight(1f)
                     )
                 }
-                repeat(StartMenuMetrics.pinnedColumns - row.size) { Spacer(Modifier.weight(1f)) }
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }

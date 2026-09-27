@@ -2,7 +2,9 @@ package com.paraskcd.influentiallauncher.startmenu.presentation
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,6 +14,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
+import com.paraskcd.influentiallauncher.windowing.presentation.isLandscape
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -49,6 +54,7 @@ fun StartMenuHost(
     open: Boolean,
     tabsOffsetY: Dp,
     bottomOffset: Dp,
+    endOffset: Dp,
     onClose: () -> Unit,
     onAppLaunched: () -> Unit,
     viewModel: StartMenuViewModel = hiltViewModel(),
@@ -86,12 +92,22 @@ fun StartMenuHost(
     val screenWidth = with(density) { container.width.toDp() }
     val statusTop = with(density) { WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp() }
     val ime = with(density) { WindowInsets.ime.getBottom(density).toDp() }
-    val effectiveBottom = if (ime > bottomOffset) maxOf(bottomOffset, ime + WindowMetrics.ImeGap) else bottomOffset
+    val landscape = isLandscape()
+    val layoutDirection = LocalLayoutDirection.current
+    val navigationBottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    val cutoutStart = with(density) { WindowInsets.displayCutout.getLeft(density, layoutDirection).toDp() }
+    val baseBottom = if (landscape) navigationBottom + StartMenuMetrics.windowGap else bottomOffset
+    val effectiveBottom = if (ime > baseBottom) maxOf(baseBottom, ime + WindowMetrics.ImeGap) else baseBottom
     val menuTop = statusTop + StartMenuMetrics.windowGap
     val menuHeight = screenHeight - menuTop - effectiveBottom
+    val menuEnd = endOffset + StartMenuMetrics.tabsStrip + StartMenuMetrics.windowGap
+    val menuStart = cutoutStart + StartMenuMetrics.windowGap
+    val menuWidth = if (landscape) screenWidth - menuStart - menuEnd else screenWidth * StartMenuMetrics.widthFraction
+    val menuFraction = menuWidth / screenWidth
     val bubbleOffset = effectiveBottom + (menuHeight - DsMetrics.bubbleSize) / 2f
     val searchOffset = screenHeight - menuTop - StartMenuMetrics.searchTop - DsMetrics.searchHeight
-    val searchFraction = (screenWidth * StartMenuMetrics.widthFraction - StartMenuMetrics.listPadding * 2) / screenWidth
+    val searchFraction = (menuWidth - StartMenuMetrics.listPadding * 2) / screenWidth
+    val timerX = if (landscape) menuEnd + TimelineMetrics.fabInset else screenWidth * (1f - StartMenuMetrics.widthFraction) / 2f + TimelineMetrics.fabInset
     val searchesContacts = selected == StartMenuTab.Contacts
     val timerShown = open && selected == StartMenuTab.Calendar && credentials.configured(calendarTracker)
     val searchShown = open && (selected == StartMenuTab.Apps || (searchesContacts && contactsPermission != PermissionState.Missing))
@@ -102,9 +118,19 @@ fun StartMenuHost(
         tabs = tabs,
         selected = selected,
         onSelect = { selectedName = it.name },
-        onClose = onClose
+        onClose = onClose,
+        vertical = landscape,
+        offsetX = endOffset
     )
-    StartMenuWindow(open = open, offsetY = bottomOffset, height = menuHeight, onClose = onClose) {
+    StartMenuWindow(
+        open = open,
+        offsetY = baseBottom,
+        height = menuHeight,
+        onClose = onClose,
+        widthFraction = menuFraction,
+        offsetX = if (landscape) menuEnd else 0.dp,
+        fromEnd = landscape
+    ) {
         when (selected) {
             StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose, onLaunched = onAppLaunched, onScrub = { scrubLetter = it }, viewModel = appsViewModel)
             StartMenuTab.Calendar -> CalendarTab(open = open, onClose = onClose, timeTracking = timeTracking)
@@ -120,7 +146,7 @@ fun StartMenuHost(
     TimerButtonWindow(
         visible = timerShown,
         running = running[calendarTracker],
-        offsetX = screenWidth * (1f - StartMenuMetrics.widthFraction) / 2f + TimelineMetrics.fabInset,
+        offsetX = timerX,
         offsetY = effectiveBottom + TimelineMetrics.fabInset,
         onStart = { startFor = calendarTracker },
         onStop = timeTracking::stop
@@ -133,7 +159,9 @@ fun StartMenuHost(
         onValueChange = if (searchesContacts) contactsViewModel::setQuery else appsViewModel::setQuery,
         placeholder = stringResource(if (searchesContacts) R.string.startmenu_search_contacts else R.string.startmenu_search),
         clearDescription = stringResource(R.string.startmenu_clear),
-        onClose = onClose
+        onClose = onClose,
+        fromEnd = landscape,
+        offsetX = if (landscape) menuEnd + StartMenuMetrics.listPadding else 0.dp
     )
     LetterBubbleWindow(letter = scrubLetter.takeIf { open }, offsetY = bubbleOffset)
     StartTimerSheet(

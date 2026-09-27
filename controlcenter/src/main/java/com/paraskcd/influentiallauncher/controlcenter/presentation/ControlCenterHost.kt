@@ -33,15 +33,17 @@ fun ControlCenterHost(
     offsetY: Dp,
     widthFraction: Float,
     onClose: () -> Unit,
+    fromTop: Boolean = false,
     viewModel: ControlCenterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val width = if (isLandscape()) min(screenWidth, ControlCenterMetrics.landscapeWidth) else screenWidth * widthFraction
+    val landscape = isLandscape()
+    val width = if (landscape) min(screenWidth - offsetX * 2, ControlCenterMetrics.landscapeWidth) else screenWidth * widthFraction
     InfWindow(
         cornerRadius = ControlCenterMetrics.cornerRadius,
         onDismissRequest = onClose,
-        gravity = Gravity.BOTTOM or Gravity.END,
+        gravity = if (fromTop) Gravity.TOP or Gravity.START else Gravity.BOTTOM or Gravity.END,
         offsetX = offsetX,
         offsetY = offsetY,
         visible = open,
@@ -56,14 +58,15 @@ fun ControlCenterHost(
             modifier = Modifier
                 .width(width)
                 .graphicsLayer {
-                    translationY = (1f - progress) * size.height * ControlCenterMetrics.riseFraction
+                    val rise = (1f - progress) * size.height * ControlCenterMetrics.riseFraction
+                    translationY = if (fromTop) -rise else rise
                     alpha = progress
                 }
                 .infPanelSurface(RoundedCornerShape(ControlCenterMetrics.cornerRadius), blurred = LocalWindowBlurred.current)
         ) {
             val current = state
             if (current != null) {
-                ControlCenterPanel(state = current, viewModel = viewModel, onClose = onClose)
+                ControlCenterPanel(state = current, viewModel = viewModel, onClose = onClose, sideBySide = landscape)
             } else {
                 Box(modifier = Modifier.height(ControlCenterMetrics.cornerRadius * 2))
             }

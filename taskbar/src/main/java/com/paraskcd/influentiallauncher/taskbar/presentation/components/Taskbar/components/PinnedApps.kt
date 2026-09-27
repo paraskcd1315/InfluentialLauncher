@@ -1,11 +1,12 @@
 package com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components
 
 import android.graphics.Bitmap
-import android.graphics.Rect
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -25,6 +26,7 @@ import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.foundation.horizontalFadingEdges
+import com.paraskcd.influentiallauncher.designsystem.foundation.verticalFadingEdges
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
 import sh.calvin.reorderable.ReorderableItem
@@ -38,8 +40,9 @@ fun PinnedApps(
     onReorder: (List<AppId>) -> Unit,
     onMenu: (LauncherApp) -> Unit,
     modifier: Modifier = Modifier,
+    vertical: Boolean = false,
     contentPadding: PaddingValues = PaddingValues(),
-    fadeStartInset: Dp = 0.dp
+    fadeInset: Dp = 0.dp
 ) {
     var order by remember { mutableStateOf(apps) }
     var moved by remember { mutableStateOf(false) }
@@ -56,12 +59,7 @@ fun PinnedApps(
     }
     val draggingFill = InfTheme.colors.glassStrongBg
 
-    LazyRow(
-        state = listState,
-        horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
-        contentPadding = contentPadding,
-        modifier = modifier.horizontalFadingEdges(listState, startInset = fadeStartInset)
-    ) {
+    val tiles: LazyListScope.() -> Unit = {
         items(order, key = { it.id.key }) { app ->
             ReorderableItem(reorderState, key = app.id.key) { dragging ->
                 val scale by animateFloatAsState(if (dragging) TaskbarMetrics.draggingScale else 1f, label = "pinScale")
@@ -92,5 +90,23 @@ fun PinnedApps(
                 )
             }
         }
+    }
+
+    if (vertical) {
+        LazyColumn(
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
+            contentPadding = contentPadding,
+            modifier = modifier.verticalFadingEdges(listState, topInset = fadeInset),
+            content = tiles
+        )
+    } else {
+        LazyRow(
+            state = listState,
+            horizontalArrangement = Arrangement.spacedBy(TaskbarMetrics.itemGap),
+            contentPadding = contentPadding,
+            modifier = modifier.horizontalFadingEdges(listState, startInset = fadeInset),
+            content = tiles
+        )
     }
 }
