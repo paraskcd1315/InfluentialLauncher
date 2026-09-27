@@ -42,7 +42,7 @@ class GlanceViewModel @Inject constructor(
     private val forecast = refresh.flatMapLatest {
         flow {
             while (true) {
-                emit(runCatching { weather.current() }.onFailure { Log.w(LogTag, "weather failed", it) }.getOrNull())
+                emit(runCatching { weather.forecast()?.now }.onFailure { Log.w(LogTag, "weather failed", it) }.getOrNull())
                 delay(WeatherPollMs)
             }
         }

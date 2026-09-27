@@ -10,6 +10,7 @@ android {
 
 dependencies {
     implementation(project(":designsystem"))
+    implementation(project(":windowing"))
     implementation(project(":media"))
     implementation(project(":weather"))
     implementation(project(":timetracking"))

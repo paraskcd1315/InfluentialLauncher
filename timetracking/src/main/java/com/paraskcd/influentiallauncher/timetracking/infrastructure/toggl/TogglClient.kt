@@ -8,13 +8,13 @@ import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerActivit
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerCredentials
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerProject
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.TrackerClient
+import com.paraskcd.influentiallauncher.timetracking.infrastructure.http.ApiUrl
 import com.paraskcd.influentiallauncher.timetracking.infrastructure.http.JsonHttp
 import com.paraskcd.influentiallauncher.timetracking.infrastructure.utils.Colours
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
 import org.json.JSONObject
-import java.net.URLEncoder
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -34,22 +34,21 @@ class TogglClient @Inject constructor(
     private var projectCache: Pair<String, List<TrackerProject>>? = null
 
     override suspend fun entries(credentials: TrackerCredentials, from: Instant, to: Instant): List<TimeEntry> {
-        val query = "start_date=${encode(format(from))}&end_date=${encode(format(to))}"
-        val body = get(credentials, "/me/time_entries?$query")
+        val body = get(credentials, TogglApi.Paths.TimeEntries, mapOf(TogglApi.Query.StartDate to format(from), TogglApi.Query.EndDate to format(to)))
         val projects = projects(credentials).associateBy { it.id }
         val array = JSONArray(body)
         return (0 until array.length()).mapNotNull { index -> array.optJSONObject(index)?.toEntry(projects) }
     }
 
     override suspend fun running(credentials: TrackerCredentials): TimeEntry? {
-        val body = get(credentials, "/me/time_entries/current")
+        val body = get(credentials, TogglApi.Paths.CurrentEntry)
         if (body.isBlank() || body == "null") return null
         return JSONObject(body).toEntry(projects(credentials).associateBy { it.id })
     }
 
     override suspend fun projects(credentials: TrackerCredentials): List<TrackerProject> {
         projectCache?.let { (token, list) -> if (token == credentials.togglToken) return list }
-        val array = JSONArray(get(credentials, "/me/projects"))
+        val array = JSONArray(get(credentials, TogglApi.Paths.Projects))
         val list = (0 until array.length()).mapNotNull { index ->
             val item = array.optJSONObject(index) ?: return@mapNotNull null
             if (!item.optBoolean("active", true)) return@mapNotNull null
@@ -75,11 +74,11 @@ class TogglClient @Inject constructor(
             .put("start", format(Instant.now()))
             .put("duration", -1)
         timer.projectId?.toLongOrNull()?.let { body.put("project_id", it) }
-        send(credentials, "POST", "/workspaces/$workspaceId/time_entries", body)
+        send(credentials, "POST", TogglApi.Paths.WorkspaceEntries.format(workspaceId), body)
     }
 
     override suspend fun stop(credentials: TrackerCredentials, entry: TimeEntry) {
-        send(credentials, "PATCH", "/workspaces/${workspaceId(credentials)}/time_entries/${entry.id}/stop", null)
+        send(credentials, "PATCH", TogglApi.Paths.StopEntry.format(workspaceId(credentials), entry.id), null)
     }
 
     override suspend fun move(credentials: TrackerCredentials, entry: TimeEntry, start: Instant, end: Instant?) {
@@ -90,21 +89,21 @@ class TogglClient @Inject constructor(
         } else {
             body.put("duration", -1)
         }
-        send(credentials, "PUT", "/workspaces/${workspaceId(credentials)}/time_entries/${entry.id}", body)
+        send(credentials, "PUT", TogglApi.Paths.WorkspaceEntry.format(workspaceId(credentials), entry.id), body)
     }
 
     private suspend fun workspaceId(credentials: TrackerCredentials): Long = lock.withLock {
         workspace?.let { (token, id) -> if (token == credentials.togglToken) return id }
-        val id = JSONObject(get(credentials, "/me")).getLong("default_workspace_id")
+        val id = JSONObject(get(credentials, TogglApi.Paths.Me)).getLong("default_workspace_id")
         workspace = credentials.togglToken to id
         id
     }
 
-    private suspend fun get(credentials: TrackerCredentials, path: String): String =
-        http.request("GET", BaseUrl + path, auth(credentials))
+    private suspend fun get(credentials: TrackerCredentials, path: String, query: Map<String, Any?> = emptyMap()): String =
+        http.request("GET", ApiUrl.of(TogglApi.BaseUrl, path, query), auth(credentials))
 
     private suspend fun send(credentials: TrackerCredentials, method: String, path: String, body: JSONObject?) {
-        http.request(method, BaseUrl + path, auth(credentials), body?.toString())
+        http.request(method, ApiUrl.of(TogglApi.BaseUrl, path), auth(credentials), body?.toString())
     }
 
     private fun auth(credentials: TrackerCredentials): String {
@@ -135,10 +134,7 @@ class TogglClient @Inject constructor(
 
     private fun parse(value: String): Instant? = runCatching { OffsetDateTime.parse(value).toInstant() }.getOrNull()
 
-    private fun encode(value: String): String = URLEncoder.encode(value, Charsets.UTF_8.name())
-
     private companion object {
-        const val BaseUrl = "https://api.track.toggl.com/api/v9"
         const val CreatedWith = "InfluentialLauncher"
     }
 }

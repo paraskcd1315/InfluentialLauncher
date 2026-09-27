@@ -36,6 +36,7 @@ class DeviceLocator @Inject constructor(
             latitude = location.latitude,
             longitude = location.longitude,
             locality = address?.locality ?: address?.subAdminArea,
+            province = address?.subAdminArea,
             region = address?.adminArea,
             countryCode = address?.countryCode
         )

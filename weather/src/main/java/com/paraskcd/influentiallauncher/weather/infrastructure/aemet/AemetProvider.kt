@@ -1,10 +1,17 @@
 package com.paraskcd.influentiallauncher.weather.infrastructure.aemet
 
 import android.content.Context
+import android.util.Log
 import com.paraskcd.influentiallauncher.weather.BuildConfig
+import com.paraskcd.influentiallauncher.weather.domain.model.DayForecast
+import com.paraskcd.influentiallauncher.weather.domain.model.Forecast
+import com.paraskcd.influentiallauncher.weather.domain.model.HourForecast
 import com.paraskcd.influentiallauncher.weather.domain.model.Place
 import com.paraskcd.influentiallauncher.weather.domain.model.Weather
+import com.paraskcd.influentiallauncher.weather.domain.model.WeatherSourceName
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherProvider
+import com.paraskcd.influentiallauncher.weather.infrastructure.aemet.AemetApi.Fields
+import com.paraskcd.influentiallauncher.weather.infrastructure.http.ApiUrl
 import com.paraskcd.influentiallauncher.weather.infrastructure.http.HttpText
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +23,9 @@ import org.json.JSONObject
 import java.io.File
 import java.nio.charset.Charset
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.cos
@@ -27,6 +36,8 @@ class AemetProvider @Inject constructor(
     private val http: HttpText
 ) : WeatherProvider {
 
+    override val name: WeatherSourceName = WeatherSourceName.Aemet
+
     private val key = BuildConfig.AEMET_API_KEY
     private val latin = Charset.forName("ISO-8859-15")
     private val lock = Mutex()
@@ -34,29 +45,114 @@ class AemetProvider @Inject constructor(
 
     override fun covers(place: Place): Boolean = key.isNotBlank() && place.countryCode.equals(SpainCode, ignoreCase = true)
 
-    override suspend fun current(place: Place): Weather? {
+    override suspend fun forecast(place: Place): Forecast? {
         val municipality = nearest(place) ?: return null
-        val hours = JSONArray(datos("$BaseUrl/prediccion/especifica/municipio/horaria/${municipality.id}"))
-        val days = hours.getJSONObject(0).getJSONObject("prediccion").getJSONArray("dia")
-        val today = LocalDate.now().toString()
-        val hour = "%02d".format(LocalTime.now().hour)
-        val day = (0 until days.length()).map { days.getJSONObject(it) }.firstOrNull { it.optString("fecha").startsWith(today) }
-            ?: return null
-        val sky = day.getJSONArray("estadoCielo").periodValue(hour) ?: return null
-        val temperature = day.getJSONArray("temperatura").periodValue(hour)?.toIntOrNull() ?: return null
-        return Weather(
-            temperatureC = temperature,
-            condition = AemetSky.conditionOf(sky),
-            isDay = !AemetSky.isNight(sky),
-            place = place.locality ?: municipality.name
+        val hourlyDays = predictionDays(AemetApi.Paths.HourlyForecast.format(municipality.id))
+        val dailyDays = runCatching { predictionDays(AemetApi.Paths.DailyForecast.format(municipality.id)) }
+            .onFailure { Log.w(LogTag, "daily forecast failed", it) }
+            .getOrDefault(emptyList())
+        val today = LocalDate.now()
+        val thisHour = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS)
+        val slots = hourlyDays.flatMap { it.hourSlots() }
+        val upcoming = slots.filter { !it.time.isBefore(thisHour) }.take(HoursShown)
+        val current = upcoming.firstOrNull() ?: slots.lastOrNull() ?: return null
+        val todayHourly = hourlyDays.firstOrNull { it.date() == today }
+        val days = dailyDays.mapNotNull { it.toDayForecast() }.filter { !it.date.isBefore(today) }.take(DaysShown)
+        return Forecast(
+            now = Weather(
+                temperatureC = current.hour.temperatureC,
+                condition = current.hour.condition,
+                isDay = current.hour.isDay,
+                place = place.locality ?: municipality.name
+            ),
+            feelsLikeC = current.feelsLikeC,
+            humidityPercent = current.humidityPercent,
+            windKmh = current.windKmh,
+            rainChancePercent = current.hour.rainChancePercent,
+            rainTodayMm = todayHourly?.optJSONArray(Fields.Rain)?.let { rain ->
+                (0 until rain.length()).sumOf { rain.getJSONObject(it).optString(Fields.Value).toMm() }
+            },
+            uvIndex = dailyDays.firstOrNull { it.date() == today }?.let { if (it.has(Fields.UvMax)) it.optInt(Fields.UvMax) else null },
+            sunrise = todayHourly?.optString(Fields.Sunrise)?.toTimeOrNull(),
+            sunset = todayHourly?.optString(Fields.Sunset)?.toTimeOrNull(),
+            hours = upcoming.map { it.hour },
+            days = days,
+            source = name
         )
     }
 
-    private fun JSONArray.periodValue(hour: String): String? {
-        val entries = (0 until length()).map { getJSONObject(it) }
-        val exact = entries.firstOrNull { it.optString("periodo") == hour }
-        val latest = entries.lastOrNull { it.optString("periodo") <= hour }
-        return (exact ?: latest ?: entries.firstOrNull())?.optString("value")?.takeIf { it.isNotBlank() }
+    private fun JSONObject.hourSlots(): List<Slot> {
+        val date = date() ?: return emptyList()
+        val sky = optJSONArray(Fields.Sky) ?: return emptyList()
+        val temperatures = optJSONArray(Fields.Temperature).byPeriod()
+        val feelsLike = optJSONArray(Fields.FeelsLike).byPeriod()
+        val humidity = optJSONArray(Fields.Humidity).byPeriod()
+        val rainChances = optJSONArray(Fields.RainChance).entries()
+        val wind = optJSONArray(Fields.WindAndGust).entries()
+            .filter { it.has(Fields.Speed) }
+            .associate { it.optString(Fields.Period) to it.optJSONArray(Fields.Speed)?.optString(0) }
+        return sky.entries().mapNotNull { entry ->
+            val period = entry.optString(Fields.Period)
+            val hour = period.toIntOrNull() ?: return@mapNotNull null
+            val code = entry.optString(Fields.Value).takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            val temperature = temperatures[period]?.toIntOrNull() ?: return@mapNotNull null
+            Slot(
+                time = date.atTime(hour, 0),
+                hour = HourForecast(
+                    time = date.atTime(hour, 0),
+                    temperatureC = temperature,
+                    condition = AemetSky.conditionOf(code),
+                    isDay = !AemetSky.isNight(code),
+                    rainChancePercent = rainChances.rangeValue(hour)
+                ),
+                feelsLikeC = feelsLike[period]?.toIntOrNull(),
+                humidityPercent = humidity[period]?.toIntOrNull(),
+                windKmh = wind[period]?.toIntOrNull()
+            )
+        }
+    }
+
+    private fun JSONObject.toDayForecast(): DayForecast? {
+        val date = date() ?: return null
+        val temperature = optJSONObject(Fields.Temperature) ?: return null
+        val sky = optJSONArray(Fields.Sky).entries().filter { it.optString(Fields.Value).isNotBlank() }
+        val code = DayPeriods.firstNotNullOfOrNull { period -> sky.firstOrNull { it.optString(Fields.Period) == period } }
+            ?: sky.firstOrNull()
+            ?: return null
+        val rain = optJSONArray(Fields.RainChance).entries()
+        val rainChance = rain.firstOrNull { it.optString(Fields.Period) == WholeDay }
+            ?: rain.maxByOrNull { it.optInt(Fields.Value) }
+        return DayForecast(
+            date = date,
+            minC = temperature.optInt(Fields.Minimum),
+            maxC = temperature.optInt(Fields.Maximum),
+            condition = AemetSky.conditionOf(code.optString(Fields.Value)),
+            rainChancePercent = rainChance?.let { if (it.isNull(Fields.Value)) null else it.optInt(Fields.Value) }
+        )
+    }
+
+    private fun List<JSONObject>.rangeValue(hour: Int): Int? = firstOrNull { entry ->
+        val period = entry.optString(Fields.Period)
+        val start = period.take(2).toIntOrNull() ?: return@firstOrNull false
+        val end = period.drop(2).toIntOrNull() ?: return@firstOrNull false
+        if (end > start) hour in start until end else hour >= start || hour < end
+    }?.optString(Fields.Value)?.toIntOrNull()
+
+    private fun JSONArray?.entries(): List<JSONObject> =
+        if (this == null) emptyList() else (0 until length()).mapNotNull { optJSONObject(it) }
+
+    private fun JSONArray?.byPeriod(): Map<String, String> =
+        entries().associate { it.optString(Fields.Period) to it.optString(Fields.Value) }
+
+    private fun JSONObject.date(): LocalDate? = runCatching { LocalDate.parse(optString(Fields.Date).take(DateLength)) }.getOrNull()
+
+    private fun String.toMm(): Double = replace(',', '.').toDoubleOrNull() ?: 0.0
+
+    private fun String.toTimeOrNull(): LocalTime? = runCatching { LocalTime.parse(this) }.getOrNull()
+
+    private suspend fun predictionDays(path: String): List<JSONObject> {
+        val root = JSONArray(datos(ApiUrl.of(AemetApi.BaseUrl, path))).getJSONObject(0)
+        return root.getJSONObject(Fields.Prediction).optJSONArray(Fields.Day).entries()
     }
 
     private suspend fun nearest(place: Place): Municipality? {
@@ -75,18 +171,18 @@ class AemetProvider @Inject constructor(
         val text = if (cache.exists()) {
             withContext(Dispatchers.IO) { cache.readText() }
         } else {
-            val fetched = datosOrDirect("$BaseUrl/maestro/municipios")
+            val fetched = datosOrDirect(ApiUrl.of(AemetApi.BaseUrl, AemetApi.Paths.Municipalities))
             withContext(Dispatchers.IO) { cache.writeText(fetched) }
             fetched
         }
         val array = JSONArray(text)
         val list = (0 until array.length()).mapNotNull { index ->
             val item = array.optJSONObject(index) ?: return@mapNotNull null
-            val latitude = item.optString("latitud_dec").toDoubleOrNull() ?: return@mapNotNull null
-            val longitude = item.optString("longitud_dec").toDoubleOrNull() ?: return@mapNotNull null
+            val latitude = item.optString(Fields.Latitude).toDoubleOrNull() ?: return@mapNotNull null
+            val longitude = item.optString(Fields.Longitude).toDoubleOrNull() ?: return@mapNotNull null
             Municipality(
-                id = item.optString("id").removePrefix(IdPrefix),
-                name = item.optString("nombre"),
+                id = item.optString(Fields.Id).removePrefix(IdPrefix),
+                name = item.optString(Fields.Name),
                 latitude = latitude,
                 longitude = longitude
             )
@@ -97,23 +193,36 @@ class AemetProvider @Inject constructor(
 
     private suspend fun datos(url: String): String {
         val envelope = JSONObject(http.get(url, headers(), latin))
-        return http.get(envelope.getString("datos"), fallbackCharset = latin)
+        return http.get(envelope.getString(AemetApi.DataField), fallbackCharset = latin)
     }
 
     private suspend fun datosOrDirect(url: String): String {
         val body = http.get(url, headers(), latin).trim()
         if (body.startsWith("[")) return body
-        return http.get(JSONObject(body).getString("datos"), fallbackCharset = latin)
+        return http.get(JSONObject(body).getString(AemetApi.DataField), fallbackCharset = latin)
     }
 
-    private fun headers() = mapOf("api_key" to key)
+    private fun headers() = mapOf(AemetApi.ApiKeyHeader to key)
 
     private data class Municipality(val id: String, val name: String, val latitude: Double, val longitude: Double)
 
+    private data class Slot(
+        val time: LocalDateTime,
+        val hour: HourForecast,
+        val feelsLikeC: Int?,
+        val humidityPercent: Int?,
+        val windKmh: Int?
+    )
+
     private companion object {
-        const val BaseUrl = "https://opendata.aemet.es/opendata/api"
+        const val LogTag = "AemetProvider"
         const val SpainCode = "ES"
         const val IdPrefix = "id"
         const val CacheFile = "aemet_municipios.json"
+        const val HoursShown = 24
+        const val DaysShown = 7
+        const val DateLength = 10
+        const val WholeDay = "00-24"
+        val DayPeriods = listOf(WholeDay, "12-24", "12-18", "06-12")
     }
 }

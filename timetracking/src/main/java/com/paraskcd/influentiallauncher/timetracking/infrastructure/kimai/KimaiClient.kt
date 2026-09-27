@@ -7,11 +7,11 @@ import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerActivit
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerCredentials
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerProject
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.TrackerClient
+import com.paraskcd.influentiallauncher.timetracking.infrastructure.http.ApiUrl
 import com.paraskcd.influentiallauncher.timetracking.infrastructure.http.JsonHttp
 import com.paraskcd.influentiallauncher.timetracking.infrastructure.utils.Colours
 import org.json.JSONArray
 import org.json.JSONObject
-import java.net.URLEncoder
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -29,15 +29,21 @@ class KimaiClient @Inject constructor(
     override val tracker: Tracker = Tracker.Kimai
 
     override suspend fun entries(credentials: TrackerCredentials, from: Instant, to: Instant): List<TimeEntry> {
-        val query = "begin=${encode(local(from))}&end=${encode(local(to))}&full=true&size=$PageSize&order=ASC"
-        return JSONArray(get(credentials, "/timesheets?$query")).entries()
+        val query = mapOf(
+            KimaiApi.Query.Begin to local(from),
+            KimaiApi.Query.End to local(to),
+            KimaiApi.Query.Full to true,
+            KimaiApi.Query.Size to PageSize,
+            KimaiApi.Query.Order to Ascending
+        )
+        return JSONArray(get(credentials, KimaiApi.Paths.Timesheets, query)).entries()
     }
 
     override suspend fun running(credentials: TrackerCredentials): TimeEntry? =
-        JSONArray(get(credentials, "/timesheets/active?full=true")).entries().firstOrNull()
+        JSONArray(get(credentials, KimaiApi.Paths.ActiveTimesheets, mapOf(KimaiApi.Query.Full to true))).entries().firstOrNull()
 
     override suspend fun projects(credentials: TrackerCredentials): List<TrackerProject> {
-        val array = JSONArray(get(credentials, "/projects?visible=1"))
+        val array = JSONArray(get(credentials, KimaiApi.Paths.Projects, mapOf(KimaiApi.Query.Visible to VisibleOnly)))
         return (0 until array.length()).mapNotNull { index ->
             val item = array.optJSONObject(index) ?: return@mapNotNull null
             TrackerProject(
@@ -50,8 +56,8 @@ class KimaiClient @Inject constructor(
     }
 
     override suspend fun activities(credentials: TrackerCredentials, projectId: String?): List<TrackerActivity> {
-        val filter = projectId?.let { "&project=$it" }.orEmpty()
-        val array = JSONArray(get(credentials, "/activities?visible=1$filter"))
+        val query = mapOf(KimaiApi.Query.Visible to VisibleOnly, KimaiApi.Query.Project to projectId)
+        val array = JSONArray(get(credentials, KimaiApi.Paths.Activities, query))
         return (0 until array.length()).mapNotNull { index ->
             val item = array.optJSONObject(index) ?: return@mapNotNull null
             TrackerActivity(id = item.getInt("id").toString(), name = item.optString("name"))
@@ -66,17 +72,17 @@ class KimaiClient @Inject constructor(
             .put("project", project)
             .put("activity", activity)
             .put("description", timer.description)
-        send(credentials, "POST", "/timesheets", body)
+        send(credentials, "POST", KimaiApi.Paths.Timesheets, body)
     }
 
     override suspend fun stop(credentials: TrackerCredentials, entry: TimeEntry) {
-        send(credentials, "PATCH", "/timesheets/${entry.id}/stop", null)
+        send(credentials, "PATCH", KimaiApi.Paths.StopTimesheet.format(entry.id), null)
     }
 
     override suspend fun move(credentials: TrackerCredentials, entry: TimeEntry, start: Instant, end: Instant?) {
         val body = JSONObject().put("begin", local(start))
         if (end != null) body.put("end", local(end))
-        send(credentials, "PATCH", "/timesheets/${entry.id}", body)
+        send(credentials, "PATCH", KimaiApi.Paths.Timesheet.format(entry.id), body)
     }
 
     private fun JSONArray.entries(): List<TimeEntry> = (0 until length()).mapNotNull { index ->
@@ -97,14 +103,14 @@ class KimaiClient @Inject constructor(
         )
     }
 
-    private suspend fun get(credentials: TrackerCredentials, path: String): String =
-        http.request("GET", baseUrl(credentials) + path, auth(credentials))
+    private suspend fun get(credentials: TrackerCredentials, path: String, query: Map<String, Any?> = emptyMap()): String =
+        http.request("GET", ApiUrl.of(baseUrl(credentials), path, query), auth(credentials))
 
     private suspend fun send(credentials: TrackerCredentials, method: String, path: String, body: JSONObject?) {
-        http.request(method, baseUrl(credentials) + path, auth(credentials), body?.toString())
+        http.request(method, ApiUrl.of(baseUrl(credentials), path), auth(credentials), body?.toString())
     }
 
-    private fun baseUrl(credentials: TrackerCredentials): String = credentials.kimaiUrl.trim().trimEnd('/') + "/api"
+    private fun baseUrl(credentials: TrackerCredentials): String = credentials.kimaiUrl.trim().trimEnd('/') + KimaiApi.ApiRoot
 
     private fun auth(credentials: TrackerCredentials): String = "Bearer ${credentials.kimaiToken.trim()}"
 
@@ -115,10 +121,10 @@ class KimaiClient @Inject constructor(
 
     private fun parse(value: String): Instant? = runCatching { OffsetDateTime.parse(value, OffsetFormat).toInstant() }.getOrNull()
 
-    private fun encode(value: String): String = URLEncoder.encode(value, Charsets.UTF_8.name())
-
     private companion object {
         const val PageSize = 250
+        const val VisibleOnly = 1
+        const val Ascending = "ASC"
         val LocalFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
         val OffsetFormat: DateTimeFormatter = DateTimeFormatterBuilder()
             .appendPattern("yyyy-MM-dd'T'HH:mm:ss")

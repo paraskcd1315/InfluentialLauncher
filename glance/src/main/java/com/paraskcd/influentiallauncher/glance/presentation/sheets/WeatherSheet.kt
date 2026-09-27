@@ -1,0 +1,133 @@
+package com.paraskcd.influentiallauncher.glance.presentation.sheets
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
+import com.paraskcd.influentiallauncher.designsystem.molecules.InfSegmented
+import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
+import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
+import com.paraskcd.influentiallauncher.glance.R
+import com.paraskcd.influentiallauncher.glance.presentation.model.WeatherSheetState
+import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.DailyList
+import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.HourlyRow
+import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WarningList
+import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WeatherExtras
+import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WeatherNow
+import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherSheetMetrics
+import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherVisuals
+import com.paraskcd.influentiallauncher.weather.domain.model.WeatherSourceName
+import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
+import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
+
+@Composable
+fun WeatherSheet(
+    state: WeatherSheetState?,
+    onSelect: (WeatherSourceName) -> Unit,
+    onDismiss: () -> Unit
+) {
+    InfSheetWindow(
+        item = state,
+        title = { it.report?.forecast?.now?.place ?: stringResource(R.string.weather_title) },
+        onDismiss = onDismiss,
+        edgeToEdge = true
+    ) { current ->
+        val maxHeight = (LocalConfiguration.current.screenHeightDp * WeatherSheetMetrics.maxHeightFraction).dp
+        val report = current.report
+        Column(
+            verticalArrangement = Arrangement.spacedBy(InfSpacing.s5),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = maxHeight)
+                .verticalScroll(rememberScrollState())
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(vertical = InfSpacing.s5)
+        ) {
+            val sources = report?.sources.orEmpty()
+            if (sources.size > 1) {
+                InfSegmented(
+                    labels = sources.map { stringResource(WeatherVisuals.sourceOf(it)) },
+                    selected = sources.indexOf(current.selected).coerceAtLeast(0),
+                    onSelect = { onSelect(sources[it]) },
+                    blurred = LocalWindowBlurred.current,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = InfSpacing.s5),
+                    equalWidth = true
+                )
+            }
+            if (report == null) {
+                SheetNote(stringResource(if (current.loading) R.string.weather_loading else R.string.weather_unavailable))
+                return@Column
+            }
+            val forecast = report.forecast
+            Column(
+                verticalArrangement = Arrangement.spacedBy(InfSpacing.s5),
+                modifier = Modifier.alpha(if (current.loading) WeatherSheetMetrics.loadingAlpha else 1f)
+            ) {
+                WeatherNow(forecast = forecast, today = forecast.days.firstOrNull(), modifier = Modifier.padding(horizontal = InfSpacing.s5))
+                if (report.warnings.isNotEmpty()) {
+                    Section(stringResource(R.string.weather_warnings)) {
+                        WarningList(warnings = report.warnings, modifier = Modifier.padding(horizontal = InfSpacing.s5))
+                    }
+                }
+                if (forecast.hours.isNotEmpty()) {
+                    Section(stringResource(R.string.weather_next_hours)) {
+                        HourlyRow(hours = forecast.hours, horizontalInset = InfSpacing.s5)
+                    }
+                }
+                if (forecast.days.isNotEmpty()) {
+                    Section(stringResource(R.string.weather_next_days)) {
+                        DailyList(days = forecast.days, modifier = Modifier.padding(horizontal = InfSpacing.s5))
+                    }
+                }
+                Section(stringResource(R.string.weather_extras)) {
+                    WeatherExtras(forecast = forecast, airQuality = report.airQuality, modifier = Modifier.padding(horizontal = InfSpacing.s5))
+                }
+                SheetNote(
+                    stringResource(
+                        R.string.weather_attribution,
+                        stringResource(WeatherVisuals.sourceOf(forecast.source))
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun Section(title: String, content: @Composable () -> Unit) {
+    Column {
+        InfSectionHeader(text = title, modifier = Modifier.padding(horizontal = InfSpacing.s1))
+        content()
+    }
+}
+
+@Composable
+private fun SheetNote(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = InfTheme.colors.textTertiary,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = InfSpacing.s5)
+    )
+}

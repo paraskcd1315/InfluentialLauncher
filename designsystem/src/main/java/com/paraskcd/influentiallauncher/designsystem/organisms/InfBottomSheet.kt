@@ -47,6 +47,7 @@ fun InfBottomSheet(
     onDismiss: () -> Unit,
     title: String,
     leading: (@Composable () -> Unit)? = null,
+    edgeToEdge: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val colors = InfTheme.colors
@@ -116,10 +117,14 @@ fun InfBottomSheet(
                         .background(colors.hairline)
                 )
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
-                        .padding(InfSpacing.s5),
+                    modifier = if (edgeToEdge) {
+                        Modifier.fillMaxWidth()
+                    } else {
+                        Modifier
+                            .fillMaxWidth()
+                            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
+                            .padding(InfSpacing.s5)
+                    },
                     content = content
                 )
             }

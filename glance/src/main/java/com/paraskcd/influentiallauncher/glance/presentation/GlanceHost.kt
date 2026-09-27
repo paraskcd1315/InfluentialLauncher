@@ -38,15 +38,20 @@ import com.paraskcd.influentiallauncher.glance.presentation.components.TimerGlan
 import com.paraskcd.influentiallauncher.glance.presentation.components.WeatherGlance
 import com.paraskcd.influentiallauncher.glance.presentation.model.GlanceCard
 import com.paraskcd.influentiallauncher.glance.presentation.utils.GlanceMetrics
+import com.paraskcd.influentiallauncher.glance.presentation.sheets.WeatherSheet
 import com.paraskcd.influentiallauncher.glance.presentation.viewmodels.GlanceViewModel
+import com.paraskcd.influentiallauncher.glance.presentation.viewmodels.WeatherViewModel
 
 @Composable
 fun GlanceHost(
     modifier: Modifier = Modifier,
     horizontalInset: Dp = 0.dp,
-    viewModel: GlanceViewModel = hiltViewModel()
+    viewModel: GlanceViewModel = hiltViewModel(),
+    weatherViewModel: WeatherViewModel = hiltViewModel()
 ) {
     val cards by viewModel.cards.collectAsStateWithLifecycle()
+    val weatherSheet by weatherViewModel.sheet.collectAsStateWithLifecycle()
+    WeatherSheet(state = weatherSheet, onSelect = weatherViewModel::select, onDismiss = weatherViewModel::dismiss)
     val locationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { viewModel.refresh() }
     LifecycleResumeEffect(Unit) {
         viewModel.refresh()
@@ -77,7 +82,7 @@ fun GlanceHost(
                         onNext = viewModel::next
                     )
                     is GlanceCard.Timer -> TimerGlance(entry = card.entry, onStop = { viewModel.stop(card.entry) })
-                    is GlanceCard.Forecast -> WeatherGlance(weather = card.weather)
+                    is GlanceCard.Forecast -> WeatherGlance(weather = card.weather, onOpen = weatherViewModel::open)
                     GlanceCard.MediaAccess -> GlanceText(
                         text = stringResource(R.string.glance_media_access),
                         style = MaterialTheme.typography.bodyMedium,
