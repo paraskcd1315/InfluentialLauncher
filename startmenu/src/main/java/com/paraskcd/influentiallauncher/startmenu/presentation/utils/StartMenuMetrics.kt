@@ -12,7 +12,7 @@ object StartMenuMetrics {
     val searchTop = 16.dp
     val searchContentGap = 8.dp
     val listTopPlain = 16.dp
-    val listBottom = 88.dp
+    val listBottom = 16.dp
     val rowGap = 2.dp
     val rowPadding = 16.dp
     val rowIconSize = 54.dp

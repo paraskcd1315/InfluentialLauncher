@@ -92,8 +92,8 @@ fun StartMenuHost(
     val searchOffset = screenHeight - menuTop - StartMenuMetrics.searchTop - DsMetrics.searchHeight
     val searchFraction = (screenWidth * StartMenuMetrics.widthFraction - StartMenuMetrics.listPadding * 2) / screenWidth
     val searchesContacts = selected == StartMenuTab.Contacts
-    val timerTracker = if (selected == StartMenuTab.Calendar) calendarTracker else Tracker.Toggl
-    val searchShown = open &&(selected == StartMenuTab.Apps || (searchesContacts && contactsPermission != PermissionState.Missing))
+    val timerShown = open && selected == StartMenuTab.Calendar && credentials.configured(calendarTracker)
+    val searchShown = open && (selected == StartMenuTab.Apps || (searchesContacts && contactsPermission != PermissionState.Missing))
 
     StartTabsWindow(
         open = open,
@@ -117,11 +117,11 @@ fun StartMenuHost(
         }
     }
     TimerButtonWindow(
-        visible = open && credentials.configured(timerTracker),
-        running = running[timerTracker],
+        visible = timerShown,
+        running = running[calendarTracker],
         offsetX = screenWidth * (1f - StartMenuMetrics.widthFraction) / 2f + TimelineMetrics.fabInset,
         offsetY = effectiveBottom + TimelineMetrics.fabInset,
-        onStart = { startFor = timerTracker },
+        onStart = { startFor = calendarTracker },
         onStop = timeTracking::stop
     )
     StartSearchWindow(
