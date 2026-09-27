@@ -1,15 +1,19 @@
 package com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.layout.Box
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
@@ -32,9 +36,7 @@ fun Taskbar(
     modifier: Modifier = Modifier,
     vertical: Boolean = false
 ) {
-    val startEdge = TaskbarMetrics.barPaddingHorizontal + TaskbarMetrics.startSize
-    val appsStart = startEdge + TaskbarMetrics.itemGap
-    Box(
+    BoxWithConstraints(
         contentAlignment = if (vertical) Alignment.TopCenter else Alignment.CenterStart,
         modifier = modifier
             .then(if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth())
@@ -44,6 +46,11 @@ fun Taskbar(
                 else Modifier.padding(vertical = TaskbarMetrics.barPaddingVertical)
             )
     ) {
+        val length = if (vertical) maxHeight else maxWidth
+        val count = pinned?.size ?: TaskbarMetrics.skeletonTileCount
+        val center by animateDpAsState(centerOffset(length, count), label = "taskbarCenter")
+        val startEdge = center + TaskbarMetrics.barPaddingHorizontal + TaskbarMetrics.startSize
+        val appsStart = startEdge + TaskbarMetrics.itemGap
         if (pinned == null) {
             PinnedAppsSkeleton(
                 vertical = vertical,
@@ -70,10 +77,16 @@ fun Taskbar(
             open = startOpen,
             onClick = onStartClick,
             modifier = if (vertical) {
-                Modifier.padding(top = TaskbarMetrics.barPaddingHorizontal)
+                Modifier.padding(top = center + TaskbarMetrics.barPaddingHorizontal)
             } else {
-                Modifier.padding(start = TaskbarMetrics.barPaddingHorizontal)
+                Modifier.padding(start = center + TaskbarMetrics.barPaddingHorizontal)
             }
         )
     }
+}
+
+private fun centerOffset(length: Dp, count: Int): Dp {
+    val content = TaskbarMetrics.barPaddingHorizontal * 2 + TaskbarMetrics.startSize +
+        (TaskbarMetrics.pinIconSize + TaskbarMetrics.itemGap) * count
+    return ((length - content) / 2).coerceAtLeast(0.dp)
 }
