@@ -162,7 +162,7 @@ fun Desktop(activity: ComponentActivity) {
         controlOpen = false
         hiddenFor = DesktopAction.App
     }
-    val systemBarShown = startOpen || controlOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
+    val systemBarShown = startOpen || fade.value <= DesktopMetrics.searchStatusBarAlpha
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val taskbarEdge = screenWidth * (1f - TaskbarLayout.widthFraction) / 2f
     val introZoom = if (introPlaying) 1f - fade.value else 0f

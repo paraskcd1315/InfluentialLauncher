@@ -45,8 +45,7 @@ fun ControlCenterHost(
         offsetX = offsetX,
         offsetY = offsetY,
         visible = open,
-        focusable = true,
-        showStatusBar = true
+        focusable = true
     ) {
         val progress by animateFloatAsState(
             targetValue = if (open) 1f else 0f,
