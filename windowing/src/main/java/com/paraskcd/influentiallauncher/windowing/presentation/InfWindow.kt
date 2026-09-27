@@ -25,6 +25,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.windowing.infrastructure.DialogWindowSetup
 import kotlinx.coroutines.android.awaitFrame
@@ -49,7 +50,7 @@ fun InfWindow(
     content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
-    val parallax = LocalWindowParallax.current
+    val parallax = LocalParallax.current
     val imeBottom = WindowInsets.ime.getBottom(density)
     val requestedOffsetPx = with(density) { offsetY.roundToPx() }
     val imeOffsetPx = with(density) { imeBottom + WindowMetrics.ImeGap.roundToPx() }

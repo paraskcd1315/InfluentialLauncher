@@ -16,5 +16,7 @@ object DesktopMetrics {
     const val startWallpaperZoom = 0.5f
     const val wallpaperZoomMax = 0.6f
     const val unlockIntroMs = 520
-    val wallpaperParallax = 16.dp
-    const val tiltWallpaperZoom = 0.25f}
+    val wallpaperParallax = 12.dp
+    val headerParallax = 4.dp
+    val gridParallax = 3.dp
+    const val tiltWallpaperZoom = 0.15f}

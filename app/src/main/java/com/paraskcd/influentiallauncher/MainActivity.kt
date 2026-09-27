@@ -11,7 +11,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfluentialTheme
 import com.paraskcd.influentiallauncher.devicestatus.domain.ports.DeviceTiltSource
 import com.paraskcd.influentiallauncher.presentation.Desktop
 import com.paraskcd.influentiallauncher.presentation.rememberDeviceTilt
-import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowParallax
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
 import androidx.compose.runtime.CompositionLocalProvider
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             val tilt = rememberDeviceTilt(this, tiltSource)
-            CompositionLocalProvider(LocalWindowParallax provides tilt) {
+            CompositionLocalProvider(LocalParallax provides tilt) {
                 InfluentialTheme {
                     Desktop(activity = this)
                 }
