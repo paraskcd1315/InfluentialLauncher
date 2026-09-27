@@ -4,13 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,12 +23,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import com.paraskcd.influentiallauncher.calendar.domain.model.CalendarEvent
 import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TimelineMetrics
+import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AllDayStrip(
     events: List<CalendarEvent>,
@@ -35,18 +37,20 @@ fun AllDayStrip(
     modifier: Modifier = Modifier
 ) {
     val colors = InfTheme.colors
-    FlowRow(
+    LazyRow(
         horizontalArrangement = Arrangement.spacedBy(InfSpacing.s2),
-        verticalArrangement = Arrangement.spacedBy(InfSpacing.s2),
-        modifier = modifier.fillMaxWidth()
+        contentPadding = PaddingValues(InfSpacing.s1),
+        modifier = modifier
+            .fillMaxWidth()
+            .infPanelSurface(InfShapes.pill, blurred = LocalWindowBlurred.current)
     ) {
-        events.forEach { event ->
+        items(events, key = { it.id }) { event ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(InfSpacing.s2),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .height(TimelineMetrics.chipHeight)
-                    .infGlassSurface(InfShapes.pill, specular = false, strong = true)
+                    .infGlassSurface(InfShapes.pill, specular = false)
                     .clickable(onClickLabel = event.title) { onOpen(event) }
                     .padding(horizontal = InfSpacing.s3)
             ) {

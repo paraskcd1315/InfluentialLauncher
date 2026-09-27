@@ -24,6 +24,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.startmenu.R
+import com.paraskcd.influentiallauncher.startmenu.presentation.model.HeaderPlacement
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.PermissionState
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuTab
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.AppsTab
@@ -133,7 +134,17 @@ fun StartMenuHost(
     ) {
         when (selected) {
             StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose, onLaunched = onAppLaunched, onScrub = { scrubLetter = it }, viewModel = appsViewModel)
-            StartMenuTab.Calendar -> CalendarTab(open = open, onClose = onClose, timeTracking = timeTracking)
+            StartMenuTab.Calendar -> CalendarTab(
+                open = open,
+                onClose = onClose,
+                timeTracking = timeTracking,
+                placement = HeaderPlacement(
+                    top = menuTop + StartMenuMetrics.listTopPlain,
+                    widthFraction = searchFraction,
+                    fromEnd = landscape,
+                    offsetX = if (landscape) menuEnd + StartMenuMetrics.listPadding else 0.dp
+                )
+            )
             StartMenuTab.Contacts -> ContactsTab(open = open, onClose = onClose, onScrub = { scrubLetter = it }, viewModel = contactsViewModel)
             StartMenuTab.Settings -> SettingsTab(
                 settings = settings,

@@ -9,6 +9,4 @@ android {
 
 dependencies {
     api(libs.icons.lucide)
-    implementation(libs.haze)
-    implementation(libs.haze.blur)
 }

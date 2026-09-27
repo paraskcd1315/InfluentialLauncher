@@ -2,41 +2,33 @@ package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
-import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBackdrop
-import com.paraskcd.influentiallauncher.designsystem.foundation.infBackdropSource
 import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
-import com.paraskcd.influentiallauncher.designsystem.foundation.rememberInfBackdrop
+import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfSegmented
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.startmenu.R
+import com.paraskcd.influentiallauncher.startmenu.presentation.model.HeaderPlacement
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.PermissionState
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar.components.AllDayStrip
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar.components.DateBar
@@ -47,6 +39,7 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TimelineMet
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TrackerLabels
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.CalendarViewModel
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.TimeTrackingViewModel
+import com.paraskcd.influentiallauncher.startmenu.presentation.windows.HeaderWindow
 import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
 import java.time.Duration
@@ -58,6 +51,7 @@ fun CalendarTab(
     open: Boolean,
     onClose: () -> Unit,
     timeTracking: TimeTrackingViewModel,
+    placement: HeaderPlacement,
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
     val colors = InfTheme.colors
@@ -90,9 +84,58 @@ fun CalendarTab(
         else -> null
     }
 
-    val density = LocalDensity.current
-    var headerHeight by remember { mutableStateOf(0.dp) }
-    val backdrop = rememberInfBackdrop()
+    var dateHeight by remember { mutableStateOf(0.dp) }
+    var trackerHeight by remember { mutableStateOf(0.dp) }
+    var stripHeight by remember { mutableStateOf(0.dp) }
+    val gap = TimelineMetrics.sectionGap
+    val stripShown = permission == PermissionState.Missing || allDay.isNotEmpty()
+    val trackerTop = dateHeight + gap
+    val stripTop = trackerTop + trackerHeight + gap
+    val headerBottom = StartMenuMetrics.listTopPlain + (if (stripShown) stripTop + stripHeight else trackerTop + trackerHeight)
+
+    HeaderWindow(visible = open, placement = placement, offsetTop = 0.dp, onHeight = { dateHeight = it }, onClose = onClose) {
+        DateBar(
+            date = date,
+            caption = caption,
+            onPrevious = viewModel::previousDay,
+            onNext = viewModel::nextDay,
+            onPick = { picking = date }
+        )
+    }
+    HeaderWindow(visible = open, placement = placement, offsetTop = trackerTop, onHeight = { trackerHeight = it }, onClose = onClose) {
+        InfSegmented(
+            labels = trackers.map { stringResource(TrackerLabels.nameOf(it)) },
+            selected = trackers.indexOf(tracker),
+            onSelect = { timeTracking.selectTracker(trackers[it]) },
+            blurred = LocalWindowBlurred.current,
+            modifier = Modifier.fillMaxWidth(),
+            equalWidth = true
+        )
+    }
+    HeaderWindow(visible = open && stripShown, placement = placement, offsetTop = stripTop, onHeight = { stripHeight = it }, onClose = onClose) {
+        if (permission == PermissionState.Missing) {
+            Text(
+                text = stringResource(R.string.startmenu_calendar_allow),
+                style = MaterialTheme.typography.labelLarge,
+                color = colors.brandText,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .infPanelSurface(InfShapes.pill, blurred = LocalWindowBlurred.current)
+                    .clickable { calendarLauncher.launch(viewModel.permission) }
+                    .padding(horizontal = InfSpacing.s4, vertical = InfSpacing.s3)
+            )
+        } else {
+            AllDayStrip(
+                events = allDay,
+                onOpen = {
+                    onClose()
+                    viewModel.open(it)
+                }
+            )
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         DayTimeline(
             date = date,
@@ -104,63 +147,10 @@ fun CalendarTab(
                 viewModel.open(it)
             },
             onDay = { viewModel.setDay(date.plusDays(it)) },
-            topPadding = headerHeight + TimelineMetrics.sectionGap,
+            topPadding = headerBottom + gap,
             modifier = Modifier
                 .fillMaxSize()
-                .infBackdropSource(backdrop)
                 .padding(horizontal = StartMenuMetrics.listPadding)
-        )
-    CompositionLocalProvider(LocalInfBackdrop provides backdrop) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(TimelineMetrics.sectionGap),
-        modifier = Modifier
-            .fillMaxWidth()
-            .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
-            .padding(top = StartMenuMetrics.listTopPlain)
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(TimelineMetrics.sectionGap),
-            modifier = Modifier.padding(horizontal = StartMenuMetrics.listPadding)
-        ) {
-            DateBar(
-                date = date,
-                caption = caption,
-                onPrevious = viewModel::previousDay,
-                onNext = viewModel::nextDay,
-                onPick = { picking = date }
-            )
-            InfSegmented(
-                labels = trackers.map { stringResource(TrackerLabels.nameOf(it)) },
-                selected = trackers.indexOf(tracker),
-                onSelect = { timeTracking.selectTracker(trackers[it]) },
-                blurred = LocalWindowBlurred.current,
-                modifier = Modifier.fillMaxWidth(),
-                equalWidth = true
-            )
-            when {
-                permission == PermissionState.Missing -> Text(
-                    text = stringResource(R.string.startmenu_calendar_allow),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = colors.brandText,
-                    modifier = Modifier
-                        .infGlassSurface(InfShapes.pill, specular = false, strong = true)
-                        .clickable { calendarLauncher.launch(viewModel.permission) }
-                        .padding(horizontal = InfSpacing.s4, vertical = InfSpacing.s2)
-                )
-                allDay.isNotEmpty() -> AllDayStrip(
-                    events = allDay,
-                    onOpen = {
-                        onClose()
-                        viewModel.open(it)
-                    }
-                )
-            }
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(DsMetrics.hairlineThickness)
-                .background(colors.hairline)
         )
         if (notice != null) {
             Text(
@@ -168,14 +158,12 @@ fun CalendarTab(
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.textSecondary,
                 modifier = Modifier
-                    .padding(horizontal = StartMenuMetrics.listPadding)
+                    .padding(top = headerBottom + gap, start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding)
                     .fillMaxWidth()
                     .infGlassSurface(InfShapes.md, specular = false, strong = true)
                     .padding(InfSpacing.s3)
             )
         }
-    }
-    }
     }
 
     DatePickerSheet(date = picking, onPick = viewModel::setDay, onDismiss = { picking = null })

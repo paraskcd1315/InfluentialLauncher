@@ -12,10 +12,9 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 @Composable
 fun Modifier.infPanelSurface(shape: Shape, blurred: Boolean): Modifier {
     val colors = InfTheme.colors
-    val alpha = if (blurred || LocalInfBackdrop.current != null) InfGlass.panelAlphaBlurred else InfGlass.panelAlphaSolid
+    val alpha = if (blurred) InfGlass.panelAlphaBlurred else InfGlass.panelAlphaSolid
     return this
         .clip(shape)
-        .infBackdropBlur(shape)
         .background(colors.bgBase.copy(alpha = alpha))
         .border(InfGlass.borderWidth, colors.glassBorder, shape)
         .infSpecularEdge(shape)

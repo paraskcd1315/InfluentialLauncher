@@ -8,5 +8,4 @@ object InfGlass {
     const val specularStop = 0.06f
     const val panelAlphaBlurred = 0.45f
     const val panelAlphaSolid = 0.94f
-    val backdropBlur = 24.dp
 }
