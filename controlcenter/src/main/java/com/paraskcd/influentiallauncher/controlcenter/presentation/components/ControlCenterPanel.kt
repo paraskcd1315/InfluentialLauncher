@@ -40,18 +40,19 @@ fun ControlCenterPanel(
 ) {
     val colors = InfTheme.colors
     Column {
+        ToggleGrid(
+            state = state,
+            onToggle = viewModel::toggle,
+            onDetails = {
+                viewModel.openDetails(it)
+                onClose()
+            }
+        )
+        Hairline()
         Column(
             verticalArrangement = Arrangement.spacedBy(InfSpacing.s4),
             modifier = Modifier.padding(InfSpacing.s5)
         ) {
-            ToggleGrid(
-                state = state,
-                onToggle = viewModel::toggle,
-                onDetails = {
-                    viewModel.openDetails(it)
-                    onClose()
-                }
-            )
             SliderRow(
                 icon = Lucide.SunMedium,
                 description = stringResource(R.string.controlcenter_brightness),
@@ -77,12 +78,7 @@ fun ControlCenterPanel(
                 }
             )
         }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(DsMetrics.hairlineThickness)
-                .background(colors.hairline)
-        )
+        Hairline()
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(InfSpacing.s3),
@@ -117,4 +113,14 @@ fun ControlCenterPanel(
             )
         }
     }
+}
+
+@Composable
+private fun Hairline() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(DsMetrics.hairlineThickness)
+            .background(InfTheme.colors.hairline)
+    )
 }
