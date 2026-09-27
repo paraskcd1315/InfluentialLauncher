@@ -228,10 +228,13 @@ fun Desktop(activity: ComponentActivity) {
         animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessLow),
         label = "wallpaperZoom"
     )
-    LaunchedEffect(Unit) {
-        snapshotFlow { wallpaperZoom.value }.collect { WallpaperZoom.set(activity.window, it) }
-    }
     val tilt = LocalWindowParallax.current
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            val lean = tilt.value.getDistance().coerceAtMost(1f)
+            wallpaperZoom.value + lean * DesktopMetrics.tiltWallpaperZoom
+        }.collect { WallpaperZoom.set(activity.window, it) }
+    }
     val wallpaperDrift = with(density) { DesktopMetrics.wallpaperParallax.toPx() }
     LaunchedEffect(Unit) {
         snapshotFlow { tilt.value }.collect {
