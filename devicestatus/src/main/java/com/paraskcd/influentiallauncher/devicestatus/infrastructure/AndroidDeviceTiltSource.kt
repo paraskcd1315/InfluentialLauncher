@@ -49,7 +49,7 @@ class AndroidDeviceTiltSource @Inject constructor(
                     aroundX = ((aroundX + event.values[0] * seconds) * keep).coerceIn(-max, max)
                     aroundY = ((aroundY + event.values[1] * seconds) * keep).coerceIn(-max, max)
                     shownX += (tan(aroundY) / tanMax - shownX) * follow
-                    shownY += (tan(aroundX) / tanMax - shownY) * follow
+                    shownY += (-tan(aroundX) / tanMax - shownY) * follow
                     trySend(tiltOnScreen(shownX, shownY, display?.rotation ?: 0))
                 }
                 lastNanos = event.timestamp
