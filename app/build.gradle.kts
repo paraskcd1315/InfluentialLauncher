@@ -72,6 +72,7 @@ dependencies {
     implementation(project(":controlcenter"))
     implementation(project(":homescreen"))
     implementation(project(":notifications"))
+    implementation(project(":tasks"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
