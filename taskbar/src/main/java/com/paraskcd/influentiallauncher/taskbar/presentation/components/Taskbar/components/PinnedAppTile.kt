@@ -85,7 +85,7 @@ fun PinnedAppTile(
             version = loadIcon,
             modifier = Modifier.onGloballyPositioned { iconBounds = it.boundsInWindow() }
         )
-        IconSignals(badge = badge, openTasks = openTasks, dotsDrop = TaskbarMetrics.signalDotsDrop)
+        IconSignals(badge = badge, openTasks = openTasks)
     }
 }
 
