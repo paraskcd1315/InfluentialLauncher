@@ -13,6 +13,7 @@ import com.composables.icons.lucide.Pin
 import com.composables.icons.lucide.PinOff
 import com.composables.icons.lucide.SquareMinus
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.X
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
@@ -33,6 +34,7 @@ fun HomeAppSheet(
     onRemove: (LauncherApp) -> Unit,
     onInfo: (AppId) -> Unit,
     onUninstall: (AppId) -> Unit,
+    onClose: (AppId) -> Unit,
     onDismiss: () -> Unit
 ) {
     val colors = InfTheme.colors
@@ -54,6 +56,7 @@ fun HomeAppSheet(
                     run = { onToggleTaskbar(current.id) }
                 ),
                 InfAction(Lucide.SquareMinus, stringResource(R.string.home_remove_confirm), colors.textPrimary) { onRemove(current) },
+                InfAction(Lucide.X, stringResource(R.string.home_close), colors.textPrimary) { onClose(current.id) },
                 InfAction(Lucide.Info, stringResource(R.string.home_info), colors.textPrimary) { onInfo(current.id) },
                 InfAction(Lucide.Trash2, stringResource(R.string.home_uninstall), colors.dangerText) { onUninstall(current.id) }
             ),

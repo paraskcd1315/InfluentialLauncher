@@ -290,6 +290,7 @@ fun HomeScreenHost(
             onAppLaunched()
             viewModel.uninstall(it)
         },
+        onClose = viewModel::closeApp,
         onDismiss = viewModel::closeMenu
     )
     RemoveAppSheet(app = removing, onConfirm = viewModel::confirmRemove, onDismiss = viewModel::cancelRemove)

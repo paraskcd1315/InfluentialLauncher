@@ -17,6 +17,7 @@
     <string name="home_info">App info</string>
     <string name="home_uninstall">Uninstall</string>
     <string name="home_done">Done</string>
+    <string name="home_close">Close app</string>
     <plurals name="home_notification_badge">
         <item quantity="one">%1$d notification</item>
         <item quantity="other">%1$d notifications</item>

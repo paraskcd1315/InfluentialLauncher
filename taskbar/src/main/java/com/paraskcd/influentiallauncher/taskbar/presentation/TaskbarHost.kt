@@ -79,6 +79,7 @@ fun TaskbarHost(
         onUninstall = {
             onAppLaunched()
             viewModel.uninstall(it)
-        }
+        },
+        onClose = viewModel::closeApp
     )
 }

@@ -12,6 +12,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Move
 import com.composables.icons.lucide.PinOff
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.X
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
@@ -32,7 +33,8 @@ fun TaskbarAppSheet(
     onUnpin: (AppId) -> Unit,
     onToggleStart: (AppId) -> Unit,
     onInfo: (AppId) -> Unit,
-    onUninstall: (AppId) -> Unit
+    onUninstall: (AppId) -> Unit,
+    onClose: (AppId) -> Unit
 ) {
     val colors = InfTheme.colors
     InfSheetWindow(
@@ -54,6 +56,7 @@ fun TaskbarAppSheet(
                     tint = colors.textPrimary,
                     run = { onToggleStart(id) }
                 ),
+                InfAction(Lucide.X, stringResource(R.string.taskbar_close), colors.textPrimary) { onClose(id) },
                 InfAction(Lucide.Info, stringResource(R.string.taskbar_info), colors.textPrimary) { onInfo(id) },
                 InfAction(Lucide.Trash2, stringResource(R.string.taskbar_uninstall), colors.dangerText) { onUninstall(id) }
             ),

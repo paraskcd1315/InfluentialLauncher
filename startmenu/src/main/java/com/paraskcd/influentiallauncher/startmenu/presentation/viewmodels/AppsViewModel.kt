@@ -10,7 +10,10 @@ import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
+import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
+import com.paraskcd.influentiallauncher.homescreen.domain.usecase.AppSignalsSource
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreen
+import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuContent
@@ -31,8 +34,17 @@ import javax.inject.Inject
 class AppsViewModel @Inject constructor(
     private val installedApps: InstalledApps,
     private val pinnedApps: PinnedApps,
-    private val homeScreen: HomeScreen
+    private val homeScreen: HomeScreen,
+    signalsSource: AppSignalsSource,
+    private val openApps: OpenApps
 ) : ViewModel() {
+
+    val signals: StateFlow<AppSignals> = signalsSource.signals
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), AppSignals.None)
+
+    fun closeApp(id: AppId) {
+        openApps.close(id.packageName)
+    }
 
     fun addToHome(id: AppId) {
         viewModelScope.launch { homeScreen.add(id) }
