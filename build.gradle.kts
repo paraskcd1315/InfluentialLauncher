@@ -1,3 +1,6 @@
+// Copyright 2026 Paras Mohandas Khanchandani Chandani
+// All rights reserved.
+
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false

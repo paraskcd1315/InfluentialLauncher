@@ -1,3 +1,6 @@
+// Copyright 2026 Paras Mohandas Khanchandani Chandani
+// All rights reserved.
+
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Plugin
