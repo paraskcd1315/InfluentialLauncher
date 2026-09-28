@@ -13,7 +13,6 @@ import com.paraskcd.influentiallauncher.media.domain.ports.MediaSource
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TimeEntry
 import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.timetracking.domain.usecase.TimeTracking
-import com.paraskcd.influentiallauncher.weather.domain.ports.SavedPlaces
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,8 +34,7 @@ import javax.inject.Inject
 class GlanceViewModel @Inject constructor(
     private val media: MediaSource,
     private val weather: WeatherSource,
-    private val tracking: TimeTracking,
-    savedPlaces: SavedPlaces
+    private val tracking: TimeTracking
 ) : ViewModel() {
 
     val locationPermission: String = weather.permission
@@ -49,7 +47,7 @@ class GlanceViewModel @Inject constructor(
     private var lastWeather: WeatherLoad = WeatherLoad.Loading
     private var lastTimers: List<TimeEntry> = emptyList()
 
-    private val forecast = combine(refresh, savedPlaces.selected) { tick, place -> tick to place?.key() }.flatMapLatest {
+    private val forecast = refresh.flatMapLatest {
         flow<WeatherLoad> {
             while (true) {
                 val now = runCatching { weather.forecast()?.now }.onFailure { Log.w(LogTag, "weather failed", it) }.getOrNull()

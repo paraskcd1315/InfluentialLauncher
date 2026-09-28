@@ -23,7 +23,8 @@ fun StartTabsWindow(
     selected: StartMenuTab,
     onSelect: (StartMenuTab) -> Unit,
     onClose: () -> Unit,
-    offsetX: Dp = 0.dp
+    offsetX: Dp = 0.dp,
+    alpha: Float = 1f
 ) {
     InfWindow(
         cornerRadius = InfRadii.pill,
@@ -31,7 +32,8 @@ fun StartTabsWindow(
         gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
         offsetX = offsetX,
         offsetY = offsetY,
-        visible = open
+        visible = open,
+        alpha = alpha
     ) {
         InfSegmented(
             labels = tabs.map { stringResource(TabToggles.labelOf(it)) },

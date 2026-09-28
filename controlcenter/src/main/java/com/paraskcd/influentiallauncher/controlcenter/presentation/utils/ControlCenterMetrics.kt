@@ -13,7 +13,8 @@ object ControlCenterMetrics {
     val dot = 6.dp
     val dotGap = 6.dp
     const val columns = 3
-    const val rows = 2
+    const val minRows = 1
+    val screenMargin = 8.dp
     const val dotIdleAlpha = 0.35f
     const val riseFraction = 0.08f
     const val lineHeightFallback = 1.45f

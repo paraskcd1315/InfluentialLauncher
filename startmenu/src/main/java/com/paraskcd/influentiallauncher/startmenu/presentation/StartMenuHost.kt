@@ -10,7 +10,11 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.runtime.Composable
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +65,7 @@ fun StartMenuHost(
     endOffset: Dp,
     onClose: () -> Unit,
     onAppLaunched: () -> Unit,
+    swipe: StartSwipe,
     viewModel: StartMenuViewModel = hiltViewModel(),
     appsViewModel: AppsViewModel = hiltViewModel(),
     contactsViewModel: ContactsViewModel = hiltViewModel(),
@@ -115,6 +120,26 @@ fun StartMenuHost(
     val searchFraction = (menuWidth - StartMenuMetrics.listPadding * 2) / screenWidth
     val timerX = if (landscape) menuEnd + TimelineMetrics.fabInset else screenWidth * (1f - StartMenuMetrics.widthFraction) / 2f + TimelineMetrics.fabInset
     val searchesContacts = selected == StartMenuTab.Contacts
+    val sheet = remember { Animatable(0f) }
+    var resizing by remember { mutableStateOf(false) }
+    val dragged = swipe.progress
+    LaunchedEffect(open, dragged) {
+        if (dragged != null) {
+            resizing = true
+            sheet.snapTo(dragged)
+            return@LaunchedEffect
+        }
+        sheet.animateTo(if (open) 1f else 0f, tween(InfMotion.durPushMs, easing = InfMotion.easeIos))
+        if (!open) resizing = false
+    }
+    val menuHeightPx = with(density) { menuHeight.toPx() }
+    SideEffect { swipe.travel = menuHeightPx }
+    val grown = if (resizing) sheet.value else 1f
+    val searchReveal = if (resizing) {
+        ((menuHeight * grown - StartMenuMetrics.searchTop - DsMetrics.searchHeight) / DsMetrics.searchHeight).coerceIn(0f, 1f)
+    } else {
+        1f
+    }
     val timerShown = open && selected == StartMenuTab.Calendar && credentials.configured(calendarTracker)
     val searchShown = open && (selected == StartMenuTab.Apps || (searchesContacts && contactsPermission != PermissionState.Missing))
 
@@ -125,10 +150,13 @@ fun StartMenuHost(
         selected = selected,
         onSelect = { selectedName = it.name },
         onClose = onClose,
-        offsetX = if (landscape) (menuStart - menuEnd) / 2f else 0.dp
+        offsetX = if (landscape) (menuStart - menuEnd) / 2f else 0.dp,
+        alpha = grown
     )
     StartMenuWindow(
         open = open,
+        progress = { sheet.value },
+        resizing = resizing,
         offsetY = baseBottom,
         height = menuHeight,
         onClose = onClose,
@@ -168,7 +196,8 @@ fun StartMenuHost(
     )
     StartSearchWindow(
         visible = searchShown,
-        offsetY = searchOffset,
+        offsetY = searchOffset - menuHeight * (1f - grown),
+        alpha = searchReveal,
         widthFraction = searchFraction,
         value = if (searchesContacts) contactsQuery else appsQuery,
         onValueChange = if (searchesContacts) contactsViewModel::setQuery else appsViewModel::setQuery,

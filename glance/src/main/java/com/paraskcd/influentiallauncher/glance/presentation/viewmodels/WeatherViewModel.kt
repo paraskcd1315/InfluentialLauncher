@@ -44,13 +44,14 @@ class WeatherViewModel @Inject constructor(
     val places: StateFlow<List<Place>> = savedPlaces.places
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptyList())
 
-    val selectedPlace: StateFlow<Place?> = savedPlaces.selected
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
+    private val _selectedPlace = MutableStateFlow<Place?>(null)
+    val selectedPlace: StateFlow<Place?> = _selectedPlace.asStateFlow()
 
     private var loading: Job? = null
     private var searching: Job? = null
 
     fun open() {
+        _selectedPlace.value = null
         _sheet.value = WeatherSheetState()
         load(null)
     }
@@ -65,6 +66,7 @@ class WeatherViewModel @Inject constructor(
         loading?.cancel()
         _sheet.value = null
         _picker.value = null
+        _selectedPlace.value = null
     }
 
     fun openPicker() {
@@ -99,19 +101,15 @@ class WeatherViewModel @Inject constructor(
 
     fun pick(place: Place?) {
         closePicker()
-        viewModelScope.launch {
-            savedPlaces.select(place)
-            reload()
-        }
+        _selectedPlace.value = place
+        reload()
     }
 
     fun add(place: Place) {
         closePicker()
-        viewModelScope.launch {
-            savedPlaces.save(place)
-            savedPlaces.select(place)
-            reload()
-        }
+        _selectedPlace.value = place
+        reload()
+        viewModelScope.launch { savedPlaces.save(place) }
     }
 
     fun toggleSaved(place: Place) {
@@ -132,11 +130,11 @@ class WeatherViewModel @Inject constructor(
 
     fun confirmRemove(place: Place) {
         _removing.value = null
-        viewModelScope.launch {
-            val wasSelected = selectedPlace.value?.key() == place.key()
-            savedPlaces.remove(place)
-            if (wasSelected) reload()
+        if (_selectedPlace.value?.key() == place.key()) {
+            _selectedPlace.value = null
+            reload()
         }
+        viewModelScope.launch { savedPlaces.remove(place) }
     }
 
     private fun reload() {
@@ -147,7 +145,7 @@ class WeatherViewModel @Inject constructor(
     private fun load(source: WeatherSourceName?) {
         loading?.cancel()
         loading = viewModelScope.launch {
-            val report = runCatching { weather.report(source) }
+            val report = runCatching { weather.report(source, at = _selectedPlace.value) }
                 .onFailure { Log.w(LogTag, "weather report failed", it) }
                 .getOrNull()
             _sheet.update { state ->

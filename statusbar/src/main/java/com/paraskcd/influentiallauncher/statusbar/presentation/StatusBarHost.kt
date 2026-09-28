@@ -6,7 +6,10 @@ package com.paraskcd.influentiallauncher.statusbar.presentation
 import android.view.Gravity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import com.paraskcd.influentiallauncher.designsystem.foundation.SwipeUp
+import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.statusbar.presentation.components.StatusPill
@@ -23,6 +26,7 @@ fun StatusBarHost(
     active: Boolean = false,
     onClick: () -> Unit = {},
     fromTop: Boolean = false,
+    swipeUp: SwipeUp? = null,
     viewModel: StatusBarViewModel = hiltViewModel()
 ) {
     val status by viewModel.status.collectAsStateWithLifecycle()
@@ -36,6 +40,6 @@ fun StatusBarHost(
         visible = visible && current != null,
         alpha = alpha
     ) {
-        if (current != null) StatusPill(status = current, active = active, onClick = onClick)
+        if (current != null) StatusPill(status = current, active = active, onClick = onClick, modifier = Modifier.infSwipeUp(swipeUp))
     }
 }

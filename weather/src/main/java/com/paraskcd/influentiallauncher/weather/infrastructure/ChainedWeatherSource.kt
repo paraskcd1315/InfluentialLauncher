@@ -15,7 +15,6 @@ import com.paraskcd.influentiallauncher.weather.domain.model.WeatherReport
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherSourceName
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherWarning
 import com.paraskcd.influentiallauncher.weather.domain.ports.AirQualityProvider
-import com.paraskcd.influentiallauncher.weather.domain.ports.SavedPlaces
 import com.paraskcd.influentiallauncher.weather.domain.ports.WarningProvider
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherProvider
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherSource
@@ -23,7 +22,6 @@ import com.paraskcd.influentiallauncher.weather.infrastructure.location.DeviceLo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -33,7 +31,6 @@ import javax.inject.Singleton
 class ChainedWeatherSource @Inject constructor(
     @ApplicationContext private val context: Context,
     private val locator: DeviceLocator,
-    private val savedPlaces: SavedPlaces,
     private val providers: List<@JvmSuppressWildcards WeatherProvider>,
     private val airQuality: AirQualityProvider,
     private val warnings: WarningProvider
@@ -52,12 +49,12 @@ class ChainedWeatherSource @Inject constructor(
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 
     override suspend fun forecast(force: Boolean): Forecast? {
-        val here = place(force) ?: return null
+        val here = devicePlace(force) ?: return null
         return firstForecast(here, available(here), force)
     }
 
-    override suspend fun report(source: WeatherSourceName?, force: Boolean): WeatherReport? = coroutineScope {
-        val here = place(force) ?: return@coroutineScope null
+    override suspend fun report(source: WeatherSourceName?, at: Place?, force: Boolean): WeatherReport? = coroutineScope {
+        val here = at ?: devicePlace(force) ?: return@coroutineScope null
         val sources = available(here)
         val extras = async { extras(here, force) }
         val chosen = sources.firstOrNull { it.name == source }
@@ -108,11 +105,6 @@ class ChainedWeatherSource @Inject constructor(
             }
             Extras(air.await(), alerts.await()).also { extras[here.key()] = Cached(it) }
         }
-    }
-
-    private suspend fun place(force: Boolean): Place? {
-        savedPlaces.selected.first()?.let { return it }
-        return devicePlace(force)
     }
 
     private suspend fun devicePlace(force: Boolean): Place? = placeLock.withLock {

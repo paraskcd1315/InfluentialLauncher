@@ -7,7 +7,14 @@ import android.view.Gravity
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -28,6 +35,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.windowing.presentation.InfWindow
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ControlCenterHost(
     open: Boolean,
@@ -41,6 +49,12 @@ fun ControlCenterHost(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val configuration = LocalConfiguration.current
     val width = min(configuration.screenWidthDp.dp, configuration.screenHeightDp.dp) * widthFraction
+    val density = LocalDensity.current
+    val screenHeight = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
+    val farEdge = with(density) {
+        if (fromTop) WindowInsets.navigationBars.getBottom(density).toDp() else WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp()
+    }
+    val maxHeight = screenHeight - offsetY - farEdge - ControlCenterMetrics.screenMargin
     InfWindow(
         cornerRadius = ControlCenterMetrics.cornerRadius,
         onDismissRequest = onClose,
@@ -58,6 +72,7 @@ fun ControlCenterHost(
         Box(
             modifier = Modifier
                 .width(width)
+                .heightIn(max = maxHeight)
                 .graphicsLayer {
                     val rise = (1f - progress) * size.height * ControlCenterMetrics.riseFraction
                     translationY = if (fromTop) -rise else rise

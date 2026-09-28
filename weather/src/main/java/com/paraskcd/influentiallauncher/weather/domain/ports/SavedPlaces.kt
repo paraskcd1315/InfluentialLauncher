@@ -9,11 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface SavedPlaces {
     val places: Flow<List<Place>>
 
-    val selected: Flow<Place?>
-
     suspend fun save(place: Place)
 
     suspend fun remove(place: Place)
-
-    suspend fun select(place: Place?)
 }

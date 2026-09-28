@@ -15,6 +15,8 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.designsystem.foundation.SwipeUp
+import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
@@ -38,7 +40,8 @@ fun TaskbarWindow(
     onDrop: (AppDragPayload, Int) -> Unit,
     visible: Boolean,
     alpha: Float,
-    signals: AppSignals
+    signals: AppSignals,
+    swipeUp: SwipeUp?
 ) {
     val vertical = isLandscape()
     val density = LocalDensity.current
@@ -66,7 +69,7 @@ fun TaskbarWindow(
             onDrop = onDrop,
             vertical = vertical,
             signals = signals,
-            modifier = if (vertical) Modifier.height(screenHeight * TaskbarMetrics.heightFraction) else Modifier
+            modifier = (if (vertical) Modifier.height(screenHeight * TaskbarMetrics.heightFraction) else Modifier).infSwipeUp(swipeUp)
         )
     }
 }
