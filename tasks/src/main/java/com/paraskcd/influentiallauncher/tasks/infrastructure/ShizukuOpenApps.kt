@@ -37,20 +37,28 @@ class ShizukuOpenApps @Inject constructor(
         running = scope.launch { current.value = read() }
     }
 
+    override fun close(packageName: String) {
+        scope.launch {
+            if (!ready()) return@launch
+            runCatching {
+                val tasks = taskService()
+                recentTasks(tasks).filter { packageOf(it) == packageName }.forEach {
+                    tasks.javaClass.getMethod(TasksApi.RemoveTask, Int::class.javaPrimitiveType).invoke(tasks, it.taskId)
+                }
+                val activities = service(TasksApi.ActivityService, TasksApi.ActivityStubClass)
+                activities.javaClass
+                    .getMethod(TasksApi.ForceStopPackage, String::class.java, Int::class.javaPrimitiveType)
+                    .invoke(activities, packageName, userId())
+            }.onFailure { Log.w(LogTag, "close failed", it) }
+            current.value = read()
+        }
+    }
+
     private fun read(): Map<String, Int> {
         if (!ready()) return emptyMap()
         return runCatching {
-            HiddenApiBypass.addHiddenApiExemptions(*TasksApi.Exemptions)
-            val binder = ShizukuBinderWrapper(SystemServiceHelper.getSystemService(TasksApi.Service))
-            val service = Class.forName(TasksApi.StubClass)
-                .getMethod(TasksApi.AsInterface, IBinder::class.java)
-                .invoke(null, binder)
-            val slice = service.javaClass
-                .getMethod(TasksApi.GetRecentTasks, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
-                .invoke(service, TasksApi.MaxTasks, TasksApi.IgnoreUnavailable, Process.myUid() / TasksApi.PerUserRange)
-            @Suppress("UNCHECKED_CAST")
-            val tasks = slice.javaClass.getMethod(TasksApi.GetList).invoke(slice) as List<ActivityManager.RecentTaskInfo>
-            tasks.mapNotNull { it.baseIntent.component?.packageName ?: it.baseActivity?.packageName }
+            recentTasks(taskService())
+                .mapNotNull(::packageOf)
                 .filter { it != context.packageName }
                 .groupingBy { it }
                 .eachCount()
@@ -58,6 +66,27 @@ class ShizukuOpenApps @Inject constructor(
             .onFailure { Log.w(LogTag, "recent tasks unavailable", it) }
             .getOrDefault(emptyMap())
     }
+
+    private fun taskService(): Any = service(TasksApi.Service, TasksApi.StubClass)
+
+    private fun service(name: String, stubClass: String): Any {
+        HiddenApiBypass.addHiddenApiExemptions(*TasksApi.Exemptions)
+        val binder = ShizukuBinderWrapper(SystemServiceHelper.getSystemService(name))
+        return Class.forName(stubClass).getMethod(TasksApi.AsInterface, IBinder::class.java).invoke(null, binder)!!
+    }
+
+    private fun recentTasks(service: Any): List<ActivityManager.RecentTaskInfo> {
+        val slice = service.javaClass
+            .getMethod(TasksApi.GetRecentTasks, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+            .invoke(service, TasksApi.MaxTasks, TasksApi.IgnoreUnavailable, userId())
+        @Suppress("UNCHECKED_CAST")
+        return slice.javaClass.getMethod(TasksApi.GetList).invoke(slice) as List<ActivityManager.RecentTaskInfo>
+    }
+
+    private fun packageOf(task: ActivityManager.RecentTaskInfo): String? =
+        task.baseIntent.component?.packageName ?: task.baseActivity?.packageName
+
+    private fun userId(): Int = Process.myUid() / TasksApi.PerUserRange
 
     private fun ready(): Boolean = runCatching {
         Shizuku.pingBinder() && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED

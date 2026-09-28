@@ -4,14 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import com.paraskcd.influentiallauncher.designsystem.foundation.InfGroupedCorners
 import com.paraskcd.influentiallauncher.windowing.presentation.isLandscape
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.MaterialTheme
@@ -39,8 +35,7 @@ import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.AppMenuSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.LetterIndexedBox
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.ListSkeleton
-import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components.AppRow
-import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components.PinnedGrid
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components.AppGrid
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.LetterIndex
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.ListKeys
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
@@ -57,6 +52,7 @@ fun AppsTab(
 ) {
     val content by viewModel.content.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
+    val signals by viewModel.signals.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
     val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
     val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
@@ -87,15 +83,13 @@ fun AppsTab(
         val sections = current?.sections.orEmpty()
         val available = sections.map { it.letter }.toSet()
         val leading = if (current?.pinned.isNullOrEmpty()) 1 else 3
-        val landscape = isLandscape()
-        val appColumns = if (landscape) StartMenuMetrics.landscapeAppColumns else 1
-        val pinnedColumns = if (landscape) StartMenuMetrics.landscapePinnedColumns else StartMenuMetrics.pinnedColumns
+        val gridColumns = if (isLandscape()) StartMenuMetrics.landscapePinnedColumns else StartMenuMetrics.pinnedColumns
         LetterIndexedBox(
             letters = LetterIndex.Letters,
             available = available,
             scrubberPadding = PaddingValues(top = listTop, bottom = StartMenuMetrics.listBottom),
             onJump = { letter ->
-                val index = LetterIndex.headerIndices(leading, sections.map { it.letter to (it.apps.size + appColumns - 1) / appColumns })[letter]
+                val index = LetterIndex.headerIndices(leading, sections.map { it.letter to 1 })[letter]
                 if (index != null) scope.launch { listState.scrollToItem(index) }
             },
             onScrub = onScrub
@@ -126,48 +120,28 @@ fun AppsTab(
                     if (current.pinned.isNotEmpty()) {
                         item(key = ListKeys.PinnedHeader) { InfSectionHeader(text = stringResource(R.string.startmenu_pinned)) }
                         item(key = ListKeys.PinnedGrid) {
-                            PinnedGrid(
+                            AppGrid(
                                 apps = current.pinned,
                                 loadIcon = loadIcon,
                                 onLaunch = launch,
                                 onLongPress = { menuKey = it.app.id.key },
-                                columns = pinnedColumns
+                                columns = gridColumns,
+                                signals = signals
                             )
                         }
                     }
                     item(key = ListKeys.AllAppsHeader) { InfSectionHeader(text = stringResource(R.string.startmenu_all_apps)) }
                     sections.forEach { section ->
                         item(key = ListKeys.HeaderPrefix + section.letter) { InfSectionHeader(text = section.letter.toString()) }
-                        if (appColumns == 1) {
-                            itemsIndexed(section.apps, key = { _, entry -> entry.app.id.key }) { index, entry ->
-                                AppRow(
-                                    entry = entry,
-                                    index = index,
-                                    count = section.apps.size,
-                                    loadIcon = loadIcon,
-                                    onLaunch = launch,
-                                    onLongPress = { menuKey = entry.app.id.key }
-                                )
-                            }
-                        } else {
-                            val rows = section.apps.chunked(appColumns)
-                            itemsIndexed(rows, key = { _, row -> ListKeys.RowPrefix + row.first().app.id.key }) { rowIndex, row ->
-                                Row(horizontalArrangement = Arrangement.spacedBy(StartMenuMetrics.rowGap)) {
-                                    row.forEachIndexed { column, entry ->
-                                        AppRow(
-                                            entry = entry,
-                                            index = rowIndex,
-                                            count = rows.size,
-                                            loadIcon = loadIcon,
-                                            onLaunch = launch,
-                                            onLongPress = { menuKey = entry.app.id.key },
-                                            shape = InfGroupedCorners.grid(rowIndex, column, rows.size, appColumns, rows.last().size),
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                    }
-                                    repeat(appColumns - row.size) { Spacer(modifier = Modifier.weight(1f)) }
-                                }
-                            }
+                        item(key = ListKeys.GridPrefix + section.letter) {
+                            AppGrid(
+                                apps = section.apps,
+                                loadIcon = loadIcon,
+                                onLaunch = launch,
+                                onLongPress = { menuKey = it.app.id.key },
+                                columns = gridColumns,
+                                signals = signals
+                            )
                         }
                     }
                 }
@@ -192,6 +166,7 @@ fun AppsTab(
         onUninstall = { id ->
             onClose()
             viewModel.uninstall(id)
-        }
+        },
+        onClose = viewModel::closeApp
     )
 }

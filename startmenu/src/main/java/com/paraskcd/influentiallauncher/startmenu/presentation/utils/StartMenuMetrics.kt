@@ -12,7 +12,6 @@ object StartMenuMetrics {
     val windowGap = InfSpacing.s2
     val tabsStrip = DsMetrics.segmentHeight + InfSpacing.s1 * 2
     const val landscapePinnedColumns = 8
-    const val landscapeAppColumns = 3
     val listPadding = 16.dp
     val searchTop = 16.dp
     val searchContentGap = 8.dp

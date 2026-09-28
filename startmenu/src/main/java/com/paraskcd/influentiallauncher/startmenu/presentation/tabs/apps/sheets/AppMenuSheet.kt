@@ -10,6 +10,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pin
 import com.composables.icons.lucide.PinOff
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.X
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
@@ -29,7 +30,8 @@ fun AppMenuSheet(
     onToggleTaskbar: (AppId) -> Unit,
     onAddToHome: (AppId) -> Unit,
     onInfo: (AppId) -> Unit,
-    onUninstall: (AppId) -> Unit
+    onUninstall: (AppId) -> Unit,
+    onClose: (AppId) -> Unit
 ) {
     val colors = InfTheme.colors
     InfSheetWindow(
@@ -56,6 +58,7 @@ fun AppMenuSheet(
                     run = { onToggleTaskbar(id) }
                 ),
                 InfAction(Lucide.House, stringResource(R.string.startmenu_add_home), colors.textPrimary) { onAddToHome(id) },
+                InfAction(Lucide.X, stringResource(R.string.startmenu_close), colors.textPrimary) { onClose(id) },
                 InfAction(Lucide.Info, stringResource(R.string.startmenu_info), colors.textPrimary) { onInfo(id) },
                 InfAction(Lucide.Trash2, stringResource(R.string.startmenu_uninstall), colors.dangerText) { onUninstall(id) }
             ),
