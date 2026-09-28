@@ -43,6 +43,7 @@ import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.foundation.horizontalFadingEdges
 import com.paraskcd.influentiallauncher.designsystem.foundation.verticalFadingEdges
+import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDrag
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.DragSource
@@ -64,7 +65,8 @@ fun PinnedApps(
     modifier: Modifier = Modifier,
     vertical: Boolean = false,
     contentPadding: PaddingValues = PaddingValues(),
-    fadeInset: Dp = 0.dp
+    fadeInset: Dp = 0.dp,
+    signals: AppSignals = AppSignals.None
 ) {
     val listState = rememberLazyListState()
     val drag = remember { TaskbarDragState() }
@@ -100,7 +102,9 @@ fun PinnedApps(
                     wiggle = if (index % 2 == 0) wiggle else -wiggle,
                     onLaunch = onLaunch,
                     onMenu = { onMenu(app) },
-                    onDrag = { onDragApp(app) }
+                    onDrag = { onDragApp(app) },
+                    badge = signals.badgeOf(app.id),
+                    openTasks = signals.openOf(app.id)
                 )
             }
         }

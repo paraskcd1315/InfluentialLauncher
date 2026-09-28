@@ -21,6 +21,7 @@ import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.PinnedApps
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.PinnedAppsSkeleton
@@ -40,7 +41,8 @@ fun Taskbar(
     onDragApp: (LauncherApp) -> Unit,
     onDrop: (AppDragPayload, Int) -> Unit,
     modifier: Modifier = Modifier,
-    vertical: Boolean = false
+    vertical: Boolean = false,
+    signals: AppSignals = AppSignals.None
 ) {
     BoxWithConstraints(
         contentAlignment = if (vertical) Alignment.TopCenter else Alignment.CenterStart,
@@ -68,6 +70,7 @@ fun Taskbar(
                 onDragApp = onDragApp,
                 onDrop = onDrop,
                 vertical = vertical,
+                signals = signals,
                 contentPadding = if (vertical) {
                     PaddingValues(top = appsStart, bottom = TaskbarMetrics.barPaddingHorizontal, start = TaskbarMetrics.barPaddingVertical, end = TaskbarMetrics.barPaddingVertical)
                 } else {

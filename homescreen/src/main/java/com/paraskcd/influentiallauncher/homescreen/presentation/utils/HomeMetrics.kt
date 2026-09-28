@@ -25,6 +25,8 @@ object HomeMetrics {
     val labelGap = 4.dp
     val badgeSize = 22.dp
     val badgeGlyph = 14.dp
+    val signalBadgeNudge = 3.dp
+    val signalDotsDrop = 6.dp
     val edgeZone = 28.dp
     val dot = 6.dp
     val dotGap = 6.dp

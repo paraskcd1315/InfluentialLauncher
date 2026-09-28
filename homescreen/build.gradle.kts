@@ -13,6 +13,8 @@ dependencies {
     implementation(project(":windowing"))
     implementation(project(":apps"))
     implementation(project(":pins"))
+    implementation(project(":notifications"))
+    implementation(project(":tasks"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.datastore.preferences)

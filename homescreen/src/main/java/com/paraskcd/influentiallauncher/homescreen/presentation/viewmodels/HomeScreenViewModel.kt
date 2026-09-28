@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
+import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
+import com.paraskcd.influentiallauncher.homescreen.domain.usecase.AppSignalsSource
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.EditMode
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeDock
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreen
@@ -28,8 +30,12 @@ class HomeScreenViewModel @Inject constructor(
     private val home: HomeScreen,
     private val dock: HomeDock,
     private val editMode: EditMode,
-    private val pinnedApps: PinnedApps
+    private val pinnedApps: PinnedApps,
+    signalsSource: AppSignalsSource
 ) : ViewModel() {
+
+    val signals: StateFlow<AppSignals> = signalsSource.signals
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), AppSignals.None)
 
     val state: StateFlow<HomeScreenState?> = home.state
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)

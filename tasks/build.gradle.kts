@@ -4,11 +4,12 @@ plugins {
 }
 
 android {
-    namespace = "com.paraskcd.influentiallauncher.media"
+    namespace = "com.paraskcd.influentiallauncher.tasks"
 }
 
 dependencies {
-    implementation(project(":notifications"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.shizuku.api)
+    implementation(libs.hiddenapibypass)
 }

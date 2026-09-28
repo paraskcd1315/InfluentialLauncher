@@ -53,6 +53,14 @@ object DsMetrics {
     val sliderTrack = 4.dp
     val sliderThumb = 20.dp
     const val sliderThumbCore = 0.5f
+    val countBadgeSize = 18.dp
+    const val countBadgeRingFraction = 0.02f
+    const val countBadgeRingArgb = 0x1FFFFFFF
+    val countBadgeTextSize = 10.sp
+    const val countBadgeMax = 9
+    val runningDotSize = 4.dp
+    val runningDotGap = 3.dp
+    const val runningDotsMax = 3
     const val parallaxShadowAlpha = 0.22f
     val parallaxShadowBlur = 6.dp
     val parallaxShadowLift = 2.dp

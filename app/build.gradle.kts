@@ -28,8 +28,8 @@ android {
 
     defaultConfig {
         applicationId = "com.paraskcd.influentiallauncher"
-        versionCode = 5
-        versionName = "2.1.1"
+        versionCode = 8
+        versionName = "2.2.2"
         resValue("string", "app_name", "Influential Launcher")
     }
 
@@ -71,6 +71,8 @@ dependencies {
     implementation(project(":glance"))
     implementation(project(":controlcenter"))
     implementation(project(":homescreen"))
+    implementation(project(":notifications"))
+    implementation(project(":tasks"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

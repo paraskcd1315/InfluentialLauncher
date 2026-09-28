@@ -34,6 +34,7 @@ fun TaskbarHost(
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
     val startPins by viewModel.startPins.collectAsStateWithLifecycle()
     val wiggling by viewModel.wiggling.collectAsStateWithLifecycle()
+    val signals by viewModel.signals.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
     val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
     val pinPx = with(LocalDensity.current) { TaskbarMetrics.pinIconSize.roundToPx() }
@@ -57,7 +58,8 @@ fun TaskbarHost(
         },
         onDrop = viewModel::drop,
         visible = visible,
-        alpha = alpha
+        alpha = alpha,
+        signals = signals
     )
     TaskbarAppSheet(
         app = menuApp,

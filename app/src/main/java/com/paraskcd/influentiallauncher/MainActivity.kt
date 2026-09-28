@@ -13,6 +13,7 @@ import com.paraskcd.influentiallauncher.presentation.Desktop
 import com.paraskcd.influentiallauncher.presentation.rememberDeviceTilt
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
 import androidx.compose.runtime.CompositionLocalProvider
+import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -20,6 +21,14 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     @Inject
     lateinit var tiltSource: DeviceTiltSource
+
+    @Inject
+    lateinit var openApps: OpenApps
+
+    override fun onResume() {
+        super.onResume()
+        openApps.refresh()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
