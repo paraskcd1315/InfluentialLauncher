@@ -71,6 +71,7 @@ dependencies {
     implementation(project(":glance"))
     implementation(project(":controlcenter"))
     implementation(project(":homescreen"))
+    implementation(project(":notifications"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
