@@ -1,3 +1,6 @@
+// Copyright 2026 Paras Mohandas Khanchandani Chandani
+// All rights reserved.
+
 package com.paraskcd.influentiallauncher.devicestatus.domain.model
 
 fun tiltOnScreen(x: Float, y: Float, quarterTurns: Int): Tilt = when (quarterTurns and 3) {
