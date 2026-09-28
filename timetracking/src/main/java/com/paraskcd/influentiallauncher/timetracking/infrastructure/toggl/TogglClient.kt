@@ -126,7 +126,8 @@ class TogglClient @Inject constructor(
             projectName = project?.name,
             colourArgb = project?.colourArgb,
             start = start,
-            end = optStringOrNull("stop")?.let(::parse)
+            end = optStringOrNull("stop")?.let(::parse),
+            tags = optJSONArray("tags")?.let { tags -> (0 until tags.length()).mapNotNull { tags.optString(it).takeIf(String::isNotBlank) } }.orEmpty()
         )
     }
 

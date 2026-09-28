@@ -9,9 +9,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +48,7 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.utils.LetterIndex
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.ListKeys
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.ContactsViewModel
+import com.paraskcd.influentiallauncher.windowing.presentation.isLandscape
 import kotlinx.coroutines.launch
 
 @Composable
@@ -71,6 +75,7 @@ fun ContactsTab(
         if (granted) pendingFavourite?.let(viewModel::toggleFavourite)
         pendingFavourite = null
     }
+    val columns = if (isLandscape()) StartMenuMetrics.landscapeContactColumns else 1
     val listTop = StartMenuMetrics.searchTop + DsMetrics.searchHeight + StartMenuMetrics.searchContentGap
     val contentPadding = PaddingValues(
         start = StartMenuMetrics.listPadding,
@@ -138,8 +143,8 @@ fun ContactsTab(
             available = sections.map { it.letter }.toSet(),
             scrubberPadding = PaddingValues(top = listTop, bottom = StartMenuMetrics.listBottom),
             onJump = { letter ->
-                val leading = if (favourites.isEmpty()) 0 else favourites.size + 1
-                val index = LetterIndex.headerIndices(leading, sections.map { it.letter to it.contacts.size })[letter]
+                val leading = if (favourites.isEmpty()) 0 else favourites.chunked(columns).size + 1
+                val index = LetterIndex.headerIndices(leading, sections.map { it.letter to it.contacts.chunked(columns).size })[letter]
                 if (index != null) scope.launch { listState.scrollToItem(index) }
             },
             onScrub = onScrub
@@ -160,35 +165,26 @@ fun ContactsTab(
                     contentPadding = contentPadding,
                     modifier = Modifier.fillMaxSize()
                 ) {
+                    val contactRow: @Composable (Contact, Int, Int, Modifier) -> Unit = { contact, index, count, modifier ->
+                        ContactRow(
+                            contact = contact,
+                            index = index,
+                            count = count,
+                            loadPhoto = viewModel::photo,
+                            onOpen = openContact,
+                            onLongPress = longPress,
+                            onCall = call,
+                            onWhatsApp = whatsApp,
+                            modifier = modifier
+                        )
+                    }
                     if (favourites.isNotEmpty()) {
                         item(key = ListKeys.PinnedHeader) { InfSectionHeader(text = stringResource(R.string.startmenu_favourites)) }
-                        itemsIndexed(favourites, key = { _, contact -> ListKeys.FavouritePrefix + contact.id }) { index, contact ->
-                            ContactRow(
-                                contact = contact,
-                                index = index,
-                                count = favourites.size,
-                                loadPhoto = viewModel::photo,
-                                onOpen = openContact,
-                                onLongPress = longPress,
-                                onCall = call,
-                                onWhatsApp = whatsApp
-                            )
-                        }
+                        contactLines(favourites, columns, { ListKeys.FavouritePrefix + it.id }, contactRow)
                     }
                     sections.forEach { section ->
                         item(key = ListKeys.HeaderPrefix + section.letter) { InfSectionHeader(text = section.letter.toString()) }
-                        itemsIndexed(section.contacts, key = { _, contact -> "${section.letter}:${contact.id}" }) { index, contact ->
-                            ContactRow(
-                                contact = contact,
-                                index = index,
-                                count = section.contacts.size,
-                                loadPhoto = viewModel::photo,
-                                onOpen = openContact,
-                                onLongPress = longPress,
-                                onCall = call,
-                                onWhatsApp = whatsApp
-                            )
-                        }
+                        contactLines(section.contacts, columns, { "${section.letter}:${it.id}" }, contactRow)
                     }
                 }
             }
@@ -205,4 +201,23 @@ fun ContactsTab(
         onWhatsApp = whatsApp,
         onOpen = openContact
     )
+}
+
+private fun LazyListScope.contactLines(
+    contacts: List<Contact>,
+    columns: Int,
+    key: (Contact) -> String,
+    contactRow: @Composable (Contact, Int, Int, Modifier) -> Unit
+) {
+    val lines = contacts.chunked(columns)
+    itemsIndexed(lines, key = { _, line -> key(line.first()) }) { index, line ->
+        if (columns == 1) {
+            contactRow(line.first(), index, lines.size, Modifier)
+            return@itemsIndexed
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(StartMenuMetrics.contactColumnGap)) {
+            line.forEach { contactRow(it, index, lines.size, Modifier.weight(1f)) }
+            repeat(columns - line.size) { Spacer(Modifier.weight(1f)) }
+        }
+    }
 }

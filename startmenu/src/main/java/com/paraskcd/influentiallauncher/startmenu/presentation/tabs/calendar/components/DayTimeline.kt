@@ -5,6 +5,10 @@ package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar.co
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -29,10 +33,14 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -60,6 +68,7 @@ fun DayTimeline(
     events: List<CalendarEvent>,
     onMove: (TimeEntry, Instant, Instant?) -> Unit,
     onOpenEvent: (CalendarEvent) -> Unit,
+    onOpenEntry: (TimeEntry) -> Unit,
     onDay: (Long) -> Unit,
     modifier: Modifier = Modifier,
     topPadding: Dp = 0.dp
@@ -73,10 +82,16 @@ fun DayTimeline(
             value = Instant.now()
         }
     }
-    val hourHeight = TimelineMetrics.hourHeight
+    var zoom by rememberSaveable { mutableFloatStateOf(TimelineMetrics.minZoom) }
+    val hourHeight = TimelineMetrics.hourHeight * zoom
     val minuteHeight = hourHeight / TimelineMetrics.minutesPerHour
     val minutePx = with(density) { minuteHeight.toPx() }
     val scroll = rememberScrollState()
+    val topPx by rememberUpdatedState(with(density) { topPadding.toPx() })
+    var zoomTarget by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(scroll) {
+        snapshotFlow { zoomTarget to scroll.maxValue }.collect { (target, _) -> if (target != null) scroll.scrollTo(target) }
+    }
     val timeFormat = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
     val today = date == LocalDate.now()
 
@@ -92,6 +107,27 @@ fun DayTimeline(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    var pinching = false
+                    do {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        if (event.changes.count { it.pressed } >= 2) {
+                            pinching = true
+                            val next = (zoom * event.calculateZoom()).coerceIn(TimelineMetrics.minZoom, TimelineMetrics.maxZoom)
+                            if (next != zoom) {
+                                val focus = event.calculateCentroid(useCurrent = true).y
+                                val grid = scroll.value + focus - topPx
+                                zoomTarget = (grid * next / zoom + topPx - focus).roundToInt().coerceAtLeast(0)
+                                zoom = next
+                            }
+                        }
+                        if (pinching) event.changes.forEach { it.consume() }
+                    } while (event.changes.any { it.pressed })
+                    zoomTarget = null
+                }
+            }
             .pointerInput(date) {
                 detectHorizontalDragGestures(
                     onDragStart = { swipe = 0f },
@@ -171,7 +207,8 @@ fun DayTimeline(
                         .offset { IntOffset(0, if (dragging) (shiftMinutes * minutePx).roundToInt() else 0) }
                         .offset(x = trackerLeft + (laneWidth + TimelineMetrics.laneGap) * placed.lane, y = minuteHeight * placed.startMinute)
                         .size(laneWidth, minuteHeight * (placed.endMinute - placed.startMinute))
-                        .pointerInput(entry.id, entry.start) {
+                        .clickable(onClickLabel = entry.description) { onOpenEntry(entry) }
+                        .pointerInput(entry.id, entry.start, minutePx) {
                             detectDragGesturesAfterLongPress(
                                 onDragStart = {
                                     dragging = true

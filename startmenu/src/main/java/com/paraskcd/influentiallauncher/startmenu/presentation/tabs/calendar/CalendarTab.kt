@@ -33,6 +33,8 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.HeaderPlacement
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.PermissionState
+import com.paraskcd.influentiallauncher.startmenu.presentation.model.TimelineDetail
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar.sheets.TimelineDetailSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar.components.AllDayStrip
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar.components.DateBar
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar.components.DayTimeline
@@ -65,10 +67,12 @@ fun CalendarTab(
     val credentials by timeTracking.credentials.collectAsStateWithLifecycle()
     val trackerDay by timeTracking.day.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf<LocalDate?>(null) }
+    var detail by remember { mutableStateOf<TimelineDetail?>(null) }
     val calendarLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { viewModel.refreshPermission() }
 
     LaunchedEffect(open) {
         if (open) viewModel.refreshPermission() else viewModel.today()
+        if (!open) detail = null
     }
     LaunchedEffect(open, tracker, date, credentials) {
         if (open) timeTracking.load(date)
@@ -131,10 +135,7 @@ fun CalendarTab(
         } else {
             AllDayStrip(
                 events = allDay,
-                onOpen = {
-                    onClose()
-                    viewModel.open(it)
-                }
+                onOpen = { detail = TimelineDetail.Event(it) }
             )
         }
     }
@@ -145,10 +146,8 @@ fun CalendarTab(
             entries = entries,
             events = dayEvents.filterNot { it.allDay },
             onMove = timeTracking::move,
-            onOpenEvent = {
-                onClose()
-                viewModel.open(it)
-            },
+            onOpenEvent = { detail = TimelineDetail.Event(it) },
+            onOpenEntry = { detail = TimelineDetail.Entry(it) },
             onDay = { viewModel.setDay(date.plusDays(it)) },
             topPadding = headerBottom + gap,
             modifier = Modifier
@@ -170,6 +169,14 @@ fun CalendarTab(
     }
 
     DatePickerSheet(date = picking, onPick = viewModel::setDay, onDismiss = { picking = null })
+    TimelineDetailSheet(
+        detail = detail,
+        onOpenEvent = {
+            onClose()
+            viewModel.open(it.event)
+        },
+        onDismiss = { detail = null }
+    )
 }
 
 @Composable

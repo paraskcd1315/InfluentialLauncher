@@ -17,6 +17,8 @@ object TimelineMetrics {
     const val blockBorderAlpha = 0.70f
     const val swipeThresholdDp = 80
     const val nowTickMs = 30_000L
+    const val minZoom = 1f
+    const val maxZoom = 6f
     val hourHeight = 64.dp
     val gutterWidth = 60.dp
     val labelLift = 7.dp
@@ -37,4 +39,5 @@ object TimelineMetrics {
     val fabGlyph = 24.dp
     val fabLabelMax = 140.dp
     val sheetListMax = 280.dp
+    val detailDot = 12.dp
 }
