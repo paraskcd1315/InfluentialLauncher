@@ -1,3 +1,6 @@
+// Copyright 2026 Paras Mohandas Khanchandani Chandani
+// All rights reserved.
+
 package com.paraskcd.influentiallauncher.timetracking.di
 
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.CredentialsStore

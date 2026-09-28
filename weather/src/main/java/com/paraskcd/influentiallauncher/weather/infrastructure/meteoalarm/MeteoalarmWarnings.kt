@@ -1,3 +1,6 @@
+// Copyright 2026 Paras Mohandas Khanchandani Chandani
+// All rights reserved.
+
 package com.paraskcd.influentiallauncher.weather.infrastructure.meteoalarm
 
 import com.paraskcd.influentiallauncher.weather.domain.model.Place

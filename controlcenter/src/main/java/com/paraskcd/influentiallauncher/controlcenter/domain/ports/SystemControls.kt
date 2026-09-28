@@ -1,3 +1,6 @@
+// Copyright 2026 Paras Mohandas Khanchandani Chandani
+// All rights reserved.
+
 package com.paraskcd.influentiallauncher.controlcenter.domain.ports
 
 import com.paraskcd.influentiallauncher.controlcenter.domain.model.ControlState
