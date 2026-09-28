@@ -34,6 +34,7 @@ object MeteocatApi {
         const val Rain = "precipitacio"
         const val Sky = "estatCel"
         const val Temperature = "temp"
+        const val FeelsLike = "tempXafogor"
         const val Humidity = "humitat"
         const val Wind = "velVent"
         const val Stations = "estacions"
