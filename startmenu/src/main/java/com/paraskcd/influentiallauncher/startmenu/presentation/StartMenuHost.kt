@@ -86,6 +86,7 @@ fun StartMenuHost(
     val contactsQuery by contactsViewModel.query.collectAsStateWithLifecycle()
     val contactsPermission by contactsViewModel.permissionState.collectAsStateWithLifecycle()
     var selectedName by rememberSaveable { mutableStateOf(StartMenuTab.Apps.name) }
+    LaunchedEffect(open) { if (open) selectedName = StartMenuTab.Apps.name }
     val selected = tabs.firstOrNull { it.name == selectedName } ?: tabs.first()
     var scrubLetter by remember { mutableStateOf<Char?>(null) }
     LaunchedEffect(open, selected) { scrubLetter = null }

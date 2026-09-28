@@ -12,5 +12,7 @@ data class CalendarEvent(
     val end: Instant,
     val allDay: Boolean,
     val colorArgb: Int?,
-    val location: String?
+    val location: String?,
+    val description: String?,
+    val calendarName: String?
 )

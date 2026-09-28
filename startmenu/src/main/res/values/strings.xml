@@ -62,4 +62,16 @@
     <string name="startmenu_settings_toggl_token">Toggl API token</string>
     <string name="startmenu_settings_kimai_url">Kimai URL</string>
     <string name="startmenu_settings_kimai_token">Kimai API token</string>
+    <string name="startmenu_detail_untitled">No description</string>
+    <string name="startmenu_detail_description">Description</string>
+    <string name="startmenu_detail_client">Client</string>
+    <string name="startmenu_detail_tags">Tags</string>
+    <string name="startmenu_detail_time">Time</string>
+    <string name="startmenu_detail_duration">Duration</string>
+    <string name="startmenu_detail_tracker">Tracker</string>
+    <string name="startmenu_detail_running">Running</string>
+    <string name="startmenu_detail_location">Location</string>
+    <string name="startmenu_detail_calendar">Calendar</string>
+    <string name="startmenu_detail_notes">Notes</string>
+    <string name="startmenu_detail_open_event">Open in Calendar</string>
 </resources>

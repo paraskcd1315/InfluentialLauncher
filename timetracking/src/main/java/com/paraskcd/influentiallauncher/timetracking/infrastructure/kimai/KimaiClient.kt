@@ -102,7 +102,10 @@ class KimaiClient @Inject constructor(
             projectName = project?.optStringOrNull("name"),
             colourArgb = Colours.parse(project?.optStringOrNull("color") ?: activity?.optStringOrNull("color")),
             start = start,
-            end = item.optStringOrNull("end")?.let(::parse)
+            end = item.optStringOrNull("end")?.let(::parse),
+            activityName = activity?.optStringOrNull("name"),
+            clientName = project?.optJSONObject("customer")?.optStringOrNull("name"),
+            tags = item.optJSONArray("tags").strings()
         )
     }
 
@@ -116,6 +119,11 @@ class KimaiClient @Inject constructor(
     private fun baseUrl(credentials: TrackerCredentials): String = credentials.kimaiUrl.trim().trimEnd('/') + KimaiApi.ApiRoot
 
     private fun auth(credentials: TrackerCredentials): String = "Bearer ${credentials.kimaiToken.trim()}"
+
+    private fun JSONArray?.strings(): List<String> =
+        if (this == null) emptyList() else (0 until length()).mapNotNull { index ->
+            optJSONObject(index)?.optStringOrNull("name") ?: optString(index).takeIf { it.isNotBlank() }
+        }
 
     private fun JSONObject.optStringOrNull(name: String): String? =
         if (isNull(name)) null else optString(name).takeIf { it.isNotBlank() }

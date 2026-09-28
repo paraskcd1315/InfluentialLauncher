@@ -13,7 +13,10 @@ data class TimeEntry(
     val projectName: String?,
     val colourArgb: Int?,
     val start: Instant,
-    val end: Instant?
+    val end: Instant?,
+    val activityName: String? = null,
+    val clientName: String? = null,
+    val tags: List<String> = emptyList()
 ) {
     val running: Boolean get() = end == null
 }

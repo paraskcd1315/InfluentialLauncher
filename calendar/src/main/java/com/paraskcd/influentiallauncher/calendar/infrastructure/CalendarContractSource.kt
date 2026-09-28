@@ -81,7 +81,9 @@ class CalendarContractSource @Inject constructor(
                                 end = Instant.ofEpochMilli(cursor.getLong(3)),
                                 allDay = cursor.getInt(4) == 1,
                                 colorArgb = if (cursor.isNull(5)) null else cursor.getInt(5),
-                                location = cursor.getString(6)?.takeIf { it.isNotBlank() }
+                                location = cursor.getString(6)?.takeIf { it.isNotBlank() },
+                                description = cursor.getString(7)?.takeIf { it.isNotBlank() },
+                                calendarName = cursor.getString(8)?.takeIf { it.isNotBlank() }
                             )
                         )
                     }
@@ -100,7 +102,9 @@ class CalendarContractSource @Inject constructor(
             CalendarContract.Instances.END,
             CalendarContract.Instances.ALL_DAY,
             CalendarContract.Instances.DISPLAY_COLOR,
-            CalendarContract.Instances.EVENT_LOCATION
+            CalendarContract.Instances.EVENT_LOCATION,
+            CalendarContract.Instances.DESCRIPTION,
+            CalendarContract.Instances.CALENDAR_DISPLAY_NAME
         )
     }
 }
