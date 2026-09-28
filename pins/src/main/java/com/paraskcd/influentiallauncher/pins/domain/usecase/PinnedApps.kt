@@ -1,3 +1,6 @@
+// Copyright 2026 Paras Mohandas Khanchandani Chandani
+// All rights reserved.
+
 package com.paraskcd.influentiallauncher.pins.domain.usecase
 
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId

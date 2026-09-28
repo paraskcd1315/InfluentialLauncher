@@ -1,3 +1,6 @@
+// Copyright 2026 Paras Mohandas Khanchandani Chandani
+// All rights reserved.
+
 package com.paraskcd.influentiallauncher.controlcenter.di
 
 import com.paraskcd.influentiallauncher.controlcenter.domain.ports.SystemControls

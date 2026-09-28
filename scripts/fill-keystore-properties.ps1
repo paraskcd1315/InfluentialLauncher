@@ -1,3 +1,6 @@
+# Copyright 2026 Paras Mohandas Khanchandani Chandani
+# All rights reserved.
+
 param(
     [string]$StoreFile = "$env:USERPROFILE\Documents\keystores\keystore-2025-05-24-04h45m",
     [string]$KeyAlias = "keystore-2025-05-25-04h45m"

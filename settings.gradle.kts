@@ -1,3 +1,6 @@
+// Copyright 2026 Paras Mohandas Khanchandani Chandani
+// All rights reserved.
+
 pluginManagement {
     includeBuild("build-logic")
     repositories {

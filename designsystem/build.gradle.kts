@@ -1,3 +1,6 @@
+// Copyright 2026 Paras Mohandas Khanchandani Chandani
+// All rights reserved.
+
 plugins {
     alias(libs.plugins.influential.android.library)
     alias(libs.plugins.influential.android.compose)
