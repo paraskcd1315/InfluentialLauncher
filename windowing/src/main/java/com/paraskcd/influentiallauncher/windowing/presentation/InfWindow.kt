@@ -114,28 +114,30 @@ fun InfWindow(
         val progress = reveal.value * alpha.coerceIn(0f, 1f)
         val blurRadius = if (shown) (blur.value * progress).toInt() else 0
         val appliedBlur = remember { intArrayOf(-1) }
-        SideEffect {
-            if (appliedBlur[0] != blurRadius) {
-                appliedBlur[0] = blurRadius
-                DialogWindowSetup.setBlur(window, blurRadius)
-            }
-            DialogWindowSetup.setVisible(window, shown, focusable = focusable && visible)
-        }
         val baseX = rememberUpdatedState(offsetXPx)
         val baseY = rememberUpdatedState(offsetYPx)
         val shownAlpha = rememberUpdatedState(progress)
         val drift = if (fullScreen) 0f else with(density) { WindowMetrics.ParallaxShift.toPx() }
         val xSign = if (gravity and Gravity.HORIZONTAL_GRAVITY_MASK == Gravity.RIGHT) -1f else 1f
         val ySign = if (gravity and Gravity.VERTICAL_GRAVITY_MASK == Gravity.BOTTOM) -1f else 1f
+        val placement = {
+            val tilt = parallax.value
+            WindowPlacement(
+                x = baseX.value - (tilt.x * drift * xSign).roundToInt(),
+                y = baseY.value - (tilt.y * drift * ySign).roundToInt(),
+                alpha = shownAlpha.value
+            )
+        }
+        SideEffect {
+            if (appliedBlur[0] != blurRadius) {
+                appliedBlur[0] = blurRadius
+                DialogWindowSetup.setBlur(window, blurRadius)
+            }
+            placement().let { DialogWindowSetup.place(window, it.x, it.y, it.alpha) }
+            DialogWindowSetup.setVisible(window, shown, focusable = focusable && visible)
+        }
         LaunchedEffect(window, drift, xSign, ySign) {
-            snapshotFlow {
-                val tilt = parallax.value
-                WindowPlacement(
-                    x = baseX.value - (tilt.x * drift * xSign).roundToInt(),
-                    y = baseY.value - (tilt.y * drift * ySign).roundToInt(),
-                    alpha = shownAlpha.value
-                )
-            }.collect { DialogWindowSetup.place(window, it.x, it.y, it.alpha) }
+            snapshotFlow(placement).collect { DialogWindowSetup.place(window, it.x, it.y, it.alpha) }
         }
         LaunchedEffect(blurAvailable, shown) {
             if (!shown) {
