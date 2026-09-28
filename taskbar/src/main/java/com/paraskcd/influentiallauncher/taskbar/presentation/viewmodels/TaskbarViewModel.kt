@@ -7,6 +7,8 @@ import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
+import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
+import com.paraskcd.influentiallauncher.homescreen.domain.usecase.AppSignalsSource
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.EditMode
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeDock
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
@@ -25,8 +27,12 @@ class TaskbarViewModel @Inject constructor(
     private val installedApps: InstalledApps,
     private val pinnedApps: PinnedApps,
     private val dock: HomeDock,
-    private val editMode: EditMode
+    private val editMode: EditMode,
+    signalsSource: AppSignalsSource
 ) : ViewModel() {
+
+    val signals: StateFlow<AppSignals> = signalsSource.signals
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), AppSignals.None)
 
     val pinned: StateFlow<List<LauncherApp>?> = pinnedApps.pinned(PinTarget.Taskbar)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)

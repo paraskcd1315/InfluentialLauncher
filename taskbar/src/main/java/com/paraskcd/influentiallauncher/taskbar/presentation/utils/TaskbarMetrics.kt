@@ -20,6 +20,7 @@ object TaskbarMetrics {
     val itemGap = 8.dp
     val pinIconSize = 54.dp
     val pinCornerRadius = 14.dp
+    val signalDotsDrop = 10.dp
     val aboveGap = InfSpacing.s2
     const val skeletonTileCount = 4
     const val skeletonAlpha = 0.10f

@@ -26,6 +26,7 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
+import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
 import com.paraskcd.influentiallauncher.homescreen.presentation.state.GridSlot
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeGrid
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
@@ -38,7 +39,8 @@ fun PageGrid(
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     wiggle: Float,
     onRemove: ((LauncherApp) -> Unit)?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    signals: AppSignals = AppSignals.None
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val density = LocalDensity.current
@@ -70,6 +72,8 @@ fun PageGrid(
                         loadIcon = loadIcon,
                         iconSize = iconSize,
                         onRemove = onRemove?.let { remove -> { remove(slot.app) } },
+                        badge = signals.badgeOf(slot.app.id),
+                        openTasks = signals.openOf(slot.app.id),
                         modifier = Modifier
                             .offset { position }
                             .size(cellWidth, cellHeight)

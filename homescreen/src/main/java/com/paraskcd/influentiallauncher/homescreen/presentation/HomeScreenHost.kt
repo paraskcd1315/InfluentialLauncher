@@ -96,6 +96,7 @@ fun HomeScreenHost(
     val removing by viewModel.removing.collectAsStateWithLifecycle()
     val deleting by viewModel.deleting.collectAsStateWithLifecycle()
     val taskbarIds by viewModel.taskbarIds.collectAsStateWithLifecycle()
+    val signals by viewModel.signals.collectAsStateWithLifecycle()
     val current = state ?: return
     val pages = current.pages
     val tint = InfTheme.colors.brandText.toArgb()
@@ -258,7 +259,8 @@ fun HomeScreenHost(
                                 grid = grid,
                                 loadIcon = loadIcon,
                                 wiggle = wiggle,
-                                onRemove = if (wiggling) viewModel::askRemove else null
+                                onRemove = if (wiggling) viewModel::askRemove else null,
+                                signals = signals
                             )
                         }
                     }

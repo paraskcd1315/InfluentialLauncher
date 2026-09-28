@@ -27,6 +27,7 @@ import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.infrastructure.LaunchOrigins
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
+import com.paraskcd.influentiallauncher.homescreen.presentation.components.IconSignals
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
 
 @Composable
@@ -38,7 +39,9 @@ fun PinnedAppTile(
     onLaunch: (AppId, LaunchOrigin?) -> Unit,
     onMenu: () -> Unit,
     onDrag: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    badge: Int = 0,
+    openTasks: Int = 0
 ) {
     val view = LocalView.current
     var iconBounds by remember { mutableStateOf<Rect?>(null) }
@@ -82,6 +85,7 @@ fun PinnedAppTile(
             version = loadIcon,
             modifier = Modifier.onGloballyPositioned { iconBounds = it.boundsInWindow() }
         )
+        IconSignals(badge = badge, openTasks = openTasks, dotsDrop = TaskbarMetrics.signalDotsDrop)
     }
 }
 

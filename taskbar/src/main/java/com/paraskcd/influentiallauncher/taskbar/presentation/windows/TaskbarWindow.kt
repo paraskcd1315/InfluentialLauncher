@@ -17,6 +17,7 @@ import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.Taskbar
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
+import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
 import com.paraskcd.influentiallauncher.windowing.presentation.InfWindow
 import com.paraskcd.influentiallauncher.windowing.presentation.isLandscape
 
@@ -33,7 +34,8 @@ fun TaskbarWindow(
     onDragApp: (View, LauncherApp) -> Unit,
     onDrop: (AppDragPayload, Int) -> Unit,
     visible: Boolean,
-    alpha: Float
+    alpha: Float,
+    signals: AppSignals
 ) {
     val vertical = isLandscape()
     val density = LocalDensity.current
@@ -60,6 +62,7 @@ fun TaskbarWindow(
             onDragApp = { app -> onDragApp(touchedWindowView, app) },
             onDrop = onDrop,
             vertical = vertical,
+            signals = signals,
             modifier = if (vertical) Modifier.height(screenHeight * TaskbarMetrics.heightFraction) else Modifier
         )
     }
