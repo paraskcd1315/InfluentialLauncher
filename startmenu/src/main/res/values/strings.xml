@@ -16,6 +16,7 @@
     <string name="startmenu_unpin_taskbar">Unpin from taskbar</string>
     <string name="startmenu_info">App info</string>
     <string name="startmenu_uninstall">Uninstall</string>
+    <string name="startmenu_close">Close app</string>
     <string name="startmenu_empty">No apps match</string>
     <string name="startmenu_favourites">Favourites</string>
     <string name="startmenu_call">Call</string>

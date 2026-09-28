@@ -47,8 +47,15 @@ object WeatherVisuals {
 
     @StringRes
     fun sourceOf(source: WeatherSourceName): Int = when (source) {
+        WeatherSourceName.Meteocat -> R.string.weather_source_meteocat
         WeatherSourceName.Aemet -> R.string.weather_source_aemet
         WeatherSourceName.OpenMeteo -> R.string.weather_source_open_meteo
+    }
+
+    @StringRes
+    fun creditOf(source: WeatherSourceName): Int = when (source) {
+        WeatherSourceName.Meteocat -> R.string.weather_source_meteocat_credit
+        else -> sourceOf(source)
     }
 
     @StringRes

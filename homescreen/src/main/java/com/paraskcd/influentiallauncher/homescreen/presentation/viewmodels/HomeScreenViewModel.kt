@@ -18,6 +18,7 @@ import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreen
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenState
 import com.paraskcd.influentiallauncher.homescreen.presentation.state.VisualPage
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
+import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +35,8 @@ class HomeScreenViewModel @Inject constructor(
     private val dock: HomeDock,
     private val editMode: EditMode,
     private val pinnedApps: PinnedApps,
-    signalsSource: AppSignalsSource
+    signalsSource: AppSignalsSource,
+    private val openApps: OpenApps
 ) : ViewModel() {
 
     val signals: StateFlow<AppSignals> = signalsSource.signals
@@ -107,6 +109,10 @@ class HomeScreenViewModel @Inject constructor(
 
     fun uninstall(app: AppId) {
         home.uninstall(app)
+    }
+
+    fun closeApp(app: AppId) {
+        openApps.close(app.packageName)
     }
 
     fun addPage() = run { home.addPage() }

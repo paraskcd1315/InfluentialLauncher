@@ -9,4 +9,6 @@ interface OpenApps {
     val taskCounts: StateFlow<Map<String, Int>>
 
     fun refresh()
+
+    fun close(packageName: String)
 }

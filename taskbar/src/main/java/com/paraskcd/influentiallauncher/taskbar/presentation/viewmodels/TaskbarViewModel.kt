@@ -18,6 +18,7 @@ import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayl
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.DragSource
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
+import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,7 +32,8 @@ class TaskbarViewModel @Inject constructor(
     private val pinnedApps: PinnedApps,
     private val dock: HomeDock,
     private val editMode: EditMode,
-    signalsSource: AppSignalsSource
+    signalsSource: AppSignalsSource,
+    private val openApps: OpenApps
 ) : ViewModel() {
 
     val signals: StateFlow<AppSignals> = signalsSource.signals
@@ -72,6 +74,10 @@ class TaskbarViewModel @Inject constructor(
 
     fun uninstall(id: AppId) {
         installedApps.uninstall(id)
+    }
+
+    fun closeApp(id: AppId) {
+        openApps.close(id.packageName)
     }
 
     suspend fun icon(id: AppId, sizePx: Int, tint: Int, background: Int): Bitmap? = installedApps.icon(id, sizePx, tint, background)

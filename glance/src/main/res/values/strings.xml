@@ -20,6 +20,8 @@
     <string name="weather_open">Open weather</string>
     <string name="weather_title">Weather</string>
     <string name="weather_unavailable">The forecast is not available right now</string>
+    <string name="weather_source_meteocat">Meteocat</string>
+    <string name="weather_source_meteocat_credit">Servei Meteorològic de Catalunya (Meteocat)</string>
     <string name="weather_source_aemet">AEMET</string>
     <string name="weather_source_open_meteo">Open-Meteo</string>
     <string name="weather_attribution">Forecast: %1$s · Warnings: Meteoalarm · Air quality: Open-Meteo</string>

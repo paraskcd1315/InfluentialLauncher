@@ -14,6 +14,7 @@ import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherSource
 import com.paraskcd.influentiallauncher.weather.infrastructure.ChainedWeatherSource
 import com.paraskcd.influentiallauncher.weather.infrastructure.aemet.AemetProvider
 import com.paraskcd.influentiallauncher.weather.infrastructure.meteoalarm.MeteoalarmWarnings
+import com.paraskcd.influentiallauncher.weather.infrastructure.meteocat.MeteocatProvider
 import com.paraskcd.influentiallauncher.weather.infrastructure.openmeteo.OpenMeteoAirQuality
 import com.paraskcd.influentiallauncher.weather.infrastructure.openmeteo.OpenMeteoProvider
 import dagger.Binds
@@ -42,7 +43,7 @@ abstract class WeatherModule {
 
     companion object {
         @Provides
-        fun provideProviders(aemet: AemetProvider, openMeteo: OpenMeteoProvider): List<@JvmSuppressWildcards WeatherProvider> =
-            listOf(aemet, openMeteo)
+        fun provideProviders(meteocat: MeteocatProvider, aemet: AemetProvider, openMeteo: OpenMeteoProvider): List<@JvmSuppressWildcards WeatherProvider> =
+            listOf(meteocat, aemet, openMeteo)
     }
 }

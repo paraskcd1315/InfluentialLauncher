@@ -21,6 +21,8 @@ dependencies {
     implementation(project(":settings"))
     implementation(project(":timetracking"))
     implementation(project(":homescreen"))
+    implementation(project(":notifications"))
+    implementation(project(":tasks"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)

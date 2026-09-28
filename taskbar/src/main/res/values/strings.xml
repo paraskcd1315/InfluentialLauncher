@@ -7,4 +7,5 @@
     <string name="taskbar_unpin_start">Unpin from Start</string>
     <string name="taskbar_info">App info</string>
     <string name="taskbar_uninstall">Uninstall</string>
+    <string name="taskbar_close">Close app</string>
 </resources>

@@ -123,7 +123,7 @@ fun WeatherSheet(
                 SheetNote(
                     stringResource(
                         R.string.weather_attribution,
-                        stringResource(WeatherVisuals.sourceOf(forecast.source))
+                        stringResource(WeatherVisuals.creditOf(forecast.source))
                     )
                 )
             }

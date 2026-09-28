@@ -9,5 +9,5 @@ object ListKeys {
     const val AllAppsHeader = "all:header"
     const val HeaderPrefix = "header:"
     const val FavouritePrefix = "favourite:"
-    const val RowPrefix = "row:"
+    const val GridPrefix = "grid:"
 }
