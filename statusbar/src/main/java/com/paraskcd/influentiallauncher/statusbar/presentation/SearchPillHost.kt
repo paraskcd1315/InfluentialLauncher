@@ -21,7 +21,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Search
+import com.paraskcd.influentiallauncher.designsystem.foundation.SwipeUp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.statusbar.R
 import com.paraskcd.influentiallauncher.statusbar.presentation.utils.StatusBarMetrics
@@ -34,7 +36,8 @@ fun SearchPillHost(
     offsetY: Dp,
     visible: Boolean,
     onClick: () -> Unit,
-    alpha: Float = 1f
+    alpha: Float = 1f,
+    swipeUp: SwipeUp? = null
 ) {
     InfWindow(
         cornerRadius = StatusBarMetrics.cornerRadius,
@@ -52,6 +55,7 @@ fun SearchPillHost(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .infPanelSurface(shape, blurred = LocalWindowBlurred.current)
+                .infSwipeUp(swipeUp)
                 .clickable(onClickLabel = label, onClick = onClick)
                 .heightIn(min = StatusBarMetrics.minHeight)
                 .padding(horizontal = StatusBarMetrics.paddingHorizontal, vertical = StatusBarMetrics.paddingVertical)

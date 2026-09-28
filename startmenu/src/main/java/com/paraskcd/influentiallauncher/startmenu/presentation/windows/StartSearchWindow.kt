@@ -22,7 +22,8 @@ fun StartSearchWindow(
     clearDescription: String,
     onClose: () -> Unit,
     fromEnd: Boolean = false,
-    offsetX: Dp = 0.dp
+    offsetX: Dp = 0.dp,
+    alpha: Float = 1f
 ) {
     InfWindow(
         cornerRadius = InfRadii.pill,
@@ -34,7 +35,8 @@ fun StartSearchWindow(
         visible = visible,
         focusable = true,
         liftAboveIme = false,
-        showStatusBar = true
+        showStatusBar = true,
+        alpha = alpha
     ) {
         InfSearchField(
             value = value,

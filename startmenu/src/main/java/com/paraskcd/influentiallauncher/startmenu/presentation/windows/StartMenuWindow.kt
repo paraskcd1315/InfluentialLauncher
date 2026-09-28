@@ -4,21 +4,19 @@
 package com.paraskcd.influentiallauncher.startmenu.presentation.windows
 
 import android.view.Gravity
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
-import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
 import com.paraskcd.influentiallauncher.windowing.presentation.InfWindow
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
@@ -26,6 +24,8 @@ import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurre
 @Composable
 fun StartMenuWindow(
     open: Boolean,
+    progress: () -> Float,
+    resizing: Boolean,
     offsetY: Dp,
     height: Dp,
     onClose: () -> Unit,
@@ -45,25 +45,29 @@ fun StartMenuWindow(
         focusable = true,
         showStatusBar = true
     ) {
-        val progress by animateFloatAsState(
-            targetValue = if (open) 1f else 0f,
-            animationSpec = tween(InfMotion.durPushMs, easing = InfMotion.easeIos),
-            label = "startMenuRise"
-        )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(height)
+                .height(if (resizing) height * progress() else height)
                 .graphicsLayer {
+                    if (resizing) return@graphicsLayer
+                    val shown = progress()
                     if (fromEnd) {
-                        translationX = (1f - progress) * size.width * StartMenuMetrics.slideFraction
+                        translationX = (1f - shown) * size.width * StartMenuMetrics.slideFraction
                     } else {
-                        translationY = (1f - progress) * size.height * StartMenuMetrics.riseFraction
+                        translationY = (1f - shown) * size.height * StartMenuMetrics.riseFraction
                     }
-                    alpha = progress
+                    alpha = shown
                 }
-                .infPanelSurface(RoundedCornerShape(StartMenuMetrics.cornerRadius), blurred = LocalWindowBlurred.current),
-            content = content
-        )
+                .infPanelSurface(RoundedCornerShape(StartMenuMetrics.cornerRadius), blurred = LocalWindowBlurred.current)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(Alignment.Top, unbounded = true)
+                    .height(height),
+                content = content
+            )
+        }
     }
 }

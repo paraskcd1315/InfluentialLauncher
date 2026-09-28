@@ -48,7 +48,8 @@ fun ControlCenterPanel(
             onDetails = {
                 viewModel.openDetails(it)
                 onClose()
-            }
+            },
+            modifier = Modifier.weight(1f, fill = false)
         )
         Hairline()
         Controls(state, viewModel, onClose)

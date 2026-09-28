@@ -75,6 +75,11 @@ import kotlin.math.roundToInt
 import com.paraskcd.influentiallauncher.presentation.model.DesktopAction
 import com.paraskcd.influentiallauncher.presentation.utils.DesktopMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.StartMenuHost
+import com.paraskcd.influentiallauncher.startmenu.presentation.StartSwipe
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
+import com.paraskcd.influentiallauncher.designsystem.foundation.SwipeUp
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import com.paraskcd.influentiallauncher.statusbar.presentation.SearchPillHost
 import com.paraskcd.influentiallauncher.statusbar.presentation.StatusBarHost
 import com.paraskcd.influentiallauncher.statusbar.presentation.StatusBarLayout
@@ -195,12 +200,28 @@ fun Desktop(activity: ComponentActivity) {
         if (!left) reveal()
     }
     BackHandler(enabled = startOpen) { startOpen = false }
+    val startSwipe = remember { StartSwipe() }
+    val startShown = startOpen || startSwipe.active
+    val flingVelocity = with(density) { StartMenuMetrics.swipeFling.toPx() }
+    val openStartBySwipe = remember(startSwipe, flingVelocity) {
+        SwipeUp(
+            onDrag = { up ->
+                if (!startOpen) {
+                    controlOpen = false
+                    startSwipe.drag(up)
+                }
+            },
+            onEnd = { velocity ->
+                if (startSwipe.active) startOpen = startSwipe.releaseStaysOpen(velocity, flingVelocity)
+            }
+        )
+    }
     val appLaunched = {
         startOpen = false
         controlOpen = false
         hiddenFor = DesktopAction.App
     }
-    val systemBarShown = startOpen || homeOverview || fade.value <= DesktopMetrics.searchStatusBarAlpha
+    val systemBarShown = startShown || homeOverview || fade.value <= DesktopMetrics.searchStatusBarAlpha
     LaunchedEffect(systemBarShown) { DialogWindowSetup.setStatusBar(activity.window, visible = systemBarShown) }
     val landscape = isLandscape()
     var headerHeight by remember { mutableStateOf(0.dp) }
@@ -225,7 +246,7 @@ fun Desktop(activity: ComponentActivity) {
         label = "desktopChrome"
     )
     val chromeAlpha = fade.value * chrome
-    val zoomTarget = maxOf(if (startOpen || homeOverview) DesktopMetrics.startWallpaperZoom else 0f, introZoom) * DesktopMetrics.wallpaperZoomMax
+    val zoomTarget = maxOf(if (startShown || homeOverview) DesktopMetrics.startWallpaperZoom else 0f, introZoom) * DesktopMetrics.wallpaperZoomMax
     val wallpaperZoom = animateFloatAsState(
         targetValue = zoomTarget,
         animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessLow),
@@ -247,6 +268,14 @@ fun Desktop(activity: ComponentActivity) {
         }
     }
 
+    val barsHeight = rememberUpdatedState(
+        with(density) {
+            val bars = if (landscape) navigationBottom + DesktopMetrics.windowGap else aboveTaskbar
+            (bars + StatusBarLayout.height + DesktopMetrics.windowGap).toPx()
+        }
+    )
+    val barsWidth = rememberUpdatedState(if (landscape) with(density) { aboveTaskbar.toPx() } else 0f)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -259,18 +288,31 @@ fun Desktop(activity: ComponentActivity) {
             .pointerInput(startOpen, controlOpen, hidden, homeOverview) {
                 if (startOpen || controlOpen || hidden || homeOverview) return@pointerInput
                 var dragged = 0f
+                var fromBars = false
+                val tracker = VelocityTracker()
                 detectVerticalDragGestures(
-                    onDragStart = { dragged = 0f },
+                    onDragStart = { start ->
+                        dragged = 0f
+                        tracker.resetTracking()
+                        fromBars = start.y >= size.height - barsHeight.value || start.x >= size.width - barsWidth.value
+                    },
                     onDragEnd = {
-                        if (abs(dragged) / swipeDistance >= DesktopMetrics.searchCommit) {
+                        if (fromBars) {
+                            openStartBySwipe.onEnd(-tracker.calculateVelocity().y)
+                        } else if (abs(dragged) / swipeDistance >= DesktopMetrics.searchCommit) {
                             hiddenFor = if (dragged < 0f) DesktopAction.Search else DesktopAction.Notifications
                         } else {
                             settle(1f)
                         }
                     },
-                    onDragCancel = { settle(1f) },
+                    onDragCancel = { if (fromBars) openStartBySwipe.onEnd(0f) else settle(1f) },
                     onVerticalDrag = { change, amount ->
                         change.consume()
+                        if (fromBars) {
+                            tracker.addPosition(change.uptimeMillis, change.position)
+                            openStartBySwipe.onDrag(-amount)
+                            return@detectVerticalDragGestures
+                        }
                         dragged += amount
                         if (dragged != 0f) direction = sign(dragged)
                         val progress = (abs(dragged) / swipeDistance).coerceIn(0f, 1f)
@@ -332,7 +374,8 @@ fun Desktop(activity: ComponentActivity) {
         }
     }
     TaskbarHost(
-        startOpen = startOpen,
+        startOpen = startShown,
+        swipeUp = openStartBySwipe,
         onStartClick = {
             startOpen = !startOpen
             controlOpen = false
@@ -344,21 +387,23 @@ fun Desktop(activity: ComponentActivity) {
     StatusBarHost(
         offsetX = taskbarEdge,
         offsetY = if (landscape) pillTop else aboveTaskbar,
-        visible = !startOpen && !hidden && !homeOverview,
+        visible = !startShown && !hidden && !homeOverview,
         alpha = chromeAlpha,
         active = controlOpen,
         onClick = { controlOpen = !controlOpen },
-        fromTop = landscape
+        fromTop = landscape,
+        swipeUp = if (landscape) null else openStartBySwipe
     )
     SearchPillHost(
         offsetX = taskbarEdge,
         offsetY = if (landscape) navigationBottom + DesktopMetrics.windowGap else aboveTaskbar,
-        visible = !startOpen && !hidden && !homeOverview,
+        visible = !startShown && !hidden && !homeOverview,
         onClick = {
             controlOpen = false
             hiddenFor = DesktopAction.Search
         },
-        alpha = chromeAlpha
+        alpha = chromeAlpha,
+        swipeUp = openStartBySwipe
     )
     ControlCenterHost(
         open = controlOpen && !hidden,
@@ -369,7 +414,8 @@ fun Desktop(activity: ComponentActivity) {
         fromTop = landscape
     )
     StartMenuHost(
-        open = startOpen && !hidden,
+        open = startShown && !hidden,
+        swipe = startSwipe,
         tabsOffsetY = aboveTaskbar,
         bottomOffset = aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap,
         endOffset = aboveTaskbar,

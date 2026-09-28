@@ -39,11 +39,6 @@ class DataStoreSavedPlaces @Inject constructor(
 
     override val places: Flow<List<Place>> = data.map { decode(it[PlacesKey]) }.distinctUntilChanged()
 
-    override val selected: Flow<Place?> = data.map { preferences ->
-        val key = preferences[SelectedKey] ?: return@map null
-        decode(preferences[PlacesKey]).firstOrNull { it.key() == key }
-    }.distinctUntilChanged()
-
     override suspend fun save(place: Place) {
         context.placesStore.edit { preferences ->
             val current = decode(preferences[PlacesKey])
@@ -54,13 +49,6 @@ class DataStoreSavedPlaces @Inject constructor(
     override suspend fun remove(place: Place) {
         context.placesStore.edit { preferences ->
             preferences[PlacesKey] = encode(decode(preferences[PlacesKey]).filterNot { it.key() == place.key() })
-            if (preferences[SelectedKey] == place.key()) preferences.remove(SelectedKey)
-        }
-    }
-
-    override suspend fun select(place: Place?) {
-        context.placesStore.edit { preferences ->
-            if (place == null) preferences.remove(SelectedKey) else preferences[SelectedKey] = place.key()
         }
     }
 
@@ -110,6 +98,5 @@ class DataStoreSavedPlaces @Inject constructor(
     private companion object {
         const val LogTag = "SavedPlaces"
         val PlacesKey = stringPreferencesKey("places")
-        val SelectedKey = stringPreferencesKey("selected")
     }
 }

@@ -15,6 +15,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
+import com.paraskcd.influentiallauncher.designsystem.foundation.SwipeUp
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDrag
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
@@ -32,6 +33,7 @@ fun TaskbarHost(
     onAppLaunched: () -> Unit,
     visible: Boolean = true,
     alpha: Float = 1f,
+    swipeUp: SwipeUp? = null,
     viewModel: TaskbarViewModel = hiltViewModel()
 ) {
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
@@ -62,7 +64,8 @@ fun TaskbarHost(
         onDrop = viewModel::drop,
         visible = visible,
         alpha = alpha,
-        signals = signals
+        signals = signals,
+        swipeUp = swipeUp
     )
     TaskbarAppSheet(
         app = menuApp,

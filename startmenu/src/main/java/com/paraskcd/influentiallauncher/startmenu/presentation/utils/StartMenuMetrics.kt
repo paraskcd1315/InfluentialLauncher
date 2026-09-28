@@ -36,5 +36,7 @@ object StartMenuMetrics {
     const val avatarAlpha = 0.22f
     val contactActionGap = 8.dp
     const val landscapeContactColumns = 3
+    const val swipeCommit = 0.3f
+    val swipeFling = 600.dp
     val contactColumnGap = 8.dp
 }

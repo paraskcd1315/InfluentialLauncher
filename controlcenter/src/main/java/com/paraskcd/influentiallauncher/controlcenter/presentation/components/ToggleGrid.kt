@@ -6,6 +6,7 @@ package com.paraskcd.influentiallauncher.controlcenter.presentation.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import com.paraskcd.influentiallauncher.controlcenter.R
 import com.paraskcd.influentiallauncher.controlcenter.domain.model.ControlState
 import com.paraskcd.influentiallauncher.controlcenter.domain.model.QuickToggle
@@ -42,15 +44,34 @@ fun ToggleGrid(
     onDetails: (QuickToggle) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pages = ToggleVisuals.order.chunked(ControlCenterMetrics.columns * ControlCenterMetrics.rows)
-    val pager = rememberPagerState { pages.size }
     val label = MaterialTheme.typography.labelMedium
     val labelHeight = with(LocalDensity.current) {
         if (label.lineHeight.isSp) label.lineHeight.toDp() else label.fontSize.toDp() * ControlCenterMetrics.lineHeightFallback
     }
     val rowHeight = DsMetrics.toggleTileHeight + InfSpacing.s2 + labelHeight
-    val pageHeight = rowHeight * ControlCenterMetrics.rows + InfSpacing.s4 * (ControlCenterMetrics.rows - 1)
-    Box(modifier = modifier.fillMaxWidth()) {
+    val allRows = (ToggleVisuals.order.size + ControlCenterMetrics.columns - 1) / ControlCenterMetrics.columns
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val rows = if (constraints.hasBoundedHeight) {
+            ((maxHeight - InfSpacing.s5 * 2 + InfSpacing.s4) / (rowHeight + InfSpacing.s4)).toInt().coerceIn(ControlCenterMetrics.minRows, allRows)
+        } else {
+            allRows
+        }
+        TogglePages(state = state, rows = rows, rowHeight = rowHeight, onToggle = onToggle, onDetails = onDetails)
+    }
+}
+
+@Composable
+private fun TogglePages(
+    state: ControlState,
+    rows: Int,
+    rowHeight: Dp,
+    onToggle: (QuickToggle) -> Unit,
+    onDetails: (QuickToggle) -> Unit
+) {
+    val pages = ToggleVisuals.order.chunked(ControlCenterMetrics.columns * rows)
+    val pager = rememberPagerState { pages.size }
+    val pageHeight = rowHeight * rows + InfSpacing.s4 * (rows - 1)
+    Box(modifier = Modifier.fillMaxWidth()) {
         VerticalPager(
             state = pager,
             contentPadding = PaddingValues(vertical = InfSpacing.s5),
