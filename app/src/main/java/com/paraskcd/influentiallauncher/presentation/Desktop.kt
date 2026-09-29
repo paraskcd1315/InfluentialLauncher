@@ -260,11 +260,14 @@ fun Desktop(activity: ComponentActivity) {
         }.collect { WallpaperZoom.set(activity.window, it) }
     }
     val wallpaperDrift = with(density) { DesktopMetrics.wallpaperParallax.toPx() }
+    val longSide = maxOf(windowSize.width, windowSize.height, 1).toFloat()
+    val wallpaperDriftX = wallpaperDrift * windowSize.width / longSide
+    val wallpaperDriftY = wallpaperDrift * windowSize.height / longSide
     val headerDrift = with(density) { DesktopMetrics.headerParallax.toPx() }
     val gridDrift = with(density) { DesktopMetrics.gridParallax.toPx() }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(wallpaperDriftX, wallpaperDriftY) {
         snapshotFlow { tilt.value }.collect {
-            WallpaperShift.set(activity.window, (it.x * wallpaperDrift).roundToInt(), (it.y * wallpaperDrift).roundToInt())
+            WallpaperShift.set(activity.window, (it.x * wallpaperDriftX).roundToInt(), (it.y * wallpaperDriftY).roundToInt())
         }
     }
 
