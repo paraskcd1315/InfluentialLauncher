@@ -51,7 +51,7 @@ class AndroidDeviceTiltSource @Inject constructor(
                     val follow = 1f - exp(-seconds / TiltMetrics.SmoothingSeconds)
                     aroundX = ((aroundX + event.values[0] * seconds) * keep).coerceIn(-max, max)
                     aroundY = ((aroundY + event.values[1] * seconds) * keep).coerceIn(-max, max)
-                    shownX += (tan(aroundY) / tanMax - shownX) * follow
+                    shownX += (-tan(aroundY) / tanMax - shownX) * follow
                     shownY += (-tan(aroundX) / tanMax - shownY) * follow
                     trySend(tiltOnScreen(shownX, shownY, display?.rotation ?: 0))
                 }
