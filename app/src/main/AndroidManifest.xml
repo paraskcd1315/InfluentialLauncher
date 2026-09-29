@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="com.paraskcd.spotlightsearch.permission.PEEK" />
+    <uses-permission android:name="com.paraskcd.spotlightsearch.dev.permission.PEEK" />
+
+    <queries>
+        <package android:name="com.paraskcd.spotlightsearch" />
+        <package android:name="com.paraskcd.spotlightsearch.dev" />
+    </queries>
 
     <application
         android:name=".InfluentialLauncherApp"

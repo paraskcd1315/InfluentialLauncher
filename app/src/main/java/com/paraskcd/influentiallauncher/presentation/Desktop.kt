@@ -68,6 +68,8 @@ import com.paraskcd.influentiallauncher.glance.presentation.GlanceHost
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.infrastructure.NotificationShade
 import com.paraskcd.influentiallauncher.infrastructure.SpotlightSearchLauncher
+import com.paraskcd.influentiallauncher.infrastructure.spotlight.SpotlightPeek
+import com.paraskcd.influentiallauncher.presentation.utils.SearchPeekRelease
 import com.paraskcd.influentiallauncher.infrastructure.WallpaperShift
 import com.paraskcd.influentiallauncher.infrastructure.WallpaperZoom
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
@@ -118,6 +120,11 @@ fun Desktop(activity: ComponentActivity) {
         left = false
         settle(1f)
     }
+    val peek = remember(activity) { SpotlightPeek(activity) { reveal() } }
+    DisposableEffect(peek) {
+        peek.bind()
+        onDispose { peek.unbind() }
+    }
 
     DisposableEffect(activity) {
         val keyguard = activity.getSystemService(KeyguardManager::class.java)
@@ -133,11 +140,13 @@ fun Desktop(activity: ComponentActivity) {
         val listener = Consumer<Intent> {
             startOpen = false
             controlOpen = false
+            if (hiddenFor == DesktopAction.Peek) reveal()
             playIntro()
         }
         activity.addOnNewIntentListener(listener)
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME && keyguard?.isKeyguardLocked != true) playIntro()
+            if (event == Lifecycle.Event.ON_RESUME && hiddenFor == DesktopAction.Peek) reveal()
             if (hiddenFor != DesktopAction.Search && hiddenFor != DesktopAction.App) return@LifecycleEventObserver
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> left = true
@@ -187,10 +196,11 @@ fun Desktop(activity: ComponentActivity) {
     LaunchedEffect(hiddenFor) {
         val action = hiddenFor ?: return@LaunchedEffect
         fade.animateTo(0f, tween(InfMotion.durMorphMs, easing = InfMotion.easeIos))
+        if (action == DesktopAction.Peek) return@LaunchedEffect
         val opened = when (action) {
             DesktopAction.Search -> SpotlightSearchLauncher.open(activity)
             DesktopAction.Notifications -> NotificationShade.expand(activity)
-            DesktopAction.App -> true
+            DesktopAction.App, DesktopAction.Peek -> true
         }
         if (!opened) {
             reveal()
@@ -275,6 +285,7 @@ fun Desktop(activity: ComponentActivity) {
         }
     )
     val barsWidth = rememberUpdatedState(if (landscape) with(density) { aboveTaskbar.toPx() } else 0f)
+    val peekAllowed = rememberUpdatedState(!landscape)
 
     Box(
         modifier = Modifier
@@ -289,31 +300,51 @@ fun Desktop(activity: ComponentActivity) {
                 if (startOpen || controlOpen || hidden || homeOverview) return@pointerInput
                 var dragged = 0f
                 var fromBars = false
+                var peeking = false
                 val tracker = VelocityTracker()
                 detectVerticalDragGestures(
                     onDragStart = { start ->
                         dragged = 0f
+                        peeking = false
                         tracker.resetTracking()
                         fromBars = start.y >= size.height - barsHeight.value || start.x >= size.width - barsWidth.value
                     },
                     onDragEnd = {
-                        if (fromBars) {
-                            openStartBySwipe.onEnd(-tracker.calculateVelocity().y)
-                        } else if (abs(dragged) / swipeDistance >= DesktopMetrics.searchCommit) {
-                            hiddenFor = if (dragged < 0f) DesktopAction.Search else DesktopAction.Notifications
-                        } else {
-                            settle(1f)
+                        val velocityUp = -tracker.calculateVelocity().y
+                        when {
+                            fromBars -> openStartBySwipe.onEnd(velocityUp)
+                            peeking -> if (SearchPeekRelease.opens(-dragged / swipeDistance, velocityUp, flingVelocity)) {
+                                peek.commit(velocityUp)
+                                hiddenFor = DesktopAction.Peek
+                            } else {
+                                peek.cancel(velocityUp)
+                                settle(1f)
+                            }
+                            abs(dragged) / swipeDistance >= DesktopMetrics.searchCommit ->
+                                hiddenFor = if (dragged < 0f) DesktopAction.Search else DesktopAction.Notifications
+                            else -> settle(1f)
                         }
                     },
-                    onDragCancel = { if (fromBars) openStartBySwipe.onEnd(0f) else settle(1f) },
+                    onDragCancel = {
+                        when {
+                            fromBars -> openStartBySwipe.onEnd(0f)
+                            peeking -> {
+                                peek.cancel(0f)
+                                settle(1f)
+                            }
+                            else -> settle(1f)
+                        }
+                    },
                     onVerticalDrag = { change, amount ->
                         change.consume()
+                        tracker.addPosition(change.uptimeMillis, change.position)
                         if (fromBars) {
-                            tracker.addPosition(change.uptimeMillis, change.position)
                             openStartBySwipe.onDrag(-amount)
                             return@detectVerticalDragGestures
                         }
                         dragged += amount
+                        if (!peeking && dragged < 0f && peekAllowed.value) peeking = peek.start()
+                        if (peeking) peek.progress(-dragged / swipeDistance)
                         if (dragged != 0f) direction = sign(dragged)
                         val progress = (abs(dragged) / swipeDistance).coerceIn(0f, 1f)
                         scope.launch { fade.snapTo(1f - progress) }
