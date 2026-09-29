@@ -4,18 +4,37 @@
 package com.paraskcd.influentiallauncher.windowing.presentation
 
 import android.view.Gravity
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
+import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
+import com.paraskcd.influentiallauncher.designsystem.foundation.SheetDrag
+import com.paraskcd.influentiallauncher.designsystem.foundation.infClickableQuiet
 import com.paraskcd.influentiallauncher.designsystem.organisms.InfBottomSheet
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
-import kotlinx.coroutines.delay
+import com.paraskcd.influentiallauncher.designsystem.theme.InfRadii
+import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
+import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun <T : Any> InfSheetWindow(
     item: T?,
@@ -28,30 +47,60 @@ fun <T : Any> InfSheetWindow(
     trailing: (@Composable (T) -> Unit)? = null,
     content: @Composable ColumnScope.(T) -> Unit
 ) {
+    val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+    val dismiss by rememberUpdatedState(onDismiss)
+    val flingVelocity = with(density) { DsMetrics.sheetDismissFling.toPx() }
+    val drag = remember(flingVelocity) { SheetDrag(scope, flingVelocity) { dismiss() } }
+    val shown = remember { Animatable(0f) }
     var retained by remember { mutableStateOf(item) }
     var open by remember { mutableStateOf(false) }
     LaunchedEffect(item) {
         if (item != null) {
             retained = item
             open = true
+            drag.reset()
+            shown.animateTo(1f, tween(InfMotion.durPushMs, easing = InfMotion.easeIos))
         } else {
             open = false
-            delay(InfMotion.durPushMs.toLong())
+            shown.animateTo(0f, tween(InfMotion.durPushMs, easing = InfMotion.easeIos))
             retained = null
         }
     }
     val current = item ?: retained ?: return
+    val screenHeight = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
+    val statusTop = with(density) { WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp() }
+    val scrimAlpha = if (drag.height > 0f) (1f - drag.offset / drag.height).coerceIn(0f, 1f) else 1f
+    val sheetDrop = with(density) { (drag.height * (1f - shown.value) + drag.offset).toDp() }
+
     InfWindow(
         cornerRadius = 0.dp,
         onDismissRequest = onDismiss,
         gravity = Gravity.TOP or Gravity.START,
         visible = open,
+        fullScreen = true,
+        alpha = scrimAlpha,
+        blurBehind = false
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(InfTheme.colors.scrim)
+                .infClickableQuiet(onDismiss)
+        )
+    }
+    InfWindow(
+        cornerRadius = InfRadii.xl,
+        onDismissRequest = onDismiss,
+        offsetY = -sheetDrop,
+        fillWidth = true,
+        visible = open,
         focusable = true,
-        fullScreen = true
+        followsTilt = false
     ) {
         InfBottomSheet(
-            visible = open,
-            onDismiss = onDismiss,
+            drag = drag,
+            maxHeight = screenHeight - statusTop - InfSpacing.s2,
             title = title(current),
             leading = leading?.let { { it(current) } },
             edgeToEdge = edgeToEdge,

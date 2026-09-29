@@ -52,10 +52,8 @@ object DialogWindowSetup {
             WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED
         )
-        if (fullScreen) {
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            window.isNavigationBarContrastEnforced = false
-        }
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        window.isNavigationBarContrastEnforced = false
         window.setGravity(gravity)
         window.setLayout(widthPx, heightPx)
         window.attributes = window.attributes.apply {

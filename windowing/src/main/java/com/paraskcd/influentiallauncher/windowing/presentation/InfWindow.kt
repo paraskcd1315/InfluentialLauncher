@@ -50,6 +50,8 @@ fun InfWindow(
     liftAboveIme: Boolean = true,
     showStatusBar: Boolean = false,
     alpha: Float = 1f,
+    blurBehind: Boolean = true,
+    followsTilt: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
@@ -120,7 +122,7 @@ fun InfWindow(
         val baseX = rememberUpdatedState(offsetXPx)
         val baseY = rememberUpdatedState(offsetYPx)
         val shownAlpha = rememberUpdatedState(progress)
-        val drift = if (fullScreen) 0f else with(density) { WindowMetrics.ParallaxShift.toPx() }
+        val drift = if (fullScreen || !followsTilt) 0f else with(density) { WindowMetrics.ParallaxShift.toPx() }
         val xSign = if (gravity and Gravity.HORIZONTAL_GRAVITY_MASK == Gravity.RIGHT) -1f else 1f
         val ySign = if (gravity and Gravity.VERTICAL_GRAVITY_MASK == Gravity.BOTTOM) -1f else 1f
         val placement = {
@@ -147,7 +149,7 @@ fun InfWindow(
                 blur.snapTo(0f)
                 return@LaunchedEffect
             }
-            val target = if (blurAvailable) WindowMetrics.BlurRadiusMax.toFloat() else 0f
+            val target = if (blurAvailable && blurBehind) WindowMetrics.BlurRadiusMax.toFloat() else 0f
             blur.animateTo(target, tween(WindowMetrics.BlurRampMs))
         }
         CompositionLocalProvider(
