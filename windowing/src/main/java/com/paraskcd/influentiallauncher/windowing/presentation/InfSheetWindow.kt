@@ -33,6 +33,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.designsystem.theme.InfRadii
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -70,8 +71,6 @@ fun <T : Any> InfSheetWindow(
     val current = item ?: retained ?: return
     val screenHeight = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
     val statusTop = with(density) { WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp() }
-    val scrimAlpha = if (drag.height > 0f) (1f - drag.offset / drag.height).coerceIn(0f, 1f) else 1f
-    val sheetDrop = with(density) { (drag.height * (1f - shown.value) + drag.offset).toDp() }
 
     InfWindow(
         cornerRadius = 0.dp,
@@ -79,7 +78,6 @@ fun <T : Any> InfSheetWindow(
         gravity = Gravity.TOP or Gravity.START,
         visible = open,
         fullScreen = true,
-        alpha = scrimAlpha,
         blurBehind = false
     ) {
         Box(
@@ -92,11 +90,12 @@ fun <T : Any> InfSheetWindow(
     InfWindow(
         cornerRadius = InfRadii.xl,
         onDismissRequest = onDismiss,
-        offsetY = -sheetDrop,
         fillWidth = true,
         visible = open,
         focusable = true,
-        followsTilt = false
+        followsTilt = false,
+        dropPx = { drag.height * (1f - shown.value) + drag.offset },
+        heightPx = drag.height.roundToInt().takeIf { it > 0 }
     ) {
         InfBottomSheet(
             drag = drag,
