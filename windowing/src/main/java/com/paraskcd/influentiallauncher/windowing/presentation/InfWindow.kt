@@ -52,6 +52,8 @@ fun InfWindow(
     alpha: Float = 1f,
     blurBehind: Boolean = true,
     followsTilt: Boolean = true,
+    dropPx: () -> Float = { 0f },
+    heightPx: Int? = null,
     content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
@@ -81,7 +83,7 @@ fun InfWindow(
         val reveal = remember { Animatable(0f) }
         var configured by remember { mutableStateOf(false) }
 
-        remember(cornerRadiusPx, offsetXPx, gravity, fillWidth, marginPx, widthFraction, screenWidthDp, fullScreen) {
+        remember(cornerRadiusPx, offsetXPx, gravity, fillWidth, marginPx, widthFraction, screenWidthDp, fullScreen, heightPx) {
             val displayWidth = DialogWindowSetup.displayWidth(window)
             val width = when {
                 fullScreen -> displayWidth
@@ -92,7 +94,7 @@ fun InfWindow(
             DialogWindowSetup.configure(
                 window = window,
                 widthPx = width,
-                heightPx = if (fullScreen) DialogWindowSetup.displayHeight(window) else ViewGroup.LayoutParams.WRAP_CONTENT,
+                heightPx = if (fullScreen) DialogWindowSetup.displayHeight(window) else heightPx ?: ViewGroup.LayoutParams.WRAP_CONTENT,
                 gravity = gravity,
                 offsetXPx = offsetXPx,
                 offsetYPx = offsetYPx,
@@ -129,7 +131,7 @@ fun InfWindow(
             val tilt = parallax.value
             WindowPlacement(
                 x = baseX.value - (tilt.x * drift * xSign).roundToInt(),
-                y = baseY.value - (tilt.y * drift * ySign).roundToInt(),
+                y = baseY.value - (tilt.y * drift * ySign).roundToInt() - dropPx().roundToInt(),
                 alpha = shownAlpha.value
             )
         }

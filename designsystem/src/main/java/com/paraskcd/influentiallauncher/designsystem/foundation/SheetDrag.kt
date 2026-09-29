@@ -12,13 +12,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.unit.Velocity
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-/** How far a sheet has been pulled down, and whether letting go closes it. */
+/** How far a sheet has been pulled down, measured from the finger's position on the screen. */
 @Stable
 class SheetDrag(
     private val scope: CoroutineScope,
@@ -29,42 +30,58 @@ class SheetDrag(
         private set
     var height by mutableFloatStateOf(0f)
 
+    private var fingerY = 0f
+    private var downY = 0f
+    private var anchor: Float? = null
+    private val tracker = VelocityTracker()
     private var settling: Job? = null
 
-    val swipe = SwipeUp(onDrag = { up -> drag(-up) }, onEnd = { velocityUp -> release(-velocityUp) })
+    val swipe = SwipeUp(onDrag = { follow(from = downY) }, onEnd = { release() })
 
     val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-            if (offset <= 0f || source != NestedScrollSource.UserInput) return Offset.Zero
-            val before = offset
-            drag(available.y)
-            return Offset(0f, offset - before)
+            if (anchor == null || source != NestedScrollSource.UserInput) return Offset.Zero
+            follow()
+            return if (offset > 0f) Offset(0f, available.y) else Offset.Zero
         }
 
         override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
             if (source != NestedScrollSource.UserInput || available.y <= 0f) return Offset.Zero
-            drag(available.y)
+            follow()
             return Offset(0f, available.y)
         }
 
         override suspend fun onPreFling(available: Velocity): Velocity {
-            if (offset <= 0f) return Velocity.Zero
-            release(available.y)
+            if (anchor == null) return Velocity.Zero
+            release()
             return available
         }
     }
 
+    fun onFinger(timeMillis: Long, screenY: Float, down: Boolean) {
+        if (down) {
+            tracker.resetTracking()
+            downY = screenY
+        }
+        fingerY = screenY
+        tracker.addPosition(timeMillis, Offset(0f, screenY))
+    }
+
     fun reset() {
         settling?.cancel()
+        anchor = null
         offset = 0f
     }
 
-    private fun drag(down: Float) {
+    private fun follow(from: Float = fingerY) {
         settling?.cancel()
-        offset = (offset + down).coerceAtLeast(0f)
+        val start = anchor ?: (from - offset).also { anchor = it }
+        offset = (fingerY - start).coerceAtLeast(0f)
     }
 
-    private fun release(velocityDown: Float) {
+    private fun release() {
+        anchor = null
+        val velocityDown = tracker.calculateVelocity().y
         val closes = when {
             velocityDown >= flingVelocity -> true
             velocityDown <= -flingVelocity -> false

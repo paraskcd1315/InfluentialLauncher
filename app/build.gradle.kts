@@ -31,8 +31,8 @@ android {
 
     defaultConfig {
         applicationId = "com.paraskcd.influentiallauncher"
-        versionCode = 19
-        versionName = "2.9.1"
+        versionCode = 22
+        versionName = "2.9.4"
         resValue("string", "app_name", "Influential Launcher")
     }
 
