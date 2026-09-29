@@ -41,6 +41,8 @@ object DsMetrics {
     val sheetHandleWidth = 40.dp
     val sheetHandleHeight = 5.dp
     val sheetIconSize = 40.dp
+    const val sheetDismissFraction = 0.25f
+    val sheetDismissFling = 600.dp
     val actionIconSize = 22.dp
     val iconButtonSize = 44.dp
     val iconButtonGlyph = 20.dp

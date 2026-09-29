@@ -146,6 +146,7 @@ fun Desktop(activity: ComponentActivity) {
         activity.addOnNewIntentListener(listener)
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME && keyguard?.isKeyguardLocked != true) playIntro()
+            if (event == Lifecycle.Event.ON_RESUME) peek.bind()
             if (event == Lifecycle.Event.ON_RESUME && hiddenFor == DesktopAction.Peek) reveal()
             if (hiddenFor != DesktopAction.Search && hiddenFor != DesktopAction.App) return@LifecycleEventObserver
             when (event) {
