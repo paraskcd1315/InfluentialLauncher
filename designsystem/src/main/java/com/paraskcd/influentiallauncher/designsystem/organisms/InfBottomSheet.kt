@@ -10,14 +10,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -47,6 +44,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 fun InfBottomSheet(
     drag: SheetDrag,
     maxHeight: Dp,
+    bottomInset: Dp,
     title: String,
     leading: (@Composable () -> Unit)? = null,
     edgeToEdge: Boolean = false,
@@ -129,7 +127,7 @@ fun InfBottomSheet(
                     Modifier
                         .weight(1f, fill = false)
                         .fillMaxWidth()
-                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(bottom = bottomInset)
                         .padding(InfSpacing.s5)
                 },
                 content = content

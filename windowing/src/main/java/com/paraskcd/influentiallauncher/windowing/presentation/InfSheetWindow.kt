@@ -4,6 +4,7 @@
 package com.paraskcd.influentiallauncher.windowing.presentation
 
 import android.view.Gravity
+import android.view.MotionEvent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -71,6 +73,7 @@ fun <T : Any> InfSheetWindow(
     val current = item ?: retained ?: return
     val screenHeight = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
     val statusTop = with(density) { WindowInsets.statusBarsIgnoringVisibility.getTop(density).toDp() }
+    val navigationBottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
 
     InfWindow(
         cornerRadius = 0.dp,
@@ -97,9 +100,11 @@ fun <T : Any> InfSheetWindow(
         dropPx = { drag.height * (1f - shown.value) + drag.offset },
         heightPx = drag.height.roundToInt().takeIf { it > 0 }
     ) {
+        WindowTouches { event -> drag.onFinger(event.eventTime, event.rawY, down = event.actionMasked == MotionEvent.ACTION_DOWN) }
         InfBottomSheet(
             drag = drag,
             maxHeight = screenHeight - statusTop - InfSpacing.s2,
+            bottomInset = navigationBottom,
             title = title(current),
             leading = leading?.let { { it(current) } },
             edgeToEdge = edgeToEdge,
