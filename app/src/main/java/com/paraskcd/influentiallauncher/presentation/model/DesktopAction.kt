@@ -5,6 +5,7 @@ package com.paraskcd.influentiallauncher.presentation.model
 
 enum class DesktopAction {
     Search,
+    Peek,
     Notifications,
     App
 }
