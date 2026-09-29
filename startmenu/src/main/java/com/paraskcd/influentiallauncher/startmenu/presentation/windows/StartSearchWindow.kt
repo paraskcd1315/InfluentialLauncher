@@ -7,7 +7,11 @@ import android.view.Gravity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Modifier
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSearchField
+import com.paraskcd.influentiallauncher.designsystem.foundation.SwipeUp
+import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
 import com.paraskcd.influentiallauncher.designsystem.theme.InfRadii
 import com.paraskcd.influentiallauncher.windowing.presentation.InfWindow
 
@@ -23,7 +27,8 @@ fun StartSearchWindow(
     onClose: () -> Unit,
     fromEnd: Boolean = false,
     offsetX: Dp = 0.dp,
-    alpha: Float = 1f
+    alpha: Float = 1f,
+    swipe: SwipeUp? = null
 ) {
     InfWindow(
         cornerRadius = InfRadii.pill,
@@ -38,11 +43,13 @@ fun StartSearchWindow(
         showStatusBar = true,
         alpha = alpha
     ) {
-        InfSearchField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = placeholder,
-            clearDescription = clearDescription
-        )
+        Box(modifier = Modifier.infSwipeUp(swipe)) {
+            InfSearchField(
+                value = value,
+                onValueChange = onValueChange,
+                placeholder = placeholder,
+                clearDescription = clearDescription
+            )
+        }
     }
 }

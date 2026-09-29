@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
 import com.paraskcd.influentiallauncher.designsystem.theme.InfRadii
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.HeaderPlacement
 import com.paraskcd.influentiallauncher.windowing.presentation.InfWindow
@@ -30,11 +31,16 @@ fun HeaderWindow(
         onDismissRequest = onClose,
         gravity = Gravity.TOP or if (placement.fromEnd) Gravity.END else Gravity.CENTER_HORIZONTAL,
         offsetX = placement.offsetX,
-        offsetY = placement.top + offsetTop,
+        offsetY = placement.top + offsetTop + placement.shift,
         widthFraction = placement.widthFraction,
-        visible = visible
+        visible = visible,
+        alpha = placement.alpha
     ) {
-        Box(modifier = Modifier.onSizeChanged { onHeight(with(density) { it.height.toDp() }) }) {
+        Box(
+            modifier = Modifier
+                .onSizeChanged { onHeight(with(density) { it.height.toDp() }) }
+                .infSwipeUp(placement.swipe)
+        ) {
             content()
         }
     }

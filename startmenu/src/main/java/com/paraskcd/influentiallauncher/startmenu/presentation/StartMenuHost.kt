@@ -11,6 +11,16 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.runtime.Composable
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Velocity
+import com.paraskcd.influentiallauncher.designsystem.foundation.SwipeUp
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -140,6 +150,33 @@ fun StartMenuHost(
     } else {
         1f
     }
+    val flingVelocity = with(density) { StartMenuMetrics.swipeFling.toPx() }
+    val currentOnClose by rememberUpdatedState(onClose)
+    val release: (Float) -> Unit = remember(swipe, flingVelocity) {
+        { velocityUp -> if (swipe.active && !swipe.releaseStaysOpen(velocityUp, flingVelocity)) currentOnClose() }
+    }
+    val closeBySwipe = remember(swipe, release) { SwipeUp(onDrag = swipe::dragClose, onEnd = release) }
+    val closeAtTop = remember(swipe, release) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (!swipe.closing || source != NestedScrollSource.UserInput) return Offset.Zero
+                swipe.dragClose(-available.y)
+                return Offset(0f, available.y)
+            }
+
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                if (swipe.active || source != NestedScrollSource.UserInput || available.y <= 0f) return Offset.Zero
+                swipe.dragClose(-available.y)
+                return Offset(0f, available.y)
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (!swipe.closing) return Velocity.Zero
+                release(-available.y)
+                return available
+            }
+        }
+    }
     val timerShown = open && selected == StartMenuTab.Calendar && credentials.configured(calendarTracker)
     val searchShown = open && (selected == StartMenuTab.Apps || (searchesContacts && contactsPermission != PermissionState.Missing))
 
@@ -164,26 +201,31 @@ fun StartMenuHost(
         offsetX = if (landscape) menuEnd else 0.dp,
         fromEnd = landscape
     ) {
-        when (selected) {
-            StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose, onLaunched = onAppLaunched, onScrub = { scrubLetter = it }, viewModel = appsViewModel)
-            StartMenuTab.Calendar -> CalendarTab(
-                open = open,
-                onClose = onClose,
-                timeTracking = timeTracking,
-                placement = HeaderPlacement(
-                    top = menuTop + StartMenuMetrics.listTopPlain,
-                    widthFraction = searchFraction,
-                    fromEnd = landscape,
-                    offsetX = if (landscape) menuEnd + StartMenuMetrics.listPadding else 0.dp
+        Box(modifier = Modifier.fillMaxSize().nestedScroll(closeAtTop)) {
+            when (selected) {
+                StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose, onLaunched = onAppLaunched, onScrub = { scrubLetter = it }, viewModel = appsViewModel)
+                StartMenuTab.Calendar -> CalendarTab(
+                    open = open,
+                    onClose = onClose,
+                    timeTracking = timeTracking,
+                    placement = HeaderPlacement(
+                        top = menuTop + StartMenuMetrics.listTopPlain,
+                        widthFraction = searchFraction,
+                        fromEnd = landscape,
+                        offsetX = if (landscape) menuEnd + StartMenuMetrics.listPadding else 0.dp,
+                        shift = menuHeight * (1f - grown),
+                        alpha = searchReveal,
+                        swipe = closeBySwipe
+                    )
                 )
-            )
-            StartMenuTab.Contacts -> ContactsTab(open = open, onClose = onClose, onScrub = { scrubLetter = it }, viewModel = contactsViewModel)
-            StartMenuTab.Settings -> SettingsTab(
-                settings = settings,
-                onTabShown = viewModel::setTabShown,
-                credentials = credentials,
-                onCredentials = timeTracking::updateCredentials
-            )
+                StartMenuTab.Contacts -> ContactsTab(open = open, onClose = onClose, onScrub = { scrubLetter = it }, viewModel = contactsViewModel)
+                StartMenuTab.Settings -> SettingsTab(
+                    settings = settings,
+                    onTabShown = viewModel::setTabShown,
+                    credentials = credentials,
+                    onCredentials = timeTracking::updateCredentials
+                )
+            }
         }
     }
     TimerButtonWindow(
@@ -198,6 +240,7 @@ fun StartMenuHost(
         visible = searchShown,
         offsetY = searchOffset - menuHeight * (1f - grown),
         alpha = searchReveal,
+        swipe = closeBySwipe,
         widthFraction = searchFraction,
         value = if (searchesContacts) contactsQuery else appsQuery,
         onValueChange = if (searchesContacts) contactsViewModel::setQuery else appsViewModel::setQuery,
