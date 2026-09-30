@@ -43,7 +43,7 @@ abstract class WeatherModule {
 
     companion object {
         @Provides
-        fun provideProviders(meteocat: MeteocatProvider, aemet: AemetProvider, openMeteo: OpenMeteoProvider): List<@JvmSuppressWildcards WeatherProvider> =
-            listOf(meteocat, aemet, openMeteo)
+        fun provideProviders(aemet: AemetProvider, meteocat: MeteocatProvider, openMeteo: OpenMeteoProvider): List<@JvmSuppressWildcards WeatherProvider> =
+            listOf(aemet, meteocat, openMeteo)
     }
 }
