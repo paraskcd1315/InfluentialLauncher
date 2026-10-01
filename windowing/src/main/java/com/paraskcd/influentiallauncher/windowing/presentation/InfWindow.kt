@@ -7,8 +7,10 @@ import android.view.Gravity
 import android.view.ViewGroup
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -19,6 +21,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -82,8 +87,10 @@ fun InfWindow(
         val blur = remember { Animatable(0f) }
         val reveal = remember { Animatable(0f) }
         var configured by remember { mutableStateOf(false) }
+        var measuredHeightPx by remember { mutableStateOf<Int?>(null) }
+        val windowHeightPx = heightPx ?: measuredHeightPx
 
-        remember(cornerRadiusPx, offsetXPx, gravity, fillWidth, marginPx, widthFraction, screenWidthDp, fullScreen, heightPx) {
+        remember(cornerRadiusPx, offsetXPx, gravity, fillWidth, marginPx, widthFraction, screenWidthDp, fullScreen, windowHeightPx) {
             val displayWidth = DialogWindowSetup.displayWidth(window)
             val width = when {
                 fullScreen -> displayWidth
@@ -94,7 +101,7 @@ fun InfWindow(
             DialogWindowSetup.configure(
                 window = window,
                 widthPx = width,
-                heightPx = if (fullScreen) DialogWindowSetup.displayHeight(window) else heightPx ?: ViewGroup.LayoutParams.WRAP_CONTENT,
+                heightPx = if (fullScreen) DialogWindowSetup.displayHeight(window) else windowHeightPx ?: ViewGroup.LayoutParams.WRAP_CONTENT,
                 gravity = gravity,
                 offsetXPx = offsetXPx,
                 offsetYPx = offsetYPx,
@@ -156,8 +163,20 @@ fun InfWindow(
         }
         CompositionLocalProvider(
             LocalWindowBlurred provides blurAvailable,
-            LocalInfBlurred provides blurAvailable,
-            content = content
-        )
+            LocalInfBlurred provides blurAvailable
+        ) {
+            if (fullScreen || heightPx != null) {
+                content()
+            } else {
+                Box(
+                    modifier = Modifier
+                        .wrapContentHeight(Alignment.Top, unbounded = true)
+                        .onSizeChanged { size -> measuredHeightPx = size.height.takeIf { it > 0 } },
+                    propagateMinConstraints = true
+                ) {
+                    content()
+                }
+            }
+        }
     }
 }
