@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
@@ -34,6 +35,8 @@ fun StartMenuWindow(
     fromEnd: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val panelHeight = if (resizing) height * progress() else height
+    val panelHeightPx = with(LocalDensity.current) { panelHeight.roundToPx() }
     InfWindow(
         cornerRadius = StartMenuMetrics.cornerRadius,
         onDismissRequest = onClose,
@@ -43,12 +46,13 @@ fun StartMenuWindow(
         widthFraction = widthFraction,
         visible = open,
         focusable = true,
-        showStatusBar = true
+        showStatusBar = true,
+        heightPx = panelHeightPx.takeIf { it > 0 }
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (resizing) height * progress() else height)
+                .height(panelHeight)
                 .graphicsLayer {
                     if (resizing) return@graphicsLayer
                     val shown = progress()
