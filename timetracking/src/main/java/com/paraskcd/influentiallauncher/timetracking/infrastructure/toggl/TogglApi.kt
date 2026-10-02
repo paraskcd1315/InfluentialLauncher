@@ -20,4 +20,31 @@ object TogglApi {
         const val StartDate = "start_date"
         const val EndDate = "end_date"
     }
+
+    object Stream {
+        const val Url = "wss://track.toggl.com/stream"
+        const val Origin = "https://api.track.toggl.com"
+        const val OriginHeader = "Origin"
+        const val TypeField = "type"
+        const val TokenField = "api_token"
+        const val ModelField = "model"
+        const val Authenticate = "authenticate"
+        const val Ping = "ping"
+        const val Pong = "pong"
+        const val TimeEntryModel = "time_entry"
+        const val ActionField = "action"
+        const val DataField = "data"
+        const val Delete = "DELETE"
+
+        object Fields {
+            const val Id = "id"
+            const val Description = "description"
+            const val Start = "start"
+            const val Stop = "stop"
+            const val Duration = "duration"
+            const val DeletedAt = "server_deleted_at"
+            const val Tags = "tags"
+            val Project = listOf("project_id", "pid")
+        }
+    }
 }

@@ -22,9 +22,9 @@ interface TrackerClient {
 
     suspend fun activities(credentials: TrackerCredentials, projectId: String?): List<TrackerActivity>
 
-    suspend fun start(credentials: TrackerCredentials, timer: StartTimer)
+    suspend fun start(credentials: TrackerCredentials, timer: StartTimer): TimeEntry?
 
-    suspend fun stop(credentials: TrackerCredentials, entry: TimeEntry)
+    suspend fun stop(credentials: TrackerCredentials, entry: TimeEntry): TimeEntry?
 
-    suspend fun move(credentials: TrackerCredentials, entry: TimeEntry, start: Instant, end: Instant?)
+    suspend fun move(credentials: TrackerCredentials, entry: TimeEntry, start: Instant, end: Instant?): TimeEntry?
 }

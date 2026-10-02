@@ -63,6 +63,7 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.windows.TimerButt
 import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.windowing.presentation.WindowMetrics
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val TimerPollMs = 30_000L
 
@@ -82,6 +83,7 @@ fun StartMenuHost(
     timeTracking: TimeTrackingViewModel = hiltViewModel()
 ) {
     val credentials by timeTracking.credentials.collectAsStateWithLifecycle()
+    val schedule by timeTracking.schedule.collectAsStateWithLifecycle()
     val running by timeTracking.running.collectAsStateWithLifecycle()
     val calendarTracker by timeTracking.tracker.collectAsStateWithLifecycle()
     var startFor by remember { mutableStateOf<Tracker?>(null) }
@@ -90,6 +92,7 @@ fun StartMenuHost(
             startFor = null
             return@LaunchedEffect
         }
+        launch { timeTracking.follow() }
         while (true) {
             timeTracking.refreshRunning()
             delay(TimerPollMs)
@@ -223,6 +226,7 @@ fun StartMenuHost(
                     settings = settings,
                     onTabShown = viewModel::setTabShown,
                     credentials = credentials,
+                    schedule = schedule,
                     onCredentials = timeTracking::updateCredentials
                 )
             }

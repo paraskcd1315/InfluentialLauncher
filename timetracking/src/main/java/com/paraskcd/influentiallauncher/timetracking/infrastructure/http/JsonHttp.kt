@@ -3,6 +3,7 @@
 
 package com.paraskcd.influentiallauncher.timetracking.infrastructure.http
 
+import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerRefusal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -19,7 +20,14 @@ class JsonHttp @Inject constructor() {
         url: String,
         authorization: String,
         body: String? = null
-    ): String = withContext(Dispatchers.IO) {
+    ): String = exchange(method, url, authorization, body).body
+
+    suspend fun exchange(
+        method: String,
+        url: String,
+        authorization: String,
+        body: String? = null
+    ): HttpAnswer = withContext(Dispatchers.IO) {
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = TimeoutMs
@@ -36,8 +44,16 @@ class JsonHttp @Inject constructor() {
             val code = connection.responseCode
             val stream = if (code in 200..299) connection.inputStream else connection.errorStream
             val text = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+            if (code in RefusalCodes) {
+                val wait = RetryHeaders.firstNotNullOfOrNull { connection.getHeaderField(it)?.trim()?.toLongOrNull() }
+                throw TrackerRefusal(wait, "HTTP $code: ${text.take(ErrorPreview)}")
+            }
             if (code !in 200..299) throw TrackerHttpException(code, text.take(ErrorPreview))
-            text
+            val headers = connection.headerFields
+                .filterKeys { it != null }
+                .map { (name, values) -> name.lowercase() to values.firstOrNull().orEmpty() }
+                .toMap()
+            HttpAnswer(text, headers)
         } finally {
             connection.disconnect()
         }
@@ -46,6 +62,8 @@ class JsonHttp @Inject constructor() {
     private companion object {
         const val TimeoutMs = 15_000
         const val ErrorPreview = 200
+        val RefusalCodes = setOf(402, 429)
+        val RetryHeaders = listOf("X-Toggl-Quota-Resets-In", "Retry-After")
     }
 }
 
