@@ -67,6 +67,13 @@ class TimeTrackingViewModel @Inject constructor(
         }
     }
 
+    suspend fun follow() {
+        tracking.changes.collect {
+            refreshRunning()
+            load(shownDay)
+        }
+    }
+
     fun refreshRunning() {
         viewModelScope.launch {
             val next = Tracker.entries.associateWith { tracker ->

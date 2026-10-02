@@ -5,9 +5,11 @@ package com.paraskcd.influentiallauncher.timetracking.di
 
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.CredentialsStore
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.TrackerClient
+import com.paraskcd.influentiallauncher.timetracking.domain.ports.TrackerStream
 import com.paraskcd.influentiallauncher.timetracking.infrastructure.DataStoreCredentialsStore
 import com.paraskcd.influentiallauncher.timetracking.infrastructure.kimai.KimaiClient
 import com.paraskcd.influentiallauncher.timetracking.infrastructure.toggl.TogglClient
+import com.paraskcd.influentiallauncher.timetracking.infrastructure.toggl.TogglStream
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -27,4 +29,8 @@ abstract class TimeTrackingModule {
     @Binds
     @IntoSet
     abstract fun bindKimai(impl: KimaiClient): TrackerClient
+
+    @Binds
+    @IntoSet
+    abstract fun bindTogglStream(impl: TogglStream): TrackerStream
 }

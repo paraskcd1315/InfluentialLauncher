@@ -63,6 +63,7 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.windows.TimerButt
 import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.windowing.presentation.WindowMetrics
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val TimerPollMs = 30_000L
 
@@ -90,6 +91,7 @@ fun StartMenuHost(
             startFor = null
             return@LaunchedEffect
         }
+        launch { timeTracking.follow() }
         while (true) {
             timeTracking.refreshRunning()
             delay(TimerPollMs)

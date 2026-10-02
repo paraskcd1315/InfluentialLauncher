@@ -3,6 +3,7 @@
 
 package com.paraskcd.influentiallauncher.timetracking.infrastructure.http
 
+import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerRefusal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -36,6 +37,10 @@ class JsonHttp @Inject constructor() {
             val code = connection.responseCode
             val stream = if (code in 200..299) connection.inputStream else connection.errorStream
             val text = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+            if (code in RefusalCodes) {
+                val wait = RetryHeaders.firstNotNullOfOrNull { connection.getHeaderField(it)?.trim()?.toLongOrNull() }
+                throw TrackerRefusal(wait, "HTTP $code: ${text.take(ErrorPreview)}")
+            }
             if (code !in 200..299) throw TrackerHttpException(code, text.take(ErrorPreview))
             text
         } finally {
@@ -46,6 +51,8 @@ class JsonHttp @Inject constructor() {
     private companion object {
         const val TimeoutMs = 15_000
         const val ErrorPreview = 200
+        val RefusalCodes = setOf(402, 429)
+        val RetryHeaders = listOf("X-Toggl-Quota-Resets-In", "Retry-After")
     }
 }
 

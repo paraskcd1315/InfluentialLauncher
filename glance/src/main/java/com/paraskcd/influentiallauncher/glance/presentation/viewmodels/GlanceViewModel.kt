@@ -20,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -45,7 +46,7 @@ class GlanceViewModel @Inject constructor(
     private val nowPlaying = refresh.flatMapLatest { if (media.hasAccess()) media.nowPlaying() else flowOf(null) }
 
     private var lastWeather: WeatherLoad = WeatherLoad.Loading
-    private var lastTimers: List<TimeEntry> = emptyList()
+    private var lastTimers: Map<Tracker, TimeEntry?> = emptyMap()
 
     private val forecast = refresh.flatMapLatest {
         flow<WeatherLoad> {
@@ -58,13 +59,14 @@ class GlanceViewModel @Inject constructor(
     }.onStart { emit(lastWeather) }
 
     private val timers = timerRefresh.flatMapLatest {
-        flow {
+        channelFlow {
+            launch { tracking.changes.collect { send(readTimers()) } }
             while (true) {
-                emit(Tracker.entries.mapNotNull { tracker -> runCatching { tracking.running(tracker) }.getOrNull() }.also { lastTimers = it })
+                send(readTimers())
                 delay(TimerPollMs)
             }
         }
-    }.onStart { emit(lastTimers) }
+    }.onStart { emit(lastTimers.values.filterNotNull()) }
 
     val cards: StateFlow<List<GlanceCard>> = combine(nowPlaying, timers, forecast, refresh) { playing, running, current, _ ->
         GlanceOrder.of(
@@ -94,8 +96,16 @@ class GlanceViewModel @Inject constructor(
     fun stop(entry: TimeEntry) {
         viewModelScope.launch {
             runCatching { tracking.stop(entry) }.onFailure { Log.w(LogTag, "stop failed", it) }
-            timerRefresh.value += 1
         }
+    }
+
+    private suspend fun readTimers(): List<TimeEntry> {
+        lastTimers = Tracker.entries.associateWith { tracker ->
+            runCatching { tracking.running(tracker) }
+                .onFailure { Log.w(LogTag, "reading running $tracker failed", it) }
+                .getOrElse { lastTimers[tracker] }
+        }
+        return lastTimers.values.filterNotNull()
     }
 
     private companion object {
