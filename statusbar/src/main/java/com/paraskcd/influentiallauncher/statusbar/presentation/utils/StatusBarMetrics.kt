@@ -14,4 +14,10 @@ object StatusBarMetrics {
     val paddingVertical = 10.dp
     val iconSize = 18.dp
     val iconGap = InfSpacing.s2
+    const val stackedColumns = 4
+    const val stackedColumnWidth = 3f / 18f
+    const val stackedBarTop = 2f / 18f
+    const val stackedBarHeight = 9f / 18f
+    const val stackedDotTop = 13f / 18f
+    const val stackedUnlitAlpha = 0.35f
 }

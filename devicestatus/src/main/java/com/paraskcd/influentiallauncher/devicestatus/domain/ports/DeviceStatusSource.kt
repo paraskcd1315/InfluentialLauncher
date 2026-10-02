@@ -12,4 +12,6 @@ interface DeviceStatusSource {
     val battery: Flow<BatteryStatus>
     val wifi: Flow<WifiStatus>
     val cellular: Flow<CellularStatus>
+    val vpn: Flow<Boolean>
+    fun refresh()
 }

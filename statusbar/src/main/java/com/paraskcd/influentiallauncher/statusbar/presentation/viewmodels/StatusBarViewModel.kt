@@ -15,14 +15,17 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class StatusBarViewModel @Inject constructor(deviceStatus: DeviceStatusSource) : ViewModel() {
+class StatusBarViewModel @Inject constructor(private val deviceStatus: DeviceStatusSource) : ViewModel() {
     val status: StateFlow<StatusState?> = combine(
         deviceStatus.battery,
         deviceStatus.wifi,
-        deviceStatus.cellular
-    ) { battery, wifi, cellular ->
-        StatusState(battery, wifi, cellular)
+        deviceStatus.cellular,
+        deviceStatus.vpn
+    ) { battery, wifi, cellular, vpn ->
+        StatusState(battery, wifi, cellular, vpn)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
+
+    fun refresh() = deviceStatus.refresh()
 
     private companion object {
         const val StopTimeoutMs = 5_000L
