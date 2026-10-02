@@ -17,14 +17,23 @@ import android.os.Messenger
 import android.os.RemoteException
 import android.util.Log
 
-class SpotlightPeek(private val context: Context, private val onClosed: () -> Unit) {
+class SpotlightPeek(
+    private val context: Context,
+    private val onShown: (Float) -> Unit,
+    private val onClosed: () -> Unit
+) {
 
     private var service: Messenger? = null
     private var boundPackage: String? = null
     private var peeking = false
 
     private val replies = Messenger(Handler(Looper.getMainLooper()) { message ->
-        if (message.what == SpotlightPeekProtocol.Closed && fromSpotlight(message)) close()
+        if (fromSpotlight(message)) {
+            when (message.what) {
+                SpotlightPeekProtocol.Shown -> onShown(message.data.getFloat(SpotlightPeekProtocol.KeyProgress, 1f).coerceIn(0f, 1f))
+                SpotlightPeekProtocol.Closed -> close()
+            }
+        }
         true
     })
 
@@ -82,26 +91,29 @@ class SpotlightPeek(private val context: Context, private val onClosed: () -> Un
         return peeking
     }
 
-    fun progress(value: Float) {
+    fun progress(value: Float, distancePx: Float) {
         if (!peeking) return
-        send(SpotlightPeekProtocol.Progress, SpotlightPeekProtocol.KeyProgress, value.coerceIn(0f, 1f))
+        send(SpotlightPeekProtocol.Progress) {
+            putFloat(SpotlightPeekProtocol.KeyProgress, value.coerceIn(0f, 1f))
+            putFloat(SpotlightPeekProtocol.KeyDistance, distancePx)
+        }
     }
 
     fun commit(velocityUp: Float) {
         if (!peeking) return
-        send(SpotlightPeekProtocol.Commit, SpotlightPeekProtocol.KeyVelocity, velocityUp)
+        send(SpotlightPeekProtocol.Commit) { putFloat(SpotlightPeekProtocol.KeyVelocity, velocityUp) }
     }
 
     fun cancel(velocityUp: Float) {
         if (!peeking) return
-        send(SpotlightPeekProtocol.Cancel, SpotlightPeekProtocol.KeyVelocity, velocityUp)
+        send(SpotlightPeekProtocol.Cancel) { putFloat(SpotlightPeekProtocol.KeyVelocity, velocityUp) }
     }
 
-    private fun send(what: Int, key: String? = null, value: Float = 0f) {
+    private fun send(what: Int, fill: (Bundle.() -> Unit)? = null) {
         val target = service ?: return
         val message = Message.obtain(null, what).apply {
             replyTo = replies
-            if (key != null) data = Bundle().apply { putFloat(key, value) }
+            if (fill != null) data = Bundle().apply(fill)
         }
         try {
             target.send(message)
