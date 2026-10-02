@@ -107,12 +107,13 @@ fun Desktop(activity: ComponentActivity) {
     var introPending by remember { mutableStateOf(false) }
     var introPlaying by remember { mutableStateOf(false) }
     val hidden = hiddenFor != null
+    val fade = remember { Animatable(1f) }
+    val barsHidden = hidden && fade.value == 0f
     val aboveTaskbar = rememberAboveTaskbarOffset()
     val density = LocalDensity.current
     val screenWidth = with(density) { LocalWindowInfo.current.containerSize.width.toDp() }
     val swipeDistance = with(density) { DesktopMetrics.searchSwipe.toPx() }
     val clockLift = with(density) { DesktopMetrics.searchClockLift.toPx() }
-    val fade = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
     val settle = { target: Float -> scope.launch { fade.animateTo(target, tween(InfMotion.durMorphMs, easing = InfMotion.easeIos)) } }
     val reveal = {
@@ -120,7 +121,12 @@ fun Desktop(activity: ComponentActivity) {
         left = false
         settle(1f)
     }
-    val peek = remember(activity) { SpotlightPeek(activity) { reveal() } }
+    val followSpotlight = { shown: Float ->
+        if (hiddenFor == DesktopAction.Peek || hiddenFor == DesktopAction.Search) {
+            scope.launch { fade.snapTo(1f - shown) }
+        }
+    }
+    val peek = remember(activity) { SpotlightPeek(activity, onShown = { followSpotlight(it) }, onClosed = { reveal() }) }
     DisposableEffect(peek) {
         peek.bind()
         onDispose { peek.unbind() }
@@ -345,7 +351,7 @@ fun Desktop(activity: ComponentActivity) {
                         }
                         dragged += amount
                         if (!peeking && dragged < 0f && peekAllowed.value) peeking = peek.start()
-                        if (peeking) peek.progress(-dragged / swipeDistance)
+                        if (peeking) peek.progress(-dragged / swipeDistance, swipeDistance)
                         if (dragged != 0f) direction = sign(dragged)
                         val progress = (abs(dragged) / swipeDistance).coerceIn(0f, 1f)
                         scope.launch { fade.snapTo(1f - progress) }
@@ -413,13 +419,13 @@ fun Desktop(activity: ComponentActivity) {
             controlOpen = false
         },
         onAppLaunched = appLaunched,
-        visible = !hidden && !homeOverview,
+        visible = !barsHidden && !homeOverview,
         alpha = chromeAlpha
     )
     StatusBarHost(
         offsetX = taskbarEdge,
         offsetY = if (landscape) pillTop else aboveTaskbar,
-        visible = !startShown && !hidden && !homeOverview,
+        visible = !startShown && !barsHidden && !homeOverview,
         alpha = chromeAlpha,
         active = controlOpen,
         onClick = { controlOpen = !controlOpen },
@@ -429,7 +435,7 @@ fun Desktop(activity: ComponentActivity) {
     SearchPillHost(
         offsetX = taskbarEdge,
         offsetY = if (landscape) navigationBottom + DesktopMetrics.windowGap else aboveTaskbar,
-        visible = !startShown && !hidden && !homeOverview,
+        visible = !startShown && !barsHidden && !homeOverview,
         onClick = {
             controlOpen = false
             hiddenFor = DesktopAction.Search
