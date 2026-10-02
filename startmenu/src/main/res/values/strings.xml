@@ -64,8 +64,29 @@
     <string name="startmenu_settings_toggl_token">Toggl API token</string>
     <string name="startmenu_settings_kimai_url">Kimai URL</string>
     <string name="startmenu_settings_kimai_token">Kimai API token</string>
-    <string name="startmenu_settings_schedule">Work schedule (toggl block of cc-console.json)</string>
-    <string name="startmenu_settings_schedule_read">Work schedule · %1$s h a week · %2$d days off</string>
+    <string name="startmenu_settings_schedule">Work schedule</string>
+    <string name="startmenu_settings_weekly_hours">Hours a week</string>
+    <string name="startmenu_settings_workdays">Working days a week</string>
+    <string name="startmenu_settings_months">Months with other hours</string>
+    <string name="startmenu_settings_month_hours">%1$s h a week</string>
+    <string name="startmenu_settings_add_month">Add a month</string>
+    <string name="startmenu_settings_month_title">Which month?</string>
+    <string name="startmenu_settings_month_hours_label">Hours a week in that month</string>
+    <string name="startmenu_settings_days_off">Days off</string>
+    <string name="startmenu_settings_add_days_off">Add days off</string>
+    <string name="startmenu_settings_first_day">First day off</string>
+    <string name="startmenu_settings_last_day">Last day off</string>
+    <string name="startmenu_settings_only_day">Only %1$s</string>
+    <string name="startmenu_settings_run">%1$s – %2$s</string>
+    <string name="startmenu_settings_remove">Remove %1$s</string>
+    <plurals name="startmenu_settings_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <plurals name="startmenu_settings_earlier_days">
+        <item quantity="one">%1$d earlier day off</item>
+        <item quantity="other">%1$d earlier days off</item>
+    </plurals>
     <string name="startmenu_detail_untitled">No description</string>
     <string name="startmenu_detail_description">Description</string>
     <string name="startmenu_detail_client">Client</string>

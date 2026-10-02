@@ -227,7 +227,8 @@ fun StartMenuHost(
                     onTabShown = viewModel::setTabShown,
                     credentials = credentials,
                     schedule = schedule,
-                    onCredentials = timeTracking::updateCredentials
+                    onCredentials = timeTracking::updateCredentials,
+                    onSchedule = timeTracking::updateSchedule
                 )
             }
         }

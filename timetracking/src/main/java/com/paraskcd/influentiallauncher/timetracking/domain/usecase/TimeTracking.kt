@@ -14,7 +14,7 @@ import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerProject
 import com.paraskcd.influentiallauncher.timetracking.domain.model.WorkSchedule
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.CredentialsStore
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.ScheduleInbox
-import com.paraskcd.influentiallauncher.timetracking.domain.ports.ScheduleReader
+import com.paraskcd.influentiallauncher.timetracking.domain.ports.ScheduleCodec
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.TrackerClient
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.TrackerStream
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +49,7 @@ import javax.inject.Singleton
 @Singleton
 class TimeTracking @Inject constructor(
     private val store: CredentialsStore,
-    private val scheduleReader: ScheduleReader,
+    private val scheduleCodec: ScheduleCodec,
     private val scheduleInbox: ScheduleInbox,
     clients: Set<@JvmSuppressWildcards TrackerClient>,
     streams: Set<@JvmSuppressWildcards TrackerStream>
@@ -67,7 +67,7 @@ class TimeTracking @Inject constructor(
     val schedule: Flow<WorkSchedule?> = store.credentials
         .map { it.workSchedule }
         .distinctUntilChanged()
-        .map(scheduleReader::read)
+        .map(scheduleCodec::read)
 
     val changes: SharedFlow<Tracker> = merge(streamChanges(), writes)
         .shareIn(scope, SharingStarted.WhileSubscribed(StreamLingerMs), replay = 0)
@@ -80,8 +80,15 @@ class TimeTracking @Inject constructor(
 
     suspend fun takeSchedule() {
         val text = scheduleInbox.take() ?: return
-        if (scheduleReader.read(text) == null) return
+        if (scheduleCodec.read(text) == null) return
         store.update { it.copy(workSchedule = text) }
+    }
+
+    suspend fun updateSchedule(transform: (WorkSchedule) -> WorkSchedule) {
+        store.update { held ->
+            val next = transform(scheduleCodec.read(held.workSchedule) ?: WorkSchedule())
+            held.copy(workSchedule = scheduleCodec.write(next))
+        }
     }
 
     suspend fun day(tracker: Tracker, day: LocalDate): List<TimeEntry> {
@@ -101,7 +108,7 @@ class TimeTracking @Inject constructor(
 
     suspend fun weekTarget(tracker: Tracker): Duration? {
         if (tracker !in contracted) return null
-        val held = scheduleReader.read(store.credentials.first().workSchedule) ?: return null
+        val held = scheduleCodec.read(store.credentials.first().workSchedule) ?: return null
         return held.target(weekStart(ZoneId.systemDefault()))
     }
 
