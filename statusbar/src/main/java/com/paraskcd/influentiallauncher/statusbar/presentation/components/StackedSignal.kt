@@ -21,11 +21,17 @@ fun StackedSignal(
     contentDescription: String,
     modifier: Modifier = Modifier
 ) {
-    Canvas(modifier = modifier.size(StatusBarMetrics.iconSize), contentDescription = contentDescription) {
-        val stroke = size.width * StatusBarMetrics.stackedStroke
-        val inset = size.width * StatusBarMetrics.stackedInset
+    Canvas(
+        modifier = modifier.size(
+            width = StatusBarMetrics.iconSize * StatusBarMetrics.stackedWidth,
+            height = StatusBarMetrics.iconSize
+        ),
+        contentDescription = contentDescription
+    ) {
+        val stroke = size.height * StatusBarMetrics.stackedStroke
+        val inset = size.height * StatusBarMetrics.stackedInset
         val steps = StatusBarMetrics.stackedColumns - 1
-        val pitch = (size.width - 2 * inset - stroke) / steps
+        val pitch = size.height * StatusBarMetrics.stackedPitch
         val barBottom = size.height * StatusBarMetrics.stackedBarBottom
         val shortest = size.height * StatusBarMetrics.stackedBarShortest
         val tallest = size.height * StatusBarMetrics.stackedBarTallest
