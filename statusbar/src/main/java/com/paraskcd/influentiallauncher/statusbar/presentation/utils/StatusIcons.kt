@@ -4,7 +4,6 @@
 package com.paraskcd.influentiallauncher.statusbar.presentation.utils
 
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.composables.icons.lucide.Battery
 import com.composables.icons.lucide.BatteryCharging
 import com.composables.icons.lucide.BatteryFull
 import com.composables.icons.lucide.BatteryLow
@@ -29,15 +28,13 @@ object StatusIcons {
     private const val BatteryWarningBelow = 10
     private const val BatteryLowBelow = 30
     private const val BatteryMediumBelow = 70
-    private const val BatteryFullFrom = 95
 
     fun battery(status: BatteryStatus): ImageVector = when {
         status.charging -> Lucide.BatteryCharging
         status.percent < BatteryWarningBelow -> Lucide.BatteryWarning
         status.percent < BatteryLowBelow -> Lucide.BatteryLow
         status.percent < BatteryMediumBelow -> Lucide.BatteryMedium
-        status.percent >= BatteryFullFrom -> Lucide.BatteryFull
-        else -> Lucide.Battery
+        else -> Lucide.BatteryFull
     }
 
     fun wifi(status: WifiStatus): ImageVector {
