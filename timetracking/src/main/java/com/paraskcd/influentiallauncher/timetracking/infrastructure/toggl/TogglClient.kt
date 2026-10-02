@@ -10,6 +10,7 @@ import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerActivity
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerCredentials
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerProject
+import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerRefusal
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.TrackerClient
 import com.paraskcd.influentiallauncher.timetracking.infrastructure.http.ApiUrl
 import com.paraskcd.influentiallauncher.timetracking.infrastructure.http.JsonHttp
@@ -27,7 +28,8 @@ import javax.inject.Singleton
 
 @Singleton
 class TogglClient @Inject constructor(
-    private val http: JsonHttp
+    private val http: JsonHttp,
+    private val quota: TogglQuota
 ) : TrackerClient {
 
     override val tracker: Tracker = Tracker.Toggl
@@ -102,12 +104,25 @@ class TogglClient @Inject constructor(
         id
     }
 
-    private suspend fun get(credentials: TrackerCredentials, path: String, query: Map<String, Any?> = emptyMap()): String =
-        http.request("GET", ApiUrl.of(TogglApi.BaseUrl, path, query), auth(credentials))
+    private suspend fun get(credentials: TrackerCredentials, path: String, query: Map<String, Any?> = emptyMap()): String {
+        val bucket = TogglBucket.of(path)
+        quota.admit(bucket)
+        return exchange(bucket, "GET", ApiUrl.of(TogglApi.BaseUrl, path, query), credentials, null)
+    }
 
     private suspend fun send(credentials: TrackerCredentials, method: String, path: String, body: JSONObject?) {
-        http.request(method, ApiUrl.of(TogglApi.BaseUrl, path), auth(credentials), body?.toString())
+        exchange(TogglBucket.of(path), method, ApiUrl.of(TogglApi.BaseUrl, path), credentials, body?.toString())
     }
+
+    private suspend fun exchange(bucket: TogglBucket, method: String, url: String, credentials: TrackerCredentials, body: String?): String =
+        try {
+            val answer = http.exchange(method, url, auth(credentials), body)
+            quota.record(bucket, answer.headers)
+            answer.body
+        } catch (refusal: TrackerRefusal) {
+            quota.refused(bucket, refusal.retryAfterSeconds)
+            throw refusal
+        }
 
     private fun auth(credentials: TrackerCredentials): String {
         val raw = "${credentials.togglToken.trim()}:api_token".toByteArray()

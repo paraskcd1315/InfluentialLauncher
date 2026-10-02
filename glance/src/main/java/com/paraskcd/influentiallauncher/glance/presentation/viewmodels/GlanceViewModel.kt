@@ -16,6 +16,7 @@ import com.paraskcd.influentiallauncher.timetracking.domain.usecase.TimeTracking
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -60,13 +61,13 @@ class GlanceViewModel @Inject constructor(
 
     private val timers = timerRefresh.flatMapLatest {
         channelFlow {
-            launch { tracking.changes.collect { send(readTimers()) } }
+            launch { tracking.changes.collect { tracker -> send(readTimer(tracker)) } }
             while (true) {
-                send(readTimers())
+                coroutineScope { Tracker.entries.forEach { tracker -> launch { send(readTimer(tracker)) } } }
                 delay(TimerPollMs)
             }
         }
-    }.onStart { emit(lastTimers.values.filterNotNull()) }
+    }.onStart { emit(shownTimers()) }
 
     val cards: StateFlow<List<GlanceCard>> = combine(nowPlaying, timers, forecast, refresh) { playing, running, current, _ ->
         GlanceOrder.of(
@@ -99,14 +100,15 @@ class GlanceViewModel @Inject constructor(
         }
     }
 
-    private suspend fun readTimers(): List<TimeEntry> {
-        lastTimers = Tracker.entries.associateWith { tracker ->
-            runCatching { tracking.running(tracker) }
-                .onFailure { Log.w(LogTag, "reading running $tracker failed", it) }
-                .getOrElse { lastTimers[tracker] }
-        }
-        return lastTimers.values.filterNotNull()
+    private suspend fun readTimer(tracker: Tracker): List<TimeEntry> {
+        val entry = runCatching { tracking.running(tracker) }
+            .onFailure { Log.w(LogTag, "reading running $tracker failed: ${it.message}") }
+            .getOrElse { lastTimers[tracker] }
+        lastTimers = lastTimers + (tracker to entry)
+        return shownTimers()
     }
+
+    private fun shownTimers(): List<TimeEntry> = Tracker.entries.mapNotNull { lastTimers[it] }
 
     private companion object {
         const val LogTag = "Glance"

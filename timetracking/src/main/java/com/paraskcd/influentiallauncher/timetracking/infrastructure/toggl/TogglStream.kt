@@ -4,7 +4,9 @@
 package com.paraskcd.influentiallauncher.timetracking.infrastructure.toggl
 
 import android.util.Log
+import com.paraskcd.influentiallauncher.timetracking.domain.model.RunningUpdate
 import com.paraskcd.influentiallauncher.timetracking.domain.model.StreamSignal
+import com.paraskcd.influentiallauncher.timetracking.domain.model.TimeEntry
 import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerCredentials
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.TrackerStream
@@ -20,6 +22,8 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import org.json.JSONObject
+import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -75,10 +79,8 @@ class TogglStream @Inject constructor() : TrackerStream {
                 when {
                     message.optString(TogglApi.Stream.TypeField) == TogglApi.Stream.Ping ->
                         webSocket.send(JSONObject().put(TogglApi.Stream.TypeField, TogglApi.Stream.Pong).toString())
-                    message.optString(TogglApi.Stream.ModelField) == TogglApi.Stream.TimeEntryModel -> {
-                        Log.i(LogTag, "time entry changed")
-                        trySend(StreamSignal.Changed)
-                    }
+                    message.optString(TogglApi.Stream.ModelField) == TogglApi.Stream.TimeEntryModel ->
+                        trySend(StreamSignal.Changed(runningUpdateOf(message)))
                 }
             }
 
@@ -97,6 +99,46 @@ class TogglStream @Inject constructor() : TrackerStream {
         val socket = client.newWebSocket(request, listener)
         awaitClose { socket.cancel() }
     }
+
+    private fun runningUpdateOf(message: JSONObject): RunningUpdate? {
+        val action = message.optString(TogglApi.Stream.ActionField)
+        val data = message.optJSONObject(TogglApi.Stream.DataField)
+        val update = data?.let { runningUpdateOf(action, it) }
+        val fields = data?.keys()?.asSequence()?.sorted()?.joinToString(",").orEmpty()
+        Log.i(LogTag, "time entry frame: action=$action update=${update?.javaClass?.simpleName} fields=$fields")
+        return update
+    }
+
+    private fun runningUpdateOf(action: String, data: JSONObject): RunningUpdate? {
+        if (data.isNull(TogglApi.Stream.Fields.Id)) return null
+        val id = data.optLong(TogglApi.Stream.Fields.Id).toString()
+        val deleted = action.equals(TogglApi.Stream.Delete, ignoreCase = true) || data.text(TogglApi.Stream.Fields.DeletedAt) != null
+        val stopped = data.text(TogglApi.Stream.Fields.Stop) != null
+        val duration = if (data.isNull(TogglApi.Stream.Fields.Duration)) null else data.optLong(TogglApi.Stream.Fields.Duration)
+        if (deleted || stopped || (duration != null && duration >= 0)) return RunningUpdate.Ended(id)
+        val start = data.text(TogglApi.Stream.Fields.Start)?.let(::instantOf)
+        if (start == null || duration == null) return null
+        val projectField = TogglApi.Stream.Fields.Project.firstOrNull { !data.isNull(it) }
+        val tags = data.optJSONArray(TogglApi.Stream.Fields.Tags)
+        return RunningUpdate.Started(
+            TimeEntry(
+                id = id,
+                tracker = Tracker.Toggl,
+                description = data.text(TogglApi.Stream.Fields.Description).orEmpty(),
+                projectId = projectField?.let { data.optLong(it).toString() },
+                projectName = null,
+                colourArgb = null,
+                start = start,
+                end = null,
+                tags = tags?.let { list -> (0 until list.length()).mapNotNull { list.optString(it).takeIf(String::isNotBlank) } }.orEmpty()
+            )
+        )
+    }
+
+    private fun JSONObject.text(name: String): String? =
+        if (isNull(name)) null else optString(name).takeIf { it.isNotBlank() }
+
+    private fun instantOf(value: String): Instant? = runCatching { OffsetDateTime.parse(value).toInstant() }.getOrNull()
 
     private fun backoffMs(attempt: Int): Long =
         (BackoffStartMs shl attempt.coerceAtMost(BackoffMaxShift)).coerceAtMost(BackoffCeilingMs)

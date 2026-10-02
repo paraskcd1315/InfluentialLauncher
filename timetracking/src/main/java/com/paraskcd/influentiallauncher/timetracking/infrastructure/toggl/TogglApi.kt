@@ -32,5 +32,19 @@ object TogglApi {
         const val Ping = "ping"
         const val Pong = "pong"
         const val TimeEntryModel = "time_entry"
+        const val ActionField = "action"
+        const val DataField = "data"
+        const val Delete = "DELETE"
+
+        object Fields {
+            const val Id = "id"
+            const val Description = "description"
+            const val Start = "start"
+            const val Stop = "stop"
+            const val Duration = "duration"
+            const val DeletedAt = "server_deleted_at"
+            const val Tags = "tags"
+            val Project = listOf("project_id", "pid")
+        }
     }
 }

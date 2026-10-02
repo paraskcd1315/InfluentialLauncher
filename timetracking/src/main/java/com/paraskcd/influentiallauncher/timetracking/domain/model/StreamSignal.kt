@@ -3,8 +3,8 @@
 
 package com.paraskcd.influentiallauncher.timetracking.domain.model
 
-enum class StreamSignal {
-    Open,
-    Changed,
-    Closed
+sealed interface StreamSignal {
+    data object Open : StreamSignal
+    data object Closed : StreamSignal
+    data class Changed(val update: RunningUpdate?) : StreamSignal
 }

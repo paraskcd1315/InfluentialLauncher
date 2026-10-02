@@ -3,6 +3,7 @@
 
 package com.paraskcd.influentiallauncher.timetracking.domain.usecase
 
+import com.paraskcd.influentiallauncher.timetracking.domain.model.RunningUpdate
 import com.paraskcd.influentiallauncher.timetracking.domain.model.StartTimer
 import com.paraskcd.influentiallauncher.timetracking.domain.model.StreamSignal
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TimeEntry
@@ -67,7 +68,7 @@ class TimeTracking @Inject constructor(
     }
 
     suspend fun running(tracker: Tracker): TimeEntry? = withClient(tracker, null) { client, credentials ->
-        caches.getValue(tracker).answer(RunningKey) { client.running(credentials) }
+        caches.getValue(tracker).answer(TrackerCache.RunningKey) { client.running(credentials) }
     }
 
     suspend fun projects(tracker: Tracker): List<TrackerProject> =
@@ -97,12 +98,24 @@ class TimeTracking @Inject constructor(
             .map { stream ->
                 val cache = caches.getValue(stream.tracker)
                 stream.signals(credentials)
+                    .map { signal -> withProject(stream.tracker, credentials, signal) }
                     .filter { cache.signal(it) }
                     .onCompletion { cache.signal(StreamSignal.Closed) }
                     .map { stream.tracker }
                     .debounce(SettleMs)
             }
             .merge()
+    }
+
+    private suspend fun withProject(tracker: Tracker, credentials: TrackerCredentials, signal: StreamSignal): StreamSignal {
+        val started = (signal as? StreamSignal.Changed)?.update as? RunningUpdate.Started ?: return signal
+        val projectId = started.entry.projectId ?: return signal
+        val client = byTracker[tracker] ?: return signal
+        val project = runCatching { caches.getValue(tracker).answer(ProjectsKey) { client.projects(credentials) } }
+            .getOrDefault(emptyList())
+            .firstOrNull { it.id == projectId } ?: return signal
+        val entry = started.entry.copy(projectName = project.name, colourArgb = project.colourArgb, clientName = project.clientName)
+        return StreamSignal.Changed(RunningUpdate.Started(entry))
     }
 
     private suspend fun wrote(tracker: Tracker) {
@@ -126,7 +139,7 @@ class TimeTracking @Inject constructor(
     }
 
     private companion object {
-        const val RunningKey = "running"
+        const val ProjectsKey = "projects"
         const val DayKey = "day:"
         const val WriteBuffer = 8
         const val SettleMs = 1_500L

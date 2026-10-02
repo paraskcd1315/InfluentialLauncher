@@ -20,7 +20,14 @@ class JsonHttp @Inject constructor() {
         url: String,
         authorization: String,
         body: String? = null
-    ): String = withContext(Dispatchers.IO) {
+    ): String = exchange(method, url, authorization, body).body
+
+    suspend fun exchange(
+        method: String,
+        url: String,
+        authorization: String,
+        body: String? = null
+    ): HttpAnswer = withContext(Dispatchers.IO) {
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = TimeoutMs
@@ -42,7 +49,11 @@ class JsonHttp @Inject constructor() {
                 throw TrackerRefusal(wait, "HTTP $code: ${text.take(ErrorPreview)}")
             }
             if (code !in 200..299) throw TrackerHttpException(code, text.take(ErrorPreview))
-            text
+            val headers = connection.headerFields
+                .filterKeys { it != null }
+                .map { (name, values) -> name.lowercase() to values.firstOrNull().orEmpty() }
+                .toMap()
+            HttpAnswer(text, headers)
         } finally {
             connection.disconnect()
         }

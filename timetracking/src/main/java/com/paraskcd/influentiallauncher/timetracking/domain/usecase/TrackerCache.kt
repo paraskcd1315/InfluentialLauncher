@@ -3,7 +3,9 @@
 
 package com.paraskcd.influentiallauncher.timetracking.domain.usecase
 
+import com.paraskcd.influentiallauncher.timetracking.domain.model.RunningUpdate
 import com.paraskcd.influentiallauncher.timetracking.domain.model.StreamSignal
+import com.paraskcd.influentiallauncher.timetracking.domain.model.TimeEntry
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerRefusal
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -28,11 +30,7 @@ internal class TrackerCache(private val hasStream: Boolean) {
                 openedAt = null
                 false
             }
-            StreamSignal.Changed -> {
-                val echo = wroteAt?.let { Duration.between(it, now) < EchoWindow } ?: false
-                if (!echo) answers.clear()
-                !echo
-            }
+            is StreamSignal.Changed -> changed(signal.update, now)
         }
     }
 
@@ -68,6 +66,22 @@ internal class TrackerCache(private val hasStream: Boolean) {
         }
     }
 
+    private fun changed(update: RunningUpdate?, now: Instant): Boolean {
+        val echo = wroteAt?.let { Duration.between(it, now) < EchoWindow } ?: false
+        if (update == null && echo) return false
+        val running = answers[RunningKey]
+        answers.clear()
+        when (update) {
+            is RunningUpdate.Started -> answers[RunningKey] = StampedAnswer(update.entry, now)
+            is RunningUpdate.Ended -> if (running != null) {
+                val current = running.value as? TimeEntry
+                answers[RunningKey] = if (current == null || current.id == update.id) StampedAnswer(null, now) else running
+            }
+            null -> Unit
+        }
+        return true
+    }
+
     private fun isFresh(readAt: Instant, now: Instant): Boolean {
         if (!hasStream) return false
         val age = Duration.between(readAt, now)
@@ -76,14 +90,15 @@ internal class TrackerCache(private val hasStream: Boolean) {
         return !readAt.isBefore(opened.minus(ConnectSlack)) && age < OpenMaxAge
     }
 
-    private companion object {
-        const val MaxAnswers = 16
-        const val DefaultPauseSeconds = 300L
-        const val PausedDetail = "tracker reads are paused after a refusal"
-        val EchoWindow: Duration = Duration.ofSeconds(5)
-        val ConnectSlack: Duration = Duration.ofSeconds(10)
-        val ResyncMinAge: Duration = Duration.ofMinutes(3)
-        val ClosedMaxAge: Duration = Duration.ofMinutes(5)
-        val OpenMaxAge: Duration = Duration.ofMinutes(15)
+    companion object {
+        const val RunningKey = "running"
+        private const val MaxAnswers = 16
+        private const val DefaultPauseSeconds = 300L
+        private const val PausedDetail = "tracker reads are paused after a refusal"
+        private val EchoWindow: Duration = Duration.ofSeconds(5)
+        private val ConnectSlack: Duration = Duration.ofSeconds(10)
+        private val ResyncMinAge: Duration = Duration.ofMinutes(3)
+        private val ClosedMaxAge: Duration = Duration.ofMinutes(5)
+        private val OpenMaxAge: Duration = Duration.ofMinutes(30)
     }
 }
