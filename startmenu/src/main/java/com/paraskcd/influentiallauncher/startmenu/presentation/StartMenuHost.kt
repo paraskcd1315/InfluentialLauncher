@@ -83,6 +83,7 @@ fun StartMenuHost(
     timeTracking: TimeTrackingViewModel = hiltViewModel()
 ) {
     val credentials by timeTracking.credentials.collectAsStateWithLifecycle()
+    val schedule by timeTracking.schedule.collectAsStateWithLifecycle()
     val running by timeTracking.running.collectAsStateWithLifecycle()
     val calendarTracker by timeTracking.tracker.collectAsStateWithLifecycle()
     var startFor by remember { mutableStateOf<Tracker?>(null) }
@@ -225,6 +226,7 @@ fun StartMenuHost(
                     settings = settings,
                     onTabShown = viewModel::setTabShown,
                     credentials = credentials,
+                    schedule = schedule,
                     onCredentials = timeTracking::updateCredentials
                 )
             }

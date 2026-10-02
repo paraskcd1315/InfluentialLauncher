@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -47,7 +48,7 @@ class GlanceViewModel @Inject constructor(
     private val nowPlaying = refresh.flatMapLatest { if (media.hasAccess()) media.nowPlaying() else flowOf(null) }
 
     private var lastWeather: WeatherLoad = WeatherLoad.Loading
-    private var lastTimers: Map<Tracker, TimeEntry?> = emptyMap()
+    private var lastTimers: Map<Tracker, GlanceCard.Timer> = emptyMap()
 
     private val forecast = refresh.flatMapLatest {
         flow<WeatherLoad> {
@@ -61,9 +62,9 @@ class GlanceViewModel @Inject constructor(
 
     private val timers = timerRefresh.flatMapLatest {
         channelFlow {
-            launch { tracking.changes.collect { tracker -> send(readTimer(tracker)) } }
+            launch { tracking.changes.collect { tracker -> readTimer(tracker) { send(it) } } }
             while (true) {
-                coroutineScope { Tracker.entries.forEach { tracker -> launch { send(readTimer(tracker)) } } }
+                coroutineScope { Tracker.entries.forEach { tracker -> launch { readTimer(tracker) { send(it) } } } }
                 delay(TimerPollMs)
             }
         }
@@ -81,7 +82,10 @@ class GlanceViewModel @Inject constructor(
 
     fun refresh() {
         refresh.value += 1
-        timerRefresh.value += 1
+        viewModelScope.launch {
+            tracking.takeSchedule()
+            timerRefresh.value += 1
+        }
     }
 
     fun requestMediaAccess() = media.requestAccess()
@@ -100,15 +104,24 @@ class GlanceViewModel @Inject constructor(
         }
     }
 
-    private suspend fun readTimer(tracker: Tracker): List<TimeEntry> {
+    private suspend fun readTimer(tracker: Tracker, publish: suspend (List<GlanceCard.Timer>) -> Unit) {
+        val held = lastTimers[tracker] ?: GlanceCard.Timer(tracker, entry = null, week = null, weekTarget = null)
         val entry = runCatching { tracking.running(tracker) }
             .onFailure { Log.w(LogTag, "reading running $tracker failed: ${it.message}") }
-            .getOrElse { lastTimers[tracker] }
-        lastTimers = lastTimers + (tracker to entry)
-        return shownTimers()
+            .getOrElse { held.entry }
+        lastTimers = lastTimers + (tracker to held.copy(entry = entry))
+        publish(shownTimers())
+        if (entry == null && !GlanceOrder.showsIdle(tracker)) return
+        if (!tracking.credentials.first().configured(tracker)) return
+        val week = runCatching { tracking.week(tracker) }
+            .onFailure { Log.w(LogTag, "reading $tracker week failed: ${it.message}") }
+            .getOrNull() ?: return
+        val target = runCatching { tracking.weekTarget(tracker) }.getOrNull()
+        lastTimers = lastTimers + (tracker to lastTimers.getValue(tracker).copy(week = week, weekTarget = target))
+        publish(shownTimers())
     }
 
-    private fun shownTimers(): List<TimeEntry> = Tracker.entries.mapNotNull { lastTimers[it] }
+    private fun shownTimers(): List<GlanceCard.Timer> = Tracker.entries.mapNotNull { lastTimers[it] }
 
     private companion object {
         const val LogTag = "Glance"

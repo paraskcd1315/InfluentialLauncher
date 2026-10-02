@@ -44,13 +44,15 @@ class DataStoreCredentialsStore @Inject constructor(
             preferences[TogglToken] = next.togglToken
             preferences[KimaiUrl] = next.kimaiUrl
             preferences[KimaiToken] = next.kimaiToken
+            preferences[WorkSchedule] = next.workSchedule
         }
     }
 
     private fun Preferences.toCredentials() = TrackerCredentials(
         togglToken = this[TogglToken].orEmpty(),
         kimaiUrl = this[KimaiUrl].orEmpty(),
-        kimaiToken = this[KimaiToken].orEmpty()
+        kimaiToken = this[KimaiToken].orEmpty(),
+        workSchedule = this[WorkSchedule].orEmpty()
     )
 
     private companion object {
@@ -58,5 +60,6 @@ class DataStoreCredentialsStore @Inject constructor(
         val TogglToken = stringPreferencesKey("toggl_token")
         val KimaiUrl = stringPreferencesKey("kimai_url")
         val KimaiToken = stringPreferencesKey("kimai_token")
+        val WorkSchedule = stringPreferencesKey("work_schedule")
     }
 }

@@ -21,6 +21,7 @@ import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSwitch
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfTextField
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerCredentials
+import com.paraskcd.influentiallauncher.timetracking.domain.model.WorkSchedule
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfGroupedCard
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfSettingsRow
 import com.paraskcd.influentiallauncher.settings.domain.model.LauncherSettings
@@ -28,12 +29,14 @@ import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuTab
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TabToggles
+import java.text.DecimalFormat
 
 @Composable
 fun SettingsTab(
     settings: LauncherSettings,
     onTabShown: (StartMenuTab, Boolean) -> Unit,
     credentials: TrackerCredentials,
+    schedule: WorkSchedule?,
     onCredentials: ((TrackerCredentials) -> TrackerCredentials) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -41,10 +44,12 @@ fun SettingsTab(
     var togglToken by remember { mutableStateOf(credentials.togglToken) }
     var kimaiUrl by remember { mutableStateOf(credentials.kimaiUrl) }
     var kimaiToken by remember { mutableStateOf(credentials.kimaiToken) }
+    var workSchedule by remember { mutableStateOf(credentials.workSchedule) }
     LaunchedEffect(credentials) {
         if (togglToken.isEmpty()) togglToken = credentials.togglToken
         if (kimaiUrl.isEmpty()) kimaiUrl = credentials.kimaiUrl
         if (kimaiToken.isEmpty()) kimaiToken = credentials.kimaiToken
+        if (workSchedule.isEmpty()) workSchedule = credentials.workSchedule
     }
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(StartMenuMetrics.rowGap),
@@ -101,7 +106,28 @@ fun SettingsTab(
                 secret = true
             )
         }
+        item {
+            InfTextField(
+                value = workSchedule,
+                onValueChange = { value ->
+                    workSchedule = value
+                    onCredentials { it.copy(workSchedule = value.trim()) }
+                },
+                label = if (schedule == null) {
+                    stringResource(R.string.startmenu_settings_schedule)
+                } else {
+                    stringResource(
+                        R.string.startmenu_settings_schedule_read,
+                        DecimalFormat(HoursPattern).format(schedule.weeklyHours),
+                        schedule.holidays.size
+                    )
+                },
+                placeholder = ScheduleHint
+            )
+        }
     }
 }
 
 private const val KimaiUrlHint = "https://kimai.example.com"
+private const val ScheduleHint = "{\"weeklyHours\":40,\"holidays\":[{\"date\":\"2026-12-25\"}]}"
+private const val HoursPattern = "0.##"

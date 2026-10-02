@@ -48,6 +48,8 @@
     <string name="startmenu_tracker_failed">%1$s did not answer. Check its details in the Settings tab.</string>
     <string name="startmenu_total">%1$dh %2$02dm</string>
     <string name="startmenu_today_total">Today · %1$s</string>
+    <string name="startmenu_today_week_total">Today · %1$s · Week · %2$s</string>
+    <string name="startmenu_week_of">%1$s / %2$s</string>
     <string name="startmenu_calendar_allow">Show calendar events</string>
     <string name="startmenu_timer_start">Start timer</string>
     <string name="startmenu_timer_stop">Stop timer</string>
@@ -62,6 +64,8 @@
     <string name="startmenu_settings_toggl_token">Toggl API token</string>
     <string name="startmenu_settings_kimai_url">Kimai URL</string>
     <string name="startmenu_settings_kimai_token">Kimai API token</string>
+    <string name="startmenu_settings_schedule">Work schedule (toggl block of cc-console.json)</string>
+    <string name="startmenu_settings_schedule_read">Work schedule · %1$s h a week · %2$d days off</string>
     <string name="startmenu_detail_untitled">No description</string>
     <string name="startmenu_detail_description">Description</string>
     <string name="startmenu_detail_client">Client</string>

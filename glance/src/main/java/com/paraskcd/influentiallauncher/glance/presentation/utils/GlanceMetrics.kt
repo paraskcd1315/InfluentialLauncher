@@ -23,6 +23,7 @@ object GlanceMetrics {
     const val shadowBlur = 12f
     val shadowOffset = Offset(0f, 2f)
     const val tickMs = 1_000L
+    const val idleTickMs = 60_000L
     const val skeletonMinAlpha = 0.12f
     const val skeletonMaxAlpha = 0.28f
     const val skeletonPulseMs = 900

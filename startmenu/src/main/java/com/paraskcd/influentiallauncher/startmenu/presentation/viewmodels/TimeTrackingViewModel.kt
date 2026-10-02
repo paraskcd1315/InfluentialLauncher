@@ -7,12 +7,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.TrackerDay
+import com.paraskcd.influentiallauncher.startmenu.presentation.model.TrackerWeek
 import com.paraskcd.influentiallauncher.timetracking.domain.model.StartTimer
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TimeEntry
 import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerActivity
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerCredentials
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerProject
+import com.paraskcd.influentiallauncher.timetracking.domain.model.WorkSchedule
 import com.paraskcd.influentiallauncher.timetracking.domain.usecase.TimeTracking
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +41,12 @@ class TimeTrackingViewModel @Inject constructor(
     private val _day = MutableStateFlow<TrackerDay?>(null)
     val day: StateFlow<TrackerDay?> = _day.asStateFlow()
 
+    val schedule: StateFlow<WorkSchedule?> = tracking.schedule
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val _week = MutableStateFlow<TrackerWeek?>(null)
+    val week: StateFlow<TrackerWeek?> = _week.asStateFlow()
+
     private val _running = MutableStateFlow<Map<Tracker, TimeEntry?>>(emptyMap())
     val running: StateFlow<Map<Tracker, TimeEntry?>> = _running.asStateFlow()
 
@@ -64,6 +72,10 @@ class TimeTrackingViewModel @Inject constructor(
                 loading = false,
                 failed = result.isFailure
             )
+            val entries = runCatching { tracking.week(tracker) }
+                .onFailure { Log.w(LogTag, "loading $tracker week failed: ${it.message}") }
+                .getOrNull() ?: return@launch
+            _week.value = TrackerWeek(tracker, entries, runCatching { tracking.weekTarget(tracker) }.getOrNull())
         }
     }
 

@@ -45,11 +45,14 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TrackerLabe
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.CalendarViewModel
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.TimeTrackingViewModel
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.HeaderWindow
+import com.paraskcd.influentiallauncher.startmenu.presentation.model.TrackerWeek
 import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
+import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerTotals
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Composable
 fun CalendarTab(
@@ -83,7 +86,12 @@ fun CalendarTab(
     val entries = current?.entries.orEmpty()
     val dayEvents = events.orEmpty()
     val allDay = dayEvents.filter { it.allDay }
-    val caption = totalCaption(entries.map { Duration.between(it.start, it.end ?: Instant.now()) }, date == LocalDate.now())
+    val trackerWeek by timeTracking.week.collectAsStateWithLifecycle()
+    val caption = totalCaption(
+        durations = entries.map { Duration.between(it.start, it.end ?: Instant.now()) },
+        today = date == LocalDate.now(),
+        week = trackerWeek?.takeIf { it.tracker == tracker }
+    )
     val trackerName = stringResource(TrackerLabels.nameOf(tracker))
     val notice = when {
         !credentials.configured(tracker) -> stringResource(R.string.startmenu_tracker_setup, trackerName)
@@ -180,11 +188,17 @@ fun CalendarTab(
 }
 
 @Composable
-private fun totalCaption(durations: List<Duration>, today: Boolean): String? {
+private fun totalCaption(durations: List<Duration>, today: Boolean, week: TrackerWeek?): String? {
     val minutes = durations.sumOf { it.toMinutes() }
     if (minutes <= 0 && !today) return null
-    val total = stringResource(R.string.startmenu_total, minutes / MinutesPerHour, minutes % MinutesPerHour)
-    return if (today) stringResource(R.string.startmenu_today_total, total) else total
+    val total = hoursAndMinutes(Duration.ofMinutes(minutes))
+    if (!today) return total
+    if (week == null) return stringResource(R.string.startmenu_today_total, total)
+    val worked = hoursAndMinutes(TrackerTotals.of(week.entries, null, Instant.now(), ZoneId.systemDefault()).week)
+    val weekly = week.target?.let { stringResource(R.string.startmenu_week_of, worked, hoursAndMinutes(it)) } ?: worked
+    return stringResource(R.string.startmenu_today_week_total, total, weekly)
 }
 
-private const val MinutesPerHour = 60L
+@Composable
+private fun hoursAndMinutes(duration: Duration): String =
+    stringResource(R.string.startmenu_total, duration.toHours(), duration.toMinutesPart())

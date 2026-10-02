@@ -111,7 +111,13 @@ fun GlanceHost(
                         onPlayPause = viewModel::playPause,
                         onNext = viewModel::next
                     )
-                    is GlanceCard.Timer -> TimerGlance(entry = card.entry, onStop = { viewModel.stop(card.entry) })
+                    is GlanceCard.Timer -> TimerGlance(
+                        tracker = card.tracker,
+                        entry = card.entry,
+                        week = card.week,
+                        weekTarget = card.weekTarget,
+                        onStop = { card.entry?.let(viewModel::stop) }
+                    )
                     is GlanceCard.Forecast -> WeatherGlance(weather = card.weather, onOpen = weatherViewModel::open)
                     GlanceCard.MediaAccess -> GlanceText(
                         text = stringResource(R.string.glance_media_access),
