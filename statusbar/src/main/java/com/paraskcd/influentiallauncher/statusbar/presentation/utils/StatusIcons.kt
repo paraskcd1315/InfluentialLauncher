@@ -9,6 +9,7 @@ import com.composables.icons.lucide.BatteryFull
 import com.composables.icons.lucide.BatteryLow
 import com.composables.icons.lucide.BatteryMedium
 import com.composables.icons.lucide.BatteryWarning
+import com.composables.icons.lucide.KeyRound
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.SignalHigh
 import com.composables.icons.lucide.Signal
@@ -29,6 +30,8 @@ object StatusIcons {
     private const val BatteryLowBelow = 30
     private const val BatteryMediumBelow = 70
 
+    val vpn: ImageVector = Lucide.KeyRound
+
     fun battery(status: BatteryStatus): ImageVector = when {
         status.charging -> Lucide.BatteryCharging
         status.percent < BatteryWarningBelow -> Lucide.BatteryWarning
@@ -42,8 +45,8 @@ object StatusIcons {
         return when (status.level) {
             SignalLevel.None -> Lucide.WifiZero
             SignalLevel.Weak -> Lucide.WifiLow
-            SignalLevel.Fair -> Lucide.WifiHigh
-            SignalLevel.Good, SignalLevel.Excellent -> Lucide.Wifi
+            SignalLevel.Fair, SignalLevel.Good -> Lucide.WifiHigh
+            SignalLevel.Excellent -> Lucide.Wifi
         }
     }
 
@@ -54,4 +57,6 @@ object StatusIcons {
         SignalLevel.Good -> Lucide.SignalHigh
         SignalLevel.Excellent -> Lucide.Signal
     }
+
+    fun bars(level: SignalLevel): Int = level.ordinal
 }

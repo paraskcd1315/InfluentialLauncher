@@ -19,12 +19,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.statusbar.R
 import com.paraskcd.influentiallauncher.statusbar.presentation.model.StatusState
 import com.paraskcd.influentiallauncher.statusbar.presentation.utils.StatusBarMetrics
 import com.paraskcd.influentiallauncher.statusbar.presentation.utils.StatusIcons
+import com.paraskcd.influentiallauncher.statusbar.presentation.utils.StatusLabels
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
 
 @Composable
@@ -46,6 +49,7 @@ fun StatusPill(
     } else {
         stringResource(R.string.statusbar_wifi_off)
     }
+    val mobileData = status.mobileData
     Row(
         horizontalArrangement = Arrangement.spacedBy(StatusBarMetrics.iconGap),
         verticalAlignment = Alignment.CenterVertically,
@@ -56,20 +60,32 @@ fun StatusPill(
             .heightIn(min = StatusBarMetrics.minHeight)
             .padding(horizontal = StatusBarMetrics.paddingHorizontal, vertical = StatusBarMetrics.paddingVertical)
     ) {
-        if (status.cellular.available) {
+        if (status.vpn) {
             Icon(
-                imageVector = StatusIcons.cellular(status.cellular.level),
-                contentDescription = stringResource(R.string.statusbar_cellular),
+                imageVector = StatusIcons.vpn,
+                contentDescription = stringResource(R.string.statusbar_vpn),
                 tint = tint,
                 modifier = Modifier.size(StatusBarMetrics.iconSize)
             )
         }
-        Icon(
-            imageVector = StatusIcons.wifi(status.wifi),
-            contentDescription = wifiDescription,
-            tint = tint,
-            modifier = Modifier.size(StatusBarMetrics.iconSize)
-        )
+        CellularSignal(sims = status.cellular.sims, tint = tint)
+        if (mobileData != null) {
+            val label = stringResource(StatusLabels.mobileData(mobileData))
+            val description = stringResource(R.string.statusbar_mobile_data, label)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = tint,
+                modifier = Modifier.semantics { contentDescription = description }
+            )
+        } else {
+            Icon(
+                imageVector = StatusIcons.wifi(status.wifi),
+                contentDescription = wifiDescription,
+                tint = tint,
+                modifier = Modifier.size(StatusBarMetrics.iconSize)
+            )
+        }
         Icon(
             imageVector = StatusIcons.battery(status.battery),
             contentDescription = batteryDescription,

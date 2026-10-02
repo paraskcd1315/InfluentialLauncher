@@ -6,6 +6,22 @@
     <string name="statusbar_wifi_connected">Wi-Fi connected</string>
     <string name="statusbar_wifi_off">Wi-Fi not connected</string>
     <string name="statusbar_cellular">Mobile signal</string>
+    <string name="statusbar_cellular_two_sims">Mobile signal, two SIM cards</string>
+    <string name="statusbar_mobile_data">Mobile data, %1$s</string>
+    <string name="statusbar_vpn">VPN connected</string>
+    <string name="statusbar_data_g">G</string>
+    <string name="statusbar_data_e">E</string>
+    <string name="statusbar_data_1x">1X</string>
+    <string name="statusbar_data_3g">3G</string>
+    <string name="statusbar_data_4g">4G</string>
+    <string name="statusbar_data_4g_plus">4G+</string>
+    <string name="statusbar_data_lte">LTE</string>
+    <string name="statusbar_data_lte_plus">LTE+</string>
+    <string name="statusbar_data_4g_lte">4G LTE</string>
+    <string name="statusbar_data_4g_lte_plus">4G LTE+</string>
+    <string name="statusbar_data_5g_e">5Ge</string>
+    <string name="statusbar_data_5g">5G</string>
+    <string name="statusbar_data_5g_plus">5G+</string>
     <string name="statusbar_open_controls">Open quick settings</string>
     <string name="statusbar_search">Search</string>
 </resources>
