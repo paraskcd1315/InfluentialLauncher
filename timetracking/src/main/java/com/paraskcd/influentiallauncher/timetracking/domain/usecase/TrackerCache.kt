@@ -34,9 +34,15 @@ internal class TrackerCache(private val hasStream: Boolean) {
         }
     }
 
-    suspend fun wrote() = lock.withLock {
-        wroteAt = Instant.now()
+    suspend fun wrote(update: RunningUpdate?) = lock.withLock {
+        val now = Instant.now()
+        wroteAt = now
         answers.clear()
+        when (update) {
+            is RunningUpdate.Started -> answers[RunningKey] = StampedAnswer(update.entry, now)
+            is RunningUpdate.Ended -> answers[RunningKey] = StampedAnswer(null, now)
+            null -> Unit
+        }
     }
 
     suspend fun clear() = lock.withLock {
@@ -68,7 +74,7 @@ internal class TrackerCache(private val hasStream: Boolean) {
 
     private fun changed(update: RunningUpdate?, now: Instant): Boolean {
         val echo = wroteAt?.let { Duration.between(it, now) < EchoWindow } ?: false
-        if (update == null && echo) return false
+        if (echo) return false
         val running = answers[RunningKey]
         answers.clear()
         when (update) {
@@ -95,10 +101,10 @@ internal class TrackerCache(private val hasStream: Boolean) {
         private const val MaxAnswers = 16
         private const val DefaultPauseSeconds = 300L
         private const val PausedDetail = "tracker reads are paused after a refusal"
-        private val EchoWindow: Duration = Duration.ofSeconds(5)
+        private val EchoWindow: Duration = Duration.ofSeconds(4)
         private val ConnectSlack: Duration = Duration.ofSeconds(10)
         private val ResyncMinAge: Duration = Duration.ofMinutes(3)
         private val ClosedMaxAge: Duration = Duration.ofMinutes(5)
-        private val OpenMaxAge: Duration = Duration.ofMinutes(30)
+        private val OpenMaxAge: Duration = Duration.ofMinutes(15)
     }
 }

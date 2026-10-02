@@ -67,7 +67,7 @@ class KimaiClient @Inject constructor(
         }.sortedBy { it.name.lowercase() }
     }
 
-    override suspend fun start(credentials: TrackerCredentials, timer: StartTimer) {
+    override suspend fun start(credentials: TrackerCredentials, timer: StartTimer): TimeEntry? {
         val project = timer.projectId?.toIntOrNull() ?: throw IllegalArgumentException("Kimai needs a project")
         val activity = timer.activityId?.toIntOrNull() ?: throw IllegalArgumentException("Kimai needs an activity")
         val body = JSONObject()
@@ -76,16 +76,19 @@ class KimaiClient @Inject constructor(
             .put("activity", activity)
             .put("description", timer.description)
         send(credentials, "POST", KimaiApi.Paths.Timesheets, body)
+        return null
     }
 
-    override suspend fun stop(credentials: TrackerCredentials, entry: TimeEntry) {
+    override suspend fun stop(credentials: TrackerCredentials, entry: TimeEntry): TimeEntry? {
         send(credentials, "PATCH", KimaiApi.Paths.StopTimesheet.format(entry.id), null)
+        return null
     }
 
-    override suspend fun move(credentials: TrackerCredentials, entry: TimeEntry, start: Instant, end: Instant?) {
+    override suspend fun move(credentials: TrackerCredentials, entry: TimeEntry, start: Instant, end: Instant?): TimeEntry? {
         val body = JSONObject().put("begin", local(start))
         if (end != null) body.put("end", local(end))
         send(credentials, "PATCH", KimaiApi.Paths.Timesheet.format(entry.id), body)
+        return null
     }
 
     private fun JSONArray.entries(): List<TimeEntry> = (0 until length()).mapNotNull { index ->

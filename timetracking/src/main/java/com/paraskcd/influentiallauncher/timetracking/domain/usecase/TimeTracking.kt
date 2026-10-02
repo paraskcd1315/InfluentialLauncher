@@ -78,18 +78,18 @@ class TimeTracking @Inject constructor(
         withClient(tracker, emptyList()) { client, credentials -> client.activities(credentials, projectId) }
 
     suspend fun start(tracker: Tracker, timer: StartTimer) {
-        withClient(tracker, Unit) { client, credentials -> client.start(credentials, timer) }
-        wrote(tracker)
+        val started = withClient(tracker, null) { client, credentials -> client.start(credentials, timer) }
+        wrote(tracker, started?.let { RunningUpdate.Started(it) })
     }
 
     suspend fun stop(entry: TimeEntry) {
-        withClient(entry.tracker, Unit) { client, credentials -> client.stop(credentials, entry) }
-        wrote(entry.tracker)
+        withClient(entry.tracker, null) { client, credentials -> client.stop(credentials, entry) }
+        wrote(entry.tracker, RunningUpdate.Ended(entry.id))
     }
 
     suspend fun move(entry: TimeEntry, start: Instant, end: Instant?) {
-        withClient(entry.tracker, Unit) { client, credentials -> client.move(credentials, entry, start, end) }
-        wrote(entry.tracker)
+        val moved = withClient(entry.tracker, null) { client, credentials -> client.move(credentials, entry, start, end) }
+        wrote(entry.tracker, moved?.takeIf { it.running }?.let { RunningUpdate.Started(it) })
     }
 
     private fun streamChanges(): Flow<Tracker> = store.credentials.distinctUntilChanged().flatMapLatest { credentials ->
@@ -118,8 +118,8 @@ class TimeTracking @Inject constructor(
         return StreamSignal.Changed(RunningUpdate.Started(entry))
     }
 
-    private suspend fun wrote(tracker: Tracker) {
-        caches.getValue(tracker).wrote()
+    private suspend fun wrote(tracker: Tracker, update: RunningUpdate?) {
+        caches.getValue(tracker).wrote(update)
         writes.emit(tracker)
     }
 
@@ -142,7 +142,7 @@ class TimeTracking @Inject constructor(
         const val ProjectsKey = "projects"
         const val DayKey = "day:"
         const val WriteBuffer = 8
-        const val SettleMs = 1_500L
+        const val SettleMs = 900L
         const val StreamLingerMs = 5_000L
     }
 }
