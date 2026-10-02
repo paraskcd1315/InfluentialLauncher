@@ -5,6 +5,8 @@ package com.paraskcd.influentiallauncher.timetracking.domain.ports
 
 import com.paraskcd.influentiallauncher.timetracking.domain.model.WorkSchedule
 
-interface ScheduleReader {
+interface ScheduleCodec {
     fun read(text: String): WorkSchedule?
+
+    fun write(schedule: WorkSchedule): String
 }

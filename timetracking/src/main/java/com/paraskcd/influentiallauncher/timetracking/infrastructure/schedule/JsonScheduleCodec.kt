@@ -4,14 +4,15 @@
 package com.paraskcd.influentiallauncher.timetracking.infrastructure.schedule
 
 import com.paraskcd.influentiallauncher.timetracking.domain.model.WorkSchedule
-import com.paraskcd.influentiallauncher.timetracking.domain.ports.ScheduleReader
+import com.paraskcd.influentiallauncher.timetracking.domain.ports.ScheduleCodec
+import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class JsonScheduleReader @Inject constructor() : ScheduleReader {
+class JsonScheduleCodec @Inject constructor() : ScheduleCodec {
 
     override fun read(text: String): WorkSchedule? {
         val trimmed = text.trim().trimEnd(',')
@@ -25,6 +26,19 @@ class JsonScheduleReader @Inject constructor() : ScheduleReader {
             workdays = held.optInt(ScheduleFields.Workdays, WorkSchedule.DefaultWorkdays),
             holidays = holidays(held)
         )
+    }
+
+    override fun write(schedule: WorkSchedule): String {
+        val months = JSONObject()
+        schedule.hoursByMonth.toSortedMap().forEach { (month, hours) -> months.put(month.toString(), hours) }
+        val holidays = JSONArray()
+        schedule.holidays.sorted().forEach { holidays.put(JSONObject().put(ScheduleFields.HolidayDate, it.toString())) }
+        return JSONObject()
+            .put(ScheduleFields.WeeklyHours, schedule.weeklyHours)
+            .put(ScheduleFields.HoursByMonth, months)
+            .put(ScheduleFields.Workdays, schedule.workdays)
+            .put(ScheduleFields.Holidays, holidays)
+            .toString()
     }
 
     private fun parse(text: String): JSONObject? = runCatching { JSONObject(text) }.getOrNull()

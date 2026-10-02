@@ -15,21 +15,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSwitch
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfTextField
-import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerCredentials
-import com.paraskcd.influentiallauncher.timetracking.domain.model.WorkSchedule
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfGroupedCard
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfSettingsRow
 import com.paraskcd.influentiallauncher.settings.domain.model.LauncherSettings
 import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuTab
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.SettingsActionRow
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.SettingsRemovableRow
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.sheets.DaysOffSheet
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.sheets.MonthHoursSheet
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.DayOffRuns
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.ScheduleText
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TabToggles
-import java.text.DecimalFormat
+import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerCredentials
+import com.paraskcd.influentiallauncher.timetracking.domain.model.WorkSchedule
+import java.time.LocalDate
 
 @Composable
 fun SettingsTab(
@@ -38,19 +45,32 @@ fun SettingsTab(
     credentials: TrackerCredentials,
     schedule: WorkSchedule?,
     onCredentials: ((TrackerCredentials) -> TrackerCredentials) -> Unit,
+    onSchedule: ((WorkSchedule) -> WorkSchedule) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val toggles = TabToggles.of(settings)
+    val held = schedule ?: WorkSchedule()
     var togglToken by remember { mutableStateOf(credentials.togglToken) }
     var kimaiUrl by remember { mutableStateOf(credentials.kimaiUrl) }
     var kimaiToken by remember { mutableStateOf(credentials.kimaiToken) }
-    var workSchedule by remember { mutableStateOf(credentials.workSchedule) }
+    var weeklyHours by remember { mutableStateOf(ScheduleText.hours(held.weeklyHours)) }
+    var workdays by remember { mutableStateOf(held.workdays.toString()) }
+    var addingDays by remember { mutableStateOf(false) }
+    var addingMonth by remember { mutableStateOf(false) }
     LaunchedEffect(credentials) {
         if (togglToken.isEmpty()) togglToken = credentials.togglToken
         if (kimaiUrl.isEmpty()) kimaiUrl = credentials.kimaiUrl
         if (kimaiToken.isEmpty()) kimaiToken = credentials.kimaiToken
-        if (workSchedule.isEmpty()) workSchedule = credentials.workSchedule
     }
+    LaunchedEffect(held.weeklyHours, held.workdays) {
+        if (ScheduleText.hoursOf(weeklyHours) != held.weeklyHours) weeklyHours = ScheduleText.hours(held.weeklyHours)
+        if (ScheduleText.workdaysOf(workdays) != held.workdays) workdays = held.workdays.toString()
+    }
+    val today = LocalDate.now()
+    val months = held.hoursByMonth.toSortedMap().toList()
+    val runs = DayOffRuns.of(held.holidays, held.workdays)
+    val upcoming = runs.filter { !it.to.isBefore(today) }
+    val earlier = runs.filter { it.to.isBefore(today) }.sumOf { it.days.size }
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(StartMenuMetrics.rowGap),
         contentPadding = PaddingValues(
@@ -106,28 +126,88 @@ fun SettingsTab(
                 secret = true
             )
         }
+        item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_schedule)) }
         item {
             InfTextField(
-                value = workSchedule,
+                value = weeklyHours,
                 onValueChange = { value ->
-                    workSchedule = value
-                    onCredentials { it.copy(workSchedule = value.trim()) }
+                    weeklyHours = value
+                    ScheduleText.hoursOf(value)?.let { hours -> onSchedule { it.copy(weeklyHours = hours) } }
                 },
-                label = if (schedule == null) {
-                    stringResource(R.string.startmenu_settings_schedule)
-                } else {
-                    stringResource(
-                        R.string.startmenu_settings_schedule_read,
-                        DecimalFormat(HoursPattern).format(schedule.weeklyHours),
-                        schedule.holidays.size
-                    )
-                },
-                placeholder = ScheduleHint
+                label = stringResource(R.string.startmenu_settings_weekly_hours),
+                keyboardType = KeyboardType.Decimal
             )
         }
+        item {
+            InfTextField(
+                value = workdays,
+                onValueChange = { value ->
+                    workdays = value
+                    ScheduleText.workdaysOf(value)?.let { days -> onSchedule { it.copy(workdays = days) } }
+                },
+                label = stringResource(R.string.startmenu_settings_workdays),
+                keyboardType = KeyboardType.Number
+            )
+        }
+        item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_months)) }
+        itemsIndexed(months, key = { _, entry -> "month:${entry.first}" }) { index, (month, hours) ->
+            SettingsRemovableRow(
+                index = index,
+                count = months.size + 1,
+                label = ScheduleText.month(month),
+                caption = stringResource(R.string.startmenu_settings_month_hours, ScheduleText.hours(hours)),
+                onRemove = { onSchedule { it.copy(hoursByMonth = it.hoursByMonth - month) } }
+            )
+        }
+        item {
+            SettingsActionRow(
+                index = months.size,
+                count = months.size + 1,
+                label = stringResource(R.string.startmenu_settings_add_month),
+                onClick = { addingMonth = true }
+            )
+        }
+        item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_days_off)) }
+        itemsIndexed(upcoming, key = { _, run -> "off:${run.from}" }) { index, run ->
+            SettingsRemovableRow(
+                index = index,
+                count = upcoming.size + 1,
+                label = if (run.days.size == 1) {
+                    ScheduleText.day(run.from)
+                } else {
+                    stringResource(R.string.startmenu_settings_run, ScheduleText.day(run.from), ScheduleText.day(run.to))
+                },
+                caption = pluralStringResource(R.plurals.startmenu_settings_days, run.days.size, run.days.size),
+                onRemove = { onSchedule { it.copy(holidays = it.holidays - run.days.toSet()) } }
+            )
+        }
+        item {
+            SettingsActionRow(
+                index = upcoming.size,
+                count = upcoming.size + 1,
+                label = stringResource(R.string.startmenu_settings_add_days_off),
+                onClick = { addingDays = true }
+            )
+        }
+        if (earlier > 0) {
+            item {
+                InfSettingsRow(label = pluralStringResource(R.plurals.startmenu_settings_earlier_days, earlier, earlier))
+            }
+        }
     }
+    DaysOffSheet(
+        open = addingDays,
+        workdays = held.workdays,
+        onAdd = { days -> onSchedule { it.copy(holidays = it.holidays + days) } },
+        onDismiss = { addingDays = false }
+    )
+    MonthHoursSheet(
+        open = addingMonth,
+        weeklyHours = held.weeklyHours,
+        taken = held.hoursByMonth.keys,
+        onPick = { month, hours -> onSchedule { it.copy(hoursByMonth = it.hoursByMonth + (month to hours)) } },
+        onDismiss = { addingMonth = false }
+    )
 }
 
 private const val KimaiUrlHint = "https://kimai.example.com"
-private const val ScheduleHint = "{\"weeklyHours\":40,\"holidays\":[{\"date\":\"2026-12-25\"}]}"
-private const val HoursPattern = "0.##"

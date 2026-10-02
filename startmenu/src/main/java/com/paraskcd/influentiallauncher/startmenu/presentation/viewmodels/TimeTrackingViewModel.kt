@@ -132,6 +132,10 @@ class TimeTrackingViewModel @Inject constructor(
         viewModelScope.launch { tracking.updateCredentials(transform) }
     }
 
+    fun updateSchedule(transform: (WorkSchedule) -> WorkSchedule) {
+        viewModelScope.launch { tracking.updateSchedule(transform) }
+    }
+
     private fun refreshAfterChange() {
         refreshRunning()
         load(shownDay)
