@@ -15,9 +15,11 @@ object StatusBarMetrics {
     val iconSize = 18.dp
     val iconGap = InfSpacing.s2
     const val stackedColumns = 4
-    const val stackedColumnWidth = 3f / 18f
-    const val stackedBarTop = 2f / 18f
-    const val stackedBarHeight = 9f / 18f
-    const val stackedDotTop = 13f / 18f
+    const val stackedStroke = 1.5f / 18f
+    const val stackedInset = 1.5f / 18f
+    const val stackedBarBottom = 12f / 18f
+    const val stackedBarShortest = 3f / 18f
+    const val stackedBarTallest = 10.5f / 18f
+    const val stackedDotCentre = 15.75f / 18f
     const val stackedUnlitAlpha = 0.35f
 }
