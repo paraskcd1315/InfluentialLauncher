@@ -37,6 +37,7 @@ import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.AppMenuSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.ClearStorageSheet
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.DataUsageSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.LetterIndexedBox
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.ListSkeleton
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components.AppGrid
@@ -64,6 +65,7 @@ fun AppsTab(
     val scope = rememberCoroutineScope()
     var menuKey by remember { mutableStateOf<String?>(null) }
     var clearKey by remember { mutableStateOf<String?>(null) }
+    var dataKey by remember { mutableStateOf<String?>(null) }
     val listTop = StartMenuMetrics.searchTop + DsMetrics.searchHeight + StartMenuMetrics.searchContentGap
 
     LaunchedEffect(open) {
@@ -177,6 +179,10 @@ fun AppsTab(
         onClearStorage = { id ->
             menuKey = null
             clearKey = id.key
+        },
+        onDataUsage = { id ->
+            menuKey = null
+            dataKey = id.key
         }
     )
     val clearEntry = clearKey?.let { key ->
@@ -186,5 +192,13 @@ fun AppsTab(
         entry = clearEntry,
         onConfirm = { viewModel.clearStorage(it.app.id) },
         onDismiss = { clearKey = null }
+    )
+    val dataEntry = dataKey?.let { key ->
+        content?.let { current -> (current.pinned + current.sections.flatMap { it.apps }).firstOrNull { it.app.id.key == key } }
+    }
+    DataUsageSheet(
+        entry = dataEntry,
+        load = viewModel::dataUsage,
+        onDismiss = { dataKey = null }
     )
 }

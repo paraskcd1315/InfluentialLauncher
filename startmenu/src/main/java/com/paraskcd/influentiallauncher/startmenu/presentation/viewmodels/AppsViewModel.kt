@@ -13,7 +13,9 @@ import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
 import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.AppSignalsSource
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreen
+import com.paraskcd.influentiallauncher.tasks.domain.model.DayData
 import com.paraskcd.influentiallauncher.tasks.domain.ports.AppActions
+import com.paraskcd.influentiallauncher.tasks.domain.ports.AppDataUsage
 import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
@@ -38,7 +40,8 @@ class AppsViewModel @Inject constructor(
     private val homeScreen: HomeScreen,
     signalsSource: AppSignalsSource,
     private val openApps: OpenApps,
-    private val appActions: AppActions
+    private val appActions: AppActions,
+    private val appDataUsage: AppDataUsage
 ) : ViewModel() {
 
     val signals: StateFlow<AppSignals> = signalsSource.signals
@@ -55,6 +58,8 @@ class AppsViewModel @Inject constructor(
     fun clearStorage(id: AppId) {
         viewModelScope.launch { appActions.clearStorage(id.packageName) }
     }
+
+    suspend fun dataUsage(id: AppId): List<DayData> = appDataUsage.weekly(id.packageName)
 
     fun addToHome(id: AppId) {
         viewModelScope.launch { homeScreen.add(id) }

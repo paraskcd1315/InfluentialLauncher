@@ -161,6 +161,7 @@ class ShellAccessImpl(
         if (!Settings.System.canWrite(context)) {
             helper.run("appops set ${context.packageName} WRITE_SETTINGS allow")
         }
+        helper.run("appops set ${context.packageName} android:get_usage_stats allow")
     }
 
     private fun wifiConnected(): Boolean {
