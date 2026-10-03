@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.Looper
 import android.os.Parcel
+import android.os.Process
 import com.paraskcd.influentiallauncher.shellaccess.IInfShell
 import com.paraskcd.influentiallauncher.shellaccess.infrastructure.transport.BinderContainer
 import com.paraskcd.influentiallauncher.shellaccess.infrastructure.transport.ShellProtocol
@@ -96,7 +97,7 @@ object InfShellServer {
             val extras = Bundle().apply {
                 putParcelable(ShellProtocol.HandbackExtraBinder, BinderContainer(binder))
             }
-            val source = AttributionSource.Builder(ownerUid).setPackageName(packageName).build()
+            val source = AttributionSource.Builder(Process.myUid()).setPackageName(ShellPackage).build()
             Class.forName("android.content.IContentProvider").getMethod(
                 "call",
                 AttributionSource::class.java, String::class.java, String::class.java,
@@ -123,4 +124,5 @@ object InfShellServer {
     private const val ServerVersion = 1
     private const val PerUserRange = 100000
     private const val UninstallCheckMillis = 10_000L
+    private const val ShellPackage = "com.android.shell"
 }

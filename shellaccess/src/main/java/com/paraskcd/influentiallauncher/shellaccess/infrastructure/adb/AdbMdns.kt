@@ -8,48 +8,45 @@ import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeoutOrNull
 
 class AdbMdns(context: Context) {
     private val nsd = context.getSystemService(Context.NSD_SERVICE) as NsdManager
 
-    suspend fun pairingPort(timeoutMillis: Long): Int? = discover(PairingType, timeoutMillis)
+    suspend fun pairing(timeoutMillis: Long): ResolvedService? = discover(PairingType, timeoutMillis)
 
-    suspend fun connectPort(timeoutMillis: Long): Int? = discover(ConnectType, timeoutMillis)
+    suspend fun connect(timeoutMillis: Long): ResolvedService? = discover(ConnectType, timeoutMillis)
 
-    private suspend fun discover(serviceType: String, timeoutMillis: Long): Int? {
-        val port = CompletableDeferred<Int>()
+    private suspend fun discover(serviceType: String, timeoutMillis: Long): ResolvedService? {
+        val result = CompletableDeferred<ResolvedService?>()
         val listener = object : NsdManager.DiscoveryListener {
             override fun onDiscoveryStarted(type: String) = Unit
             override fun onDiscoveryStopped(type: String) = Unit
             override fun onStartDiscoveryFailed(type: String, code: Int) {
-                port.complete(0)
+                if (!result.isCompleted) result.complete(null)
             }
             override fun onStopDiscoveryFailed(type: String, code: Int) = Unit
             override fun onServiceLost(info: NsdServiceInfo) = Unit
             override fun onServiceFound(info: NsdServiceInfo) {
-                resolve(info, port)
+                resolve(info, result)
             }
         }
         return try {
             nsd.discoverServices(serviceType, NsdManager.PROTOCOL_DNS_SD, listener)
-            val found = withTimeoutOrNull(timeoutMillis) { port.await() }
-            found?.takeIf { it > 0 }
-        } catch (error: TimeoutCancellationException) {
-            null
+            withTimeoutOrNull(timeoutMillis) { result.await() }
         } finally {
             runCatching { nsd.stopServiceDiscovery(listener) }
         }
     }
 
-    private fun resolve(info: NsdServiceInfo, port: CompletableDeferred<Int>) {
+    private fun resolve(info: NsdServiceInfo, result: CompletableDeferred<ResolvedService?>) {
         nsd.resolveService(info, object : NsdManager.ResolveListener {
             override fun onResolveFailed(info: NsdServiceInfo, code: Int) {
                 Log.w(LogTag, "resolve failed: $code")
             }
             override fun onServiceResolved(info: NsdServiceInfo) {
-                if (!port.isCompleted) port.complete(info.port)
+                val host = info.host?.hostAddress ?: return
+                if (!result.isCompleted) result.complete(ResolvedService(host, info.port))
             }
         })
     }

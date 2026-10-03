@@ -19,5 +19,7 @@ interface ShellAccess {
 
     fun startPairing(pairingCode: String)
 
+    fun pairAt(host: String, port: Int, pairingCode: String)
+
     fun retry()
 }

@@ -19,6 +19,7 @@ import com.paraskcd.influentiallauncher.shellaccess.domain.ports.ShellAccess
 import com.paraskcd.influentiallauncher.shellaccess.infrastructure.adb.AdbConnectionManager
 import com.paraskcd.influentiallauncher.shellaccess.infrastructure.adb.AdbKeyStore
 import com.paraskcd.influentiallauncher.shellaccess.infrastructure.adb.AdbMdns
+import com.paraskcd.influentiallauncher.shellaccess.infrastructure.adb.ResolvedService
 import com.paraskcd.influentiallauncher.shellaccess.infrastructure.adb.ShellStarter
 import com.paraskcd.influentiallauncher.shellaccess.infrastructure.handback.HelperBinderSink
 import com.paraskcd.influentiallauncher.shellaccess.infrastructure.handback.HelperClient
@@ -68,7 +69,12 @@ class ShellAccessImpl(
 
     override fun startPairing(pairingCode: String) {
         if (job?.isActive == true) return
-        job = scope.launch { pairThenBringUp(pairingCode) }
+        job = scope.launch { pairThenBringUp(null, pairingCode) }
+    }
+
+    override fun pairAt(host: String, port: Int, pairingCode: String) {
+        if (job?.isActive == true) return
+        job = scope.launch { pairThenBringUp(ResolvedService(host, port), pairingCode) }
     }
 
     override fun retry() = ensureReady()
@@ -79,16 +85,18 @@ class ShellAccessImpl(
 
     override fun systemService(name: String): IBinder? = helper.systemService(name)
 
-    private suspend fun pairThenBringUp(pairingCode: String) {
+    private suspend fun pairThenBringUp(explicit: ResolvedService?, pairingCode: String) {
         _state.value = ShellState.Pairing
-        val port = mdns.pairingPort(MdnsTimeoutMs)
-        if (port == null) {
+        val service = explicit ?: mdns.pairing(MdnsTimeoutMs)
+        if (service == null) {
+            Log.w(LogTag, "no pairing service found")
             _state.value = ShellState.Failed(ShellFailure.PairingFailed)
             return
         }
+        Log.w(LogTag, "pairing to ${service.host}:${service.port}")
         val paired = runCatching {
             val connection = AdbConnectionManager(keyStore, Build.VERSION.SDK_INT)
-            connection.pair(LoopbackHost, port, pairingCode)
+            connection.pair(service.host, service.port, pairingCode)
         }.onFailure { Log.w(LogTag, "pairing failed", it) }.getOrDefault(false)
         if (!paired) {
             _state.value = ShellState.Failed(ShellFailure.PairingFailed)
@@ -114,8 +122,9 @@ class ShellAccessImpl(
         val turnedOn = enableWirelessDebugging()
         val connection = AdbConnectionManager(keyStore, Build.VERSION.SDK_INT)
         val connected = runCatching {
-            val port = mdns.connectPort(MdnsTimeoutMs) ?: return@runCatching false
-            connection.connect(LoopbackHost, port)
+            val service = mdns.connect(MdnsTimeoutMs) ?: return@runCatching false
+            Log.w(LogTag, "connecting to ${service.host}:${service.port}")
+            connection.connect(service.host, service.port)
             connection.isConnected
         }.onFailure { Log.w(LogTag, "connect failed", it) }.getOrDefault(false)
         if (!connected) {
@@ -125,8 +134,9 @@ class ShellAccessImpl(
             return
         }
         runCatching { starter.start(connection) }
+        val up = awaitHelper()
         runCatching { connection.close() }
-        if (awaitHelper()) {
+        if (up) {
             grantPermissions()
             _state.value = ShellState.Ready
         } else {

@@ -6,6 +6,7 @@ package com.paraskcd.influentiallauncher.shellaccess.infrastructure.adb
 import io.github.muntashirakon.adb.AbsAdbConnectionManager
 import java.security.PrivateKey
 import java.security.cert.Certificate
+import java.util.concurrent.TimeUnit
 
 class AdbConnectionManager(
     private val keys: AdbKeyStore,
@@ -13,6 +14,7 @@ class AdbConnectionManager(
 ) : AbsAdbConnectionManager() {
     init {
         setApi(api)
+        setTimeout(TimeoutSeconds, TimeUnit.SECONDS)
     }
 
     override fun getPrivateKey(): PrivateKey = keys.privateKey()
@@ -23,5 +25,6 @@ class AdbConnectionManager(
 
     private companion object {
         const val DeviceName = "Influential Launcher"
+        const val TimeoutSeconds = 10L
     }
 }
