@@ -21,6 +21,8 @@ import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDrag
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.DragSource
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
+import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.ClearStorageSheet
+import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.DataUsageSheet
 import com.paraskcd.influentiallauncher.taskbar.presentation.sheets.TaskbarAppSheet
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
 import com.paraskcd.influentiallauncher.taskbar.presentation.viewmodels.TaskbarViewModel
@@ -40,11 +42,14 @@ fun TaskbarHost(
     val startPins by viewModel.startPins.collectAsStateWithLifecycle()
     val wiggling by viewModel.wiggling.collectAsStateWithLifecycle()
     val signals by viewModel.signals.collectAsStateWithLifecycle()
+    val openPackages by viewModel.openPackages.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
     val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
     val pinPx = with(LocalDensity.current) { TaskbarMetrics.pinIconSize.roundToPx() }
     val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
     var menuApp by remember { mutableStateOf<LauncherApp?>(null) }
+    var clearApp by remember { mutableStateOf<LauncherApp?>(null) }
+    var dataApp by remember { mutableStateOf<LauncherApp?>(null) }
 
     TaskbarWindow(
         offset = rememberTaskbarOffset(),
@@ -70,6 +75,7 @@ fun TaskbarHost(
     TaskbarAppSheet(
         app = menuApp,
         onStart = menuApp?.id in startPins,
+        isOpen = menuApp?.id?.packageName in openPackages,
         loadIcon = loadIcon,
         onDismiss = { menuApp = null },
         onEdit = { viewModel.startEdit() },
@@ -83,6 +89,21 @@ fun TaskbarHost(
             onAppLaunched()
             viewModel.uninstall(it)
         },
-        onClose = viewModel::closeApp
+        onClose = viewModel::closeApp,
+        onForceStop = viewModel::forceStop,
+        onClearStorage = { menuApp = null; clearApp = it },
+        onDataUsage = { menuApp = null; dataApp = it }
+    )
+    ClearStorageSheet(
+        target = clearApp?.id,
+        label = clearApp?.label.orEmpty(),
+        onConfirm = { clearApp?.let { viewModel.clearStorage(it.id) } },
+        onDismiss = { clearApp = null }
+    )
+    DataUsageSheet(
+        target = dataApp?.id,
+        label = dataApp?.label.orEmpty(),
+        load = viewModel::dataUsage,
+        onDismiss = { dataApp = null }
     )
 }

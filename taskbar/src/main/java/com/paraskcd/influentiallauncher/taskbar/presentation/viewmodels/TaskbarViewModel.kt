@@ -18,10 +18,14 @@ import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayl
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.DragSource
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
+import com.paraskcd.influentiallauncher.tasks.domain.model.DayData
+import com.paraskcd.influentiallauncher.tasks.domain.ports.AppActions
+import com.paraskcd.influentiallauncher.tasks.domain.ports.AppDataUsage
 import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,11 +37,17 @@ class TaskbarViewModel @Inject constructor(
     private val dock: HomeDock,
     private val editMode: EditMode,
     signalsSource: AppSignalsSource,
-    private val openApps: OpenApps
+    private val openApps: OpenApps,
+    private val appActions: AppActions,
+    private val appDataUsage: AppDataUsage
 ) : ViewModel() {
 
     val signals: StateFlow<AppSignals> = signalsSource.signals
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), AppSignals.None)
+
+    val openPackages: StateFlow<Set<String>> = openApps.taskCounts
+        .map { it.keys }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptySet())
 
     val pinned: StateFlow<List<LauncherApp>?> = pinnedApps.pinned(PinTarget.Taskbar)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
@@ -79,6 +89,16 @@ class TaskbarViewModel @Inject constructor(
     fun closeApp(id: AppId) {
         openApps.close(id.packageName)
     }
+
+    fun forceStop(id: AppId) {
+        viewModelScope.launch { appActions.forceStop(id.packageName) }
+    }
+
+    fun clearStorage(id: AppId) {
+        viewModelScope.launch { appActions.clearStorage(id.packageName) }
+    }
+
+    suspend fun dataUsage(id: AppId): List<DayData> = appDataUsage.weekly(id.packageName)
 
     suspend fun icon(id: AppId, sizePx: Int, tint: Int, background: Int): Bitmap? = installedApps.icon(id, sizePx, tint, background)
 

@@ -8,4 +8,7 @@
     <string name="taskbar_info">App info</string>
     <string name="taskbar_uninstall">Uninstall</string>
     <string name="taskbar_close">Close app</string>
+    <string name="taskbar_force_stop">Force stop</string>
+    <string name="taskbar_clear_storage">Clear storage</string>
+    <string name="taskbar_data_usage">Data usage</string>
 </resources>

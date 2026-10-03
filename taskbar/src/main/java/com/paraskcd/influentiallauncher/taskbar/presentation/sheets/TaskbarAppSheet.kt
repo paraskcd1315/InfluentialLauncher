@@ -6,6 +6,9 @@ package com.paraskcd.influentiallauncher.taskbar.presentation.sheets
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.composables.icons.lucide.Activity
+import com.composables.icons.lucide.Ban
+import com.composables.icons.lucide.Eraser
 import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.LayoutGrid
 import com.composables.icons.lucide.Lucide
@@ -27,6 +30,7 @@ import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
 fun TaskbarAppSheet(
     app: LauncherApp?,
     onStart: Boolean,
+    isOpen: Boolean,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onDismiss: () -> Unit,
     onEdit: () -> Unit,
@@ -34,7 +38,10 @@ fun TaskbarAppSheet(
     onToggleStart: (AppId) -> Unit,
     onInfo: (AppId) -> Unit,
     onUninstall: (AppId) -> Unit,
-    onClose: (AppId) -> Unit
+    onClose: (AppId) -> Unit,
+    onForceStop: (AppId) -> Unit,
+    onClearStorage: (LauncherApp) -> Unit,
+    onDataUsage: (LauncherApp) -> Unit
 ) {
     val colors = InfTheme.colors
     InfSheetWindow(
@@ -47,19 +54,26 @@ fun TaskbarAppSheet(
     ) { current ->
         val id = current.id
         InfActionList(
-            actions = listOf(
-                InfAction(Lucide.Move, stringResource(R.string.taskbar_edit), colors.textPrimary) { onEdit() },
-                InfAction(Lucide.PinOff, stringResource(R.string.taskbar_unpin), colors.textPrimary) { onUnpin(id) },
-                InfAction(
-                    icon = Lucide.LayoutGrid,
-                    label = stringResource(if (onStart) R.string.taskbar_unpin_start else R.string.taskbar_pin_start),
-                    tint = colors.textPrimary,
-                    run = { onToggleStart(id) }
-                ),
-                InfAction(Lucide.X, stringResource(R.string.taskbar_close), colors.textPrimary) { onClose(id) },
-                InfAction(Lucide.Info, stringResource(R.string.taskbar_info), colors.textPrimary) { onInfo(id) },
-                InfAction(Lucide.Trash2, stringResource(R.string.taskbar_uninstall), colors.dangerText) { onUninstall(id) }
-            ),
+            actions = buildList {
+                add(InfAction(Lucide.Move, stringResource(R.string.taskbar_edit), colors.textPrimary) { onEdit() })
+                add(InfAction(Lucide.PinOff, stringResource(R.string.taskbar_unpin), colors.textPrimary) { onUnpin(id) })
+                add(
+                    InfAction(
+                        icon = Lucide.LayoutGrid,
+                        label = stringResource(if (onStart) R.string.taskbar_unpin_start else R.string.taskbar_pin_start),
+                        tint = colors.textPrimary,
+                        run = { onToggleStart(id) }
+                    )
+                )
+                if (isOpen) {
+                    add(InfAction(Lucide.X, stringResource(R.string.taskbar_close), colors.textPrimary) { onClose(id) })
+                    add(InfAction(Lucide.Ban, stringResource(R.string.taskbar_force_stop), colors.textPrimary) { onForceStop(id) })
+                }
+                add(InfAction(Lucide.Activity, stringResource(R.string.taskbar_data_usage), colors.textPrimary) { onDataUsage(current) })
+                add(InfAction(Lucide.Info, stringResource(R.string.taskbar_info), colors.textPrimary) { onInfo(id) })
+                add(InfAction(Lucide.Eraser, stringResource(R.string.taskbar_clear_storage), colors.dangerText) { onClearStorage(current) })
+                add(InfAction(Lucide.Trash2, stringResource(R.string.taskbar_uninstall), colors.dangerText) { onUninstall(id) })
+            },
             onDismiss = onDismiss
         )
     }
