@@ -50,9 +50,8 @@ fun SettingsTab(
     onCredentials: ((TrackerCredentials) -> TrackerCredentials) -> Unit,
     onSchedule: ((WorkSchedule) -> WorkSchedule) -> Unit,
     shellState: ShellState,
-    onPairShell: (String) -> Unit,
+    onStartPairing: () -> Unit,
     onRetryShell: () -> Unit,
-    onOpenShellSettings: () -> Unit,
     onPickAccent: (String) -> Unit,
     onAccentFromWallpaper: () -> Unit,
     modifier: Modifier = Modifier
@@ -103,9 +102,8 @@ fun SettingsTab(
         item {
             ShellAccessSection(
                 state = shellState,
-                onPair = onPairShell,
-                onRetry = onRetryShell,
-                onOpenSettings = onOpenShellSettings
+                onStartPairing = onStartPairing,
+                onRetry = onRetryShell
             )
         }
         item {

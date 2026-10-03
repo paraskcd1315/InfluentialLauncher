@@ -233,9 +233,8 @@ fun StartMenuHost(
                     onCredentials = timeTracking::updateCredentials,
                     onSchedule = timeTracking::updateSchedule,
                     shellState = shellState,
-                    onPairShell = shellAccess::pair,
+                    onStartPairing = shellAccess::startPairingFlow,
                     onRetryShell = shellAccess::retry,
-                    onOpenShellSettings = shellAccess::openWirelessDebugging,
                     onPickAccent = shellAccess::setAccent,
                     onAccentFromWallpaper = shellAccess::accentFromWallpaper
                 )

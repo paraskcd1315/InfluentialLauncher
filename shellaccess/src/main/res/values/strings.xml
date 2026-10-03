@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shellaccess_pair_searching_title">Pairing shell access</string>
+    <string name="shellaccess_pair_searching_text">Open \"Pair device with a pairing code\" in Wireless debugging</string>
+    <string name="shellaccess_pair_code_title">Enter the pairing code</string>
+    <string name="shellaccess_pair_code_text">Type the 6-digit code shown in Wireless debugging</string>
+    <string name="shellaccess_pair_code_label">Pairing code</string>
+    <string name="shellaccess_pair_action">Pair</string>
+</resources>

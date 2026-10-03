@@ -6,10 +6,12 @@ package com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.shellaccess.domain.model.ShellState
 import com.paraskcd.influentiallauncher.shellaccess.domain.ports.ShellAccess
+import com.paraskcd.influentiallauncher.shellaccess.infrastructure.pairing.ShellPairingService
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.AccentCommand
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,8 +30,9 @@ class ShellAccessViewModel @Inject constructor(
         shellAccess.ensureReady()
     }
 
-    fun pair(code: String) {
-        shellAccess.startPairing(code.trim())
+    fun startPairingFlow() {
+        ContextCompat.startForegroundService(context, Intent(context, ShellPairingService::class.java))
+        openWirelessDebugging()
     }
 
     fun retry() {
