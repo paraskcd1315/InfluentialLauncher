@@ -99,4 +99,27 @@
     <string name="startmenu_detail_calendar">Calendar</string>
     <string name="startmenu_detail_notes">Notes</string>
     <string name="startmenu_detail_open_event">Open in Calendar</string>
+    <string name="startmenu_shell_section">Shell access</string>
+    <string name="startmenu_shell_caption">Lets the launcher control Wi-Fi, apps, battery and more, without Shizuku</string>
+    <string name="startmenu_shell_state_not_paired">Not paired</string>
+    <string name="startmenu_shell_state_pairing">Pairing…</string>
+    <string name="startmenu_shell_state_waiting_wifi">Waiting for Wi-Fi</string>
+    <string name="startmenu_shell_state_starting">Starting…</string>
+    <string name="startmenu_shell_state_ready">Ready</string>
+    <string name="startmenu_shell_state_failed">Couldn\'t connect</string>
+    <string name="startmenu_shell_open">Open wireless debugging</string>
+    <string name="startmenu_shell_code">Pairing code</string>
+    <string name="startmenu_shell_pair">Pair</string>
+    <string name="startmenu_shell_retry">Retry</string>
+    <string name="startmenu_accent_section">System accent</string>
+    <string name="startmenu_accent_wallpaper">From wallpaper</string>
+    <string name="startmenu_force_stop">Force stop</string>
+    <string name="startmenu_clear_storage">Clear storage</string>
+    <string name="startmenu_clear_storage_title">Clear %1$s\'s storage?</string>
+    <string name="startmenu_clear_storage_confirm">Clear storage</string>
+    <string name="startmenu_clear_storage_cancel">Cancel</string>
+    <string name="startmenu_data_usage">Data usage</string>
+    <string name="startmenu_data_week">Last 7 days</string>
+    <string name="startmenu_data_mobile">Mobile</string>
+    <string name="startmenu_data_wifi">Wi-Fi</string>
 </resources>

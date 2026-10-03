@@ -31,13 +31,19 @@ android {
 
     defaultConfig {
         applicationId = "com.paraskcd.influentiallauncher"
-        versionCode = 36
-        versionName = "2.10.9"
+        versionCode = 37
+        versionName = "2.11.0"
         resValue("string", "app_name", "Influential Launcher")
     }
 
     buildFeatures {
         resValues = true
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
 
     buildTypes {
@@ -76,6 +82,7 @@ dependencies {
     implementation(project(":homescreen"))
     implementation(project(":notifications"))
     implementation(project(":tasks"))
+    implementation(project(":shellaccess"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

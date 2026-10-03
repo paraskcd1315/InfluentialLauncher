@@ -8,5 +8,5 @@ data class ControlState(
     val brightness: Float,
     val autoBrightness: Boolean,
     val volume: Float,
-    val access: ShellAccess
+    val ready: Boolean
 )

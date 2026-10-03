@@ -28,7 +28,6 @@ import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.VolumeX
 import com.paraskcd.influentiallauncher.controlcenter.R
 import com.paraskcd.influentiallauncher.controlcenter.domain.model.ControlState
-import com.paraskcd.influentiallauncher.controlcenter.domain.model.ShellAccess
 import com.paraskcd.influentiallauncher.controlcenter.presentation.viewmodels.ControlCenterViewModel
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfIconButton
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
@@ -45,10 +44,7 @@ fun ControlCenterPanel(
         ToggleGrid(
             state = state,
             onToggle = viewModel::toggle,
-            onDetails = {
-                viewModel.openDetails(it)
-                onClose()
-            },
+            onDetails = { viewModel.openOptions(it) },
             modifier = Modifier.weight(1f, fill = false)
         )
         Hairline()
@@ -95,12 +91,7 @@ private fun Controls(state: ControlState, viewModel: ControlCenterViewModel, onC
             horizontalArrangement = Arrangement.spacedBy(InfSpacing.s3),
             modifier = Modifier.padding(horizontal = InfSpacing.s5, vertical = InfSpacing.s3)
         ) {
-            val notice = when (state.access) {
-                ShellAccess.NotInstalled -> R.string.controlcenter_access_install
-                ShellAccess.NotRunning -> R.string.controlcenter_access_start
-                ShellAccess.NeedsPermission -> R.string.controlcenter_access_allow
-                ShellAccess.Ready -> null
-            }
+            val notice = if (state.ready) null else R.string.controlcenter_access_pair
             if (notice != null) {
                 Text(
                     text = stringResource(notice),

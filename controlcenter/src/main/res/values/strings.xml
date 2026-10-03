@@ -17,7 +17,8 @@
     <string name="controlcenter_volume">Volume</string>
     <string name="controlcenter_volume_panel">More volume controls</string>
     <string name="controlcenter_settings">Settings</string>
-    <string name="controlcenter_access_install">Install Shizuku to control Wi-Fi, Bluetooth and more</string>
-    <string name="controlcenter_access_start">Start Shizuku to control Wi-Fi, Bluetooth and more</string>
-    <string name="controlcenter_access_allow">Allow Shizuku access to control Wi-Fi, Bluetooth and more</string>
+    <string name="controlcenter_access_pair">Pair shell access in Settings to control Wi-Fi, Bluetooth and more</string>
+    <string name="controlcenter_option_on">Turn on</string>
+    <string name="controlcenter_option_off">Turn off</string>
+    <string name="controlcenter_option_settings">Open in Settings</string>
 </resources>

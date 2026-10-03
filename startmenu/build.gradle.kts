@@ -23,6 +23,8 @@ dependencies {
     implementation(project(":homescreen"))
     implementation(project(":notifications"))
     implementation(project(":tasks"))
+    implementation(project(":shellaccess"))
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)

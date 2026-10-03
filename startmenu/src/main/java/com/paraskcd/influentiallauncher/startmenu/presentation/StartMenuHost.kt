@@ -59,6 +59,7 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartTabs
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.sheets.StartTimerSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TimelineMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.TimeTrackingViewModel
+import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.ShellAccessViewModel
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.TimerButtonWindow
 import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.windowing.presentation.WindowMetrics
@@ -80,10 +81,12 @@ fun StartMenuHost(
     viewModel: StartMenuViewModel = hiltViewModel(),
     appsViewModel: AppsViewModel = hiltViewModel(),
     contactsViewModel: ContactsViewModel = hiltViewModel(),
-    timeTracking: TimeTrackingViewModel = hiltViewModel()
+    timeTracking: TimeTrackingViewModel = hiltViewModel(),
+    shellAccess: ShellAccessViewModel = hiltViewModel()
 ) {
     val credentials by timeTracking.credentials.collectAsStateWithLifecycle()
     val schedule by timeTracking.schedule.collectAsStateWithLifecycle()
+    val shellState by shellAccess.state.collectAsStateWithLifecycle()
     val running by timeTracking.running.collectAsStateWithLifecycle()
     val calendarTracker by timeTracking.tracker.collectAsStateWithLifecycle()
     var startFor by remember { mutableStateOf<Tracker?>(null) }
@@ -228,7 +231,12 @@ fun StartMenuHost(
                     credentials = credentials,
                     schedule = schedule,
                     onCredentials = timeTracking::updateCredentials,
-                    onSchedule = timeTracking::updateSchedule
+                    onSchedule = timeTracking::updateSchedule,
+                    shellState = shellState,
+                    onStartPairing = shellAccess::startPairingFlow,
+                    onRetryShell = shellAccess::retry,
+                    onPickAccent = shellAccess::setAccent,
+                    onAccentFromWallpaper = shellAccess::accentFromWallpaper
                 )
             }
         }

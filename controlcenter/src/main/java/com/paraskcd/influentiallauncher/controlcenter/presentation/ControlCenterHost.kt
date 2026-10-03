@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.min
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.controlcenter.presentation.components.ControlCenterPanel
+import com.paraskcd.influentiallauncher.controlcenter.presentation.components.ControlOptionsSheet
 import com.paraskcd.influentiallauncher.controlcenter.presentation.utils.ControlCenterMetrics
 import com.paraskcd.influentiallauncher.controlcenter.presentation.viewmodels.ControlCenterViewModel
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
@@ -47,6 +48,7 @@ fun ControlCenterHost(
     viewModel: ControlCenterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val options by viewModel.optionsTarget.collectAsStateWithLifecycle()
     val configuration = LocalConfiguration.current
     val width = min(configuration.screenWidthDp.dp, configuration.screenHeightDp.dp) * widthFraction
     val density = LocalDensity.current
@@ -88,4 +90,15 @@ fun ControlCenterHost(
             }
         }
     }
+    ControlOptionsSheet(
+        toggle = options,
+        onOn = { viewModel.setOption(it, true); viewModel.closeOptions() },
+        onOff = { viewModel.setOption(it, false); viewModel.closeOptions() },
+        onOpenSettings = {
+            viewModel.openDetails(it)
+            viewModel.closeOptions()
+            onClose()
+        },
+        onDismiss = { viewModel.closeOptions() }
+    )
 }

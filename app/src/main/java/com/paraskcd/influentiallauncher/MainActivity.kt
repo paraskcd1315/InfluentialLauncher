@@ -17,6 +17,7 @@ import com.paraskcd.influentiallauncher.presentation.rememberDeviceTilt
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
 import androidx.compose.runtime.CompositionLocalProvider
 import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
+import com.paraskcd.influentiallauncher.shellaccess.domain.ports.ShellAccess
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -28,8 +29,12 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var openApps: OpenApps
 
+    @Inject
+    lateinit var shellAccess: ShellAccess
+
     override fun onResume() {
         super.onResume()
+        shellAccess.ensureReady()
         openApps.refresh()
     }
 

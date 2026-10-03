@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.Dp
 import com.paraskcd.influentiallauncher.controlcenter.R
 import com.paraskcd.influentiallauncher.controlcenter.domain.model.ControlState
 import com.paraskcd.influentiallauncher.controlcenter.domain.model.QuickToggle
-import com.paraskcd.influentiallauncher.controlcenter.domain.model.ShellAccess
 import com.paraskcd.influentiallauncher.controlcenter.presentation.utils.ControlCenterMetrics
 import com.paraskcd.influentiallauncher.controlcenter.presentation.utils.ToggleVisuals
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
@@ -95,7 +94,7 @@ private fun TogglePages(
                                 label = label,
                                 checked = state.toggles[toggle] == true,
                                 onToggle = { onToggle(toggle) },
-                                enabled = !toggle.needsShell || state.access == ShellAccess.Ready,
+                                enabled = !toggle.needsShell || state.ready,
                                 onLongClick = { onDetails(toggle) },
                                 onMore = if (toggle in ToggleVisuals.withDetails) ({ onDetails(toggle) }) else null,
                                 moreDescription = stringResource(R.string.controlcenter_more, label),

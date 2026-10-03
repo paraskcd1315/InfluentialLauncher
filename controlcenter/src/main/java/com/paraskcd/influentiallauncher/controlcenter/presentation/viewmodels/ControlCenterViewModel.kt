@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.controlcenter.domain.model.ControlState
 import com.paraskcd.influentiallauncher.controlcenter.domain.model.QuickToggle
-import com.paraskcd.influentiallauncher.controlcenter.domain.model.ShellAccess
 import com.paraskcd.influentiallauncher.controlcenter.domain.ports.SystemControls
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -29,6 +28,8 @@ class ControlCenterViewModel @Inject constructor(
     private val overrides = MutableStateFlow<Map<QuickToggle, Boolean>>(emptyMap())
     private val brightnessDrag = MutableStateFlow<Float?>(null)
     private val volumeDrag = MutableStateFlow<Float?>(null)
+    private val _optionsTarget = MutableStateFlow<QuickToggle?>(null)
+    val optionsTarget: StateFlow<QuickToggle?> = _optionsTarget
     private var brightnessSettle: Job? = null
     private var volumeSettle: Job? = null
 
@@ -42,7 +43,7 @@ class ControlCenterViewModel @Inject constructor(
 
     fun toggle(toggle: QuickToggle) {
         val current = state.value ?: return
-        if (toggle.needsShell && current.access != ShellAccess.Ready) {
+        if (toggle.needsShell && !current.ready) {
             controls.requestAccess()
             return
         }
@@ -87,6 +88,28 @@ class ControlCenterViewModel @Inject constructor(
     }
 
     fun requestAccess() = controls.requestAccess()
+
+    fun openOptions(toggle: QuickToggle) {
+        _optionsTarget.value = toggle
+    }
+
+    fun closeOptions() {
+        _optionsTarget.value = null
+    }
+
+    fun setOption(toggle: QuickToggle, on: Boolean) {
+        val current = state.value ?: return
+        if (toggle.needsShell && !current.ready) {
+            controls.requestAccess()
+            return
+        }
+        overrides.update { it + (toggle to on) }
+        viewModelScope.launch {
+            controls.set(toggle, on)
+            delay(SettleMs)
+            overrides.update { it - toggle }
+        }
+    }
 
     fun openDetails(toggle: QuickToggle) = controls.openDetails(toggle)
 
