@@ -10,6 +10,7 @@ import com.paraskcd.influentiallauncher.weather.domain.model.Place
 import com.paraskcd.influentiallauncher.weather.domain.model.Weather
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherSourceName
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherProvider
+import com.paraskcd.influentiallauncher.weather.domain.usecase.HourlyDays
 import com.paraskcd.influentiallauncher.weather.infrastructure.meteocat.MeteocatApi.Fields
 import org.json.JSONArray
 import org.json.JSONObject
@@ -45,15 +46,15 @@ class MeteocatProvider @Inject constructor(
         val readings = readings(municipality)
         val today = LocalDate.now()
         val thisHour = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS)
-        val upcoming = hourly.filter { !it.hour.time.isBefore(thisHour) }.take(HoursShown)
+        val upcoming = hourly.filter { !it.time.isBefore(thisHour) }.take(HoursShown)
         val current = upcoming.firstOrNull() ?: hourly.lastOrNull()
         val todayDaily = daily.firstOrNull { it.date == today }
-        val temperature = readings[MeteocatApi.Acronyms.Temperature]?.roundToInt() ?: current?.hour?.temperatureC ?: return null
+        val temperature = readings[MeteocatApi.Acronyms.Temperature]?.roundToInt() ?: current?.temperatureC ?: return null
         return Forecast(
             now = Weather(
                 temperatureC = temperature,
-                condition = current?.hour?.condition ?: todayDaily?.condition ?: return null,
-                isDay = current?.hour?.isDay ?: true,
+                condition = current?.condition ?: todayDaily?.condition ?: return null,
+                isDay = current?.isDay ?: true,
                 place = place.locality ?: municipality.name
             ),
             feelsLikeC = current?.feelsLikeC,
@@ -64,8 +65,8 @@ class MeteocatProvider @Inject constructor(
             uvIndex = null,
             sunrise = null,
             sunset = null,
-            hours = upcoming.map { it.hour },
-            days = daily.filter { !it.date.isBefore(today) }.take(DaysShown),
+            hours = upcoming,
+            days = daily.filter { !it.date.isBefore(today) }.take(DaysShown).map { HourlyDays.enrich(it, hourly) },
             source = name
         )
     }
@@ -85,7 +86,7 @@ class MeteocatProvider @Inject constructor(
             )
         }
 
-    private fun hours(root: JSONObject, symbols: Map<String, String>): List<Slot> =
+    private fun hours(root: JSONObject, symbols: Map<String, String>): List<HourForecast> =
         root.optJSONArray(Fields.Days).objects().flatMap { day ->
             val variables = day.optJSONObject(Fields.Variables) ?: return@flatMap emptyList()
             val sky = variables.series(Fields.Sky)
@@ -94,20 +95,18 @@ class MeteocatProvider @Inject constructor(
             val wind = variables.series(Fields.Wind)
             variables.series(Fields.Temperature).mapNotNull { (time, value) ->
                 val temperature = value.toDoubleOrNull() ?: return@mapNotNull null
-                Slot(
-                    hour = HourForecast(
-                        time = time,
-                        temperatureC = temperature.roundToInt(),
-                        condition = MeteocatSky.conditionOf(symbols[sky[time]]),
-                        isDay = time.hour in DayHours,
-                        rainChancePercent = null
-                    ),
+                HourForecast(
+                    time = time,
+                    temperatureC = temperature.roundToInt(),
+                    condition = MeteocatSky.conditionOf(symbols[sky[time]]),
+                    isDay = time.hour in DayHours,
+                    rainChancePercent = null,
                     feelsLikeC = feelsLike[time]?.toDoubleOrNull()?.roundToInt(),
                     humidityPercent = humidity[time]?.toDoubleOrNull()?.roundToInt(),
                     windKmh = wind[time]?.toDoubleOrNull()?.roundToInt()
                 )
             }
-        }.sortedBy { it.hour.time }
+        }.sortedBy { it.time }
 
     private suspend fun readings(municipality: Municipality): Map<String, Double> {
         val station = station(municipality) ?: return emptyMap()
@@ -191,8 +190,6 @@ class MeteocatProvider @Inject constructor(
         if (this == null) emptyList() else (0 until length()).mapNotNull { optJSONObject(it) }
 
     private data class Municipality(val code: String, val name: String, val km: Double)
-
-    private data class Slot(val hour: HourForecast, val feelsLikeC: Int?, val humidityPercent: Int?, val windKmh: Int?)
 
     private companion object {
         const val SpainCode = "ES"

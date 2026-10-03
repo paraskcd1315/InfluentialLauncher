@@ -10,5 +10,9 @@ data class HourForecast(
     val temperatureC: Int,
     val condition: WeatherCondition,
     val isDay: Boolean,
-    val rainChancePercent: Int?
+    val rainChancePercent: Int?,
+    val feelsLikeC: Int? = null,
+    val humidityPercent: Int? = null,
+    val windKmh: Int? = null,
+    val windFrom: CompassPoint? = null
 )

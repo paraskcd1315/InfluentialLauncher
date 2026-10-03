@@ -3,6 +3,7 @@
 
 package com.paraskcd.influentiallauncher.weather.infrastructure.openmeteo
 
+import com.paraskcd.influentiallauncher.weather.domain.model.CompassPoint
 import com.paraskcd.influentiallauncher.weather.domain.model.DayForecast
 import com.paraskcd.influentiallauncher.weather.domain.model.Forecast
 import com.paraskcd.influentiallauncher.weather.domain.model.HourForecast
@@ -11,6 +12,7 @@ import com.paraskcd.influentiallauncher.weather.domain.model.Weather
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherCondition
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherSourceName
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherProvider
+import com.paraskcd.influentiallauncher.weather.domain.usecase.HourlyDays
 import com.paraskcd.influentiallauncher.weather.infrastructure.http.ApiUrl
 import com.paraskcd.influentiallauncher.weather.infrastructure.http.HttpText
 import com.paraskcd.influentiallauncher.weather.infrastructure.openmeteo.OpenMeteoApi.Fields
@@ -42,10 +44,14 @@ class OpenMeteoProvider @Inject constructor(
                 Query.Latitude to place.latitude,
                 Query.Longitude to place.longitude,
                 Query.Current to listOf(Fields.Temperature, Fields.FeelsLike, Fields.Humidity, Fields.Wind, Fields.WeatherCode, Fields.IsDay).joinToString(","),
-                Query.Hourly to listOf(Fields.Temperature, Fields.WeatherCode, Fields.IsDay, Fields.RainChance).joinToString(","),
+                Query.Hourly to listOf(
+                    Fields.Temperature, Fields.WeatherCode, Fields.IsDay, Fields.RainChance, Fields.Wind, Fields.WindDirection
+                ).joinToString(","),
                 Query.Daily to listOf(
                     Fields.WeatherCode, Fields.MaxTemperature, Fields.MinTemperature, Fields.MaxRainChance,
-                    Fields.RainSum, Fields.UvMax, Fields.Sunrise, Fields.Sunset
+                    Fields.RainSum, Fields.UvMax, Fields.Sunrise, Fields.Sunset,
+                    Fields.MaxFeelsLike, Fields.MinFeelsLike, Fields.MaxHumidity, Fields.MinHumidity,
+                    Fields.MaxWind, Fields.MaxGust, Fields.DominantWindDirection
                 ).joinToString(","),
                 Query.ForecastDays to DaysShown,
                 Query.Timezone to OpenMeteoApi.AutoTimezone
@@ -62,29 +68,40 @@ class OpenMeteoProvider @Inject constructor(
         val hourly = json.getJSONObject(Query.Hourly)
         val times = hourly.getJSONArray(Fields.Time)
         val thisHour = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS)
-        val hours = (0 until times.length())
-            .map { index -> index to LocalDateTime.parse(times.getString(index)) }
-            .filter { (_, time) -> !time.isBefore(thisHour) }
-            .take(HoursShown)
-            .map { (index, time) ->
-                HourForecast(
-                    time = time,
-                    temperatureC = hourly.getJSONArray(Fields.Temperature).getDouble(index).roundToInt(),
-                    condition = WeatherCondition.fromWmoCode(hourly.getJSONArray(Fields.WeatherCode).getInt(index)),
-                    isDay = hourly.getJSONArray(Fields.IsDay).optInt(index, 1) == 1,
-                    rainChancePercent = hourly.getJSONArray(Fields.RainChance).intOrNull(index)
-                )
-            }
+        val allHours = (0 until times.length()).map { index ->
+            HourForecast(
+                time = LocalDateTime.parse(times.getString(index)),
+                temperatureC = hourly.getJSONArray(Fields.Temperature).getDouble(index).roundToInt(),
+                condition = WeatherCondition.fromWmoCode(hourly.getJSONArray(Fields.WeatherCode).getInt(index)),
+                isDay = hourly.getJSONArray(Fields.IsDay).optInt(index, 1) == 1,
+                rainChancePercent = hourly.getJSONArray(Fields.RainChance).intOrNull(index),
+                windKmh = hourly.optJSONArray(Fields.Wind)?.intOrNull(index),
+                windFrom = hourly.optJSONArray(Fields.WindDirection)?.doubleOrNull(index)?.let(CompassPoint::ofDegrees)
+            )
+        }
+        val hours = allHours.filter { !it.time.isBefore(thisHour) }.take(HoursShown)
         val daily = json.getJSONObject(Query.Daily)
         val dates = daily.getJSONArray(Fields.Time)
         val days = (0 until dates.length()).map { index ->
-            DayForecast(
+            val day = DayForecast(
                 date = LocalDate.parse(dates.getString(index)),
                 minC = daily.getJSONArray(Fields.MinTemperature).getDouble(index).roundToInt(),
                 maxC = daily.getJSONArray(Fields.MaxTemperature).getDouble(index).roundToInt(),
                 condition = WeatherCondition.fromWmoCode(daily.getJSONArray(Fields.WeatherCode).getInt(index)),
-                rainChancePercent = daily.getJSONArray(Fields.MaxRainChance).intOrNull(index)
+                rainChancePercent = daily.getJSONArray(Fields.MaxRainChance).intOrNull(index),
+                feelsLikeMinC = daily.optJSONArray(Fields.MinFeelsLike)?.intOrNull(index),
+                feelsLikeMaxC = daily.optJSONArray(Fields.MaxFeelsLike)?.intOrNull(index),
+                humidityMinPercent = daily.optJSONArray(Fields.MinHumidity)?.intOrNull(index),
+                humidityMaxPercent = daily.optJSONArray(Fields.MaxHumidity)?.intOrNull(index),
+                windKmh = daily.optJSONArray(Fields.MaxWind)?.intOrNull(index),
+                windFrom = daily.optJSONArray(Fields.DominantWindDirection)?.doubleOrNull(index)?.let(CompassPoint::ofDegrees),
+                gustKmh = daily.optJSONArray(Fields.MaxGust)?.intOrNull(index),
+                rainMm = daily.optJSONArray(Fields.RainSum)?.doubleOrNull(index),
+                uvIndex = daily.optJSONArray(Fields.UvMax)?.intOrNull(index),
+                sunrise = daily.optJSONArray(Fields.Sunrise)?.optString(index)?.toTimeOrNull(),
+                sunset = daily.optJSONArray(Fields.Sunset)?.optString(index)?.toTimeOrNull()
             )
+            HourlyDays.enrich(day, allHours)
         }
         return Forecast(
             now = now,
