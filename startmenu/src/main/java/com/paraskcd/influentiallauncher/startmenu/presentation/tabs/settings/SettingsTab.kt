@@ -27,6 +27,7 @@ import com.paraskcd.influentiallauncher.settings.domain.model.LauncherSettings
 import com.paraskcd.influentiallauncher.shellaccess.domain.model.ShellState
 import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuTab
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.AccentSection
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.ShellAccessSection
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.SettingsActionRow
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.SettingsRemovableRow
@@ -52,6 +53,8 @@ fun SettingsTab(
     onPairShell: (String) -> Unit,
     onRetryShell: () -> Unit,
     onOpenShellSettings: () -> Unit,
+    onPickAccent: (String) -> Unit,
+    onAccentFromWallpaper: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val toggles = TabToggles.of(settings)
@@ -103,6 +106,12 @@ fun SettingsTab(
                 onPair = onPairShell,
                 onRetry = onRetryShell,
                 onOpenSettings = onOpenShellSettings
+            )
+        }
+        item {
+            AccentSection(
+                onPick = onPickAccent,
+                onWallpaper = onAccentFromWallpaper
             )
         }
         item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_tracking)) }

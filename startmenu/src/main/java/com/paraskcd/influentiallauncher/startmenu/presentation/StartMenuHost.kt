@@ -235,7 +235,9 @@ fun StartMenuHost(
                     shellState = shellState,
                     onPairShell = shellAccess::pair,
                     onRetryShell = shellAccess::retry,
-                    onOpenShellSettings = shellAccess::openWirelessDebugging
+                    onOpenShellSettings = shellAccess::openWirelessDebugging,
+                    onPickAccent = shellAccess::setAccent,
+                    onAccentFromWallpaper = shellAccess::accentFromWallpaper
                 )
             }
         }

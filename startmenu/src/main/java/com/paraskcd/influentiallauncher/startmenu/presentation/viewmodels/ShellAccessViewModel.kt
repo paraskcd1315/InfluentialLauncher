@@ -7,11 +7,14 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.shellaccess.domain.model.ShellState
 import com.paraskcd.influentiallauncher.shellaccess.domain.ports.ShellAccess
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.AccentCommand
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,6 +34,14 @@ class ShellAccessViewModel @Inject constructor(
 
     fun retry() {
         shellAccess.retry()
+    }
+
+    fun setAccent(seedHex: String) {
+        viewModelScope.launch { shellAccess.run(AccentCommand.set(seedHex)) }
+    }
+
+    fun accentFromWallpaper() {
+        viewModelScope.launch { shellAccess.run(AccentCommand.fromWallpaper()) }
     }
 
     fun openWirelessDebugging() {

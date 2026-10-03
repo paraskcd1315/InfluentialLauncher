@@ -111,4 +111,6 @@
     <string name="startmenu_shell_code">Pairing code</string>
     <string name="startmenu_shell_pair">Pair</string>
     <string name="startmenu_shell_retry">Retry</string>
+    <string name="startmenu_accent_section">System accent</string>
+    <string name="startmenu_accent_wallpaper">From wallpaper</string>
 </resources>
