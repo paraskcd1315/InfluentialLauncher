@@ -6,7 +6,6 @@ package com.paraskcd.influentiallauncher.shellaccess.infrastructure.adb
 import android.content.Context
 import android.util.Base64
 import java.io.File
-import java.math.BigInteger
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.PrivateKey
@@ -67,6 +66,5 @@ class AdbKeyStore(private val context: Context) {
         const val KeySize = 2048
         const val PemLineWidth = 64
         const val Subject = "CN=Influential Launcher,O=Influential,C=US"
-        val SerialSeed: BigInteger = BigInteger.valueOf(1L)
     }
 }

@@ -21,4 +21,6 @@ dependencies {
     implementation(libs.hiddenapibypass)
     implementation(libs.libadb)
     implementation(libs.conscrypt.android)
+    implementation(libs.bouncycastle.prov)
+    implementation(libs.bouncycastle.pkix)
 }
