@@ -8,9 +8,23 @@ plugins {
 
 android {
     namespace = "com.paraskcd.influentiallauncher.shellaccess"
+    ndkVersion = "27.2.12479018"
+
+    defaultConfig {
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
+    }
 
     buildFeatures {
         aidl = true
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 }
 

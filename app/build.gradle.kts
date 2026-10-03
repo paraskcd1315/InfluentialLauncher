@@ -40,6 +40,12 @@ android {
         resValues = true
     }
 
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".dev"
