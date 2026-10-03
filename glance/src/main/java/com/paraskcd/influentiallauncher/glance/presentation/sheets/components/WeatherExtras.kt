@@ -23,14 +23,12 @@ import com.composables.icons.lucide.Sunrise
 import com.composables.icons.lucide.Sunset
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.glance.R
+import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherFormats
 import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherSheetMetrics
 import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherVisuals
 import com.paraskcd.influentiallauncher.weather.domain.model.AirQuality
 import com.paraskcd.influentiallauncher.weather.domain.model.Forecast
-import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
-
-private val SunFormat = DateTimeFormatter.ofPattern("HH:mm")
 
 private data class Extra(val icon: ImageVector, val label: String, val value: String?, val detail: String? = null)
 
@@ -48,8 +46,8 @@ fun WeatherExtras(forecast: Forecast, airQuality: AirQuality?, modifier: Modifie
             val detail = listOf(stringResource(WeatherVisuals.airLabelOf(air.europeanAqi)), particles).filter { it.isNotBlank() }.joinToString(" · ")
             add(Extra(Lucide.Leaf, stringResource(R.string.weather_air), air.europeanAqi.toString(), detail))
         }
-        forecast.sunrise?.let { add(Extra(Lucide.Sunrise, stringResource(R.string.weather_sunrise), it.format(SunFormat))) }
-        forecast.sunset?.let { add(Extra(Lucide.Sunset, stringResource(R.string.weather_sunset), it.format(SunFormat))) }
+        forecast.sunrise?.let { add(Extra(Lucide.Sunrise, stringResource(R.string.weather_sunrise), it.format(WeatherFormats.clock))) }
+        forecast.sunset?.let { add(Extra(Lucide.Sunset, stringResource(R.string.weather_sunset), it.format(WeatherFormats.clock))) }
         forecast.rainTodayMm?.let { add(Extra(Lucide.CloudRain, stringResource(R.string.weather_rain_today), stringResource(R.string.weather_mm, it))) }
     }
     Column(verticalArrangement = Arrangement.spacedBy(InfSpacing.s3), modifier = modifier.fillMaxWidth()) {
