@@ -3,9 +3,6 @@
 
 package com.paraskcd.influentiallauncher.weather.infrastructure.aemet
 
-import android.content.Context
-import android.util.Log
-import com.paraskcd.influentiallauncher.weather.BuildConfig
 import com.paraskcd.influentiallauncher.weather.domain.model.DayForecast
 import com.paraskcd.influentiallauncher.weather.domain.model.Forecast
 import com.paraskcd.influentiallauncher.weather.domain.model.HourForecast
@@ -14,17 +11,10 @@ import com.paraskcd.influentiallauncher.weather.domain.model.Weather
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherSourceName
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherProvider
 import com.paraskcd.influentiallauncher.weather.infrastructure.aemet.AemetApi.Fields
-import com.paraskcd.influentiallauncher.weather.infrastructure.http.ApiUrl
-import com.paraskcd.influentiallauncher.weather.infrastructure.http.HttpText
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
-import java.nio.charset.Charset
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -35,25 +25,22 @@ import kotlin.math.cos
 
 @Singleton
 class AemetProvider @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val http: HttpText
+    private val fetcher: AemetFetcher
 ) : WeatherProvider {
 
     override val name: WeatherSourceName = WeatherSourceName.Aemet
 
-    private val key = BuildConfig.AEMET_API_KEY
-    private val latin = Charset.forName("ISO-8859-15")
     private val lock = Mutex()
     private var municipalities: List<Municipality>? = null
 
-    override fun covers(place: Place): Boolean = key.isNotBlank() && place.countryCode.equals(SpainCode, ignoreCase = true)
+    override fun covers(place: Place): Boolean = fetcher.configured && place.countryCode.equals(SpainCode, ignoreCase = true)
 
     override suspend fun forecast(place: Place): Forecast? {
         val municipality = nearest(place) ?: return null
-        val hourlyDays = predictionDays(AemetApi.Paths.HourlyForecast.format(municipality.id))
-        val dailyDays = runCatching { predictionDays(AemetApi.Paths.DailyForecast.format(municipality.id)) }
-            .onFailure { Log.w(LogTag, "daily forecast failed", it) }
-            .getOrDefault(emptyList())
+        val hourlyDays = fetcher.text(HourlyPrefix + municipality.id, AemetApi.Paths.HourlyForecast.format(municipality.id), HourlyMaxAgeMs)
+            ?.let(::predictionDays) ?: return null
+        val dailyDays = fetcher.text(DailyPrefix + municipality.id, AemetApi.Paths.DailyForecast.format(municipality.id), DailyMaxAgeMs)
+            ?.let(::predictionDays).orEmpty()
         val today = LocalDate.now()
         val thisHour = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS)
         val slots = hourlyDays.flatMap { it.hourSlots() }
@@ -153,10 +140,9 @@ class AemetProvider @Inject constructor(
 
     private fun String.toTimeOrNull(): LocalTime? = runCatching { LocalTime.parse(this) }.getOrNull()
 
-    private suspend fun predictionDays(path: String): List<JSONObject> {
-        val root = JSONArray(datos(ApiUrl.of(AemetApi.BaseUrl, path))).getJSONObject(0)
-        return root.getJSONObject(Fields.Prediction).optJSONArray(Fields.Day).entries()
-    }
+    private fun predictionDays(text: String): List<JSONObject>? = runCatching {
+        JSONArray(text).getJSONObject(0).getJSONObject(Fields.Prediction).optJSONArray(Fields.Day).entries()
+    }.getOrNull()
 
     private suspend fun nearest(place: Place): Municipality? {
         val all = municipalities() ?: return null
@@ -170,15 +156,8 @@ class AemetProvider @Inject constructor(
 
     private suspend fun municipalities(): List<Municipality>? = lock.withLock {
         municipalities?.let { return@withLock it }
-        val cache = File(context.filesDir, CacheFile)
-        val text = if (cache.exists()) {
-            withContext(Dispatchers.IO) { cache.readText() }
-        } else {
-            val fetched = datosOrDirect(ApiUrl.of(AemetApi.BaseUrl, AemetApi.Paths.Municipalities))
-            withContext(Dispatchers.IO) { cache.writeText(fetched) }
-            fetched
-        }
-        val array = JSONArray(text)
+        val text = fetcher.text(MunicipalitiesFile, AemetApi.Paths.Municipalities, ReferenceMaxAgeMs) ?: return@withLock null
+        val array = runCatching { JSONArray(text) }.getOrNull() ?: return@withLock null
         val list = (0 until array.length()).mapNotNull { index ->
             val item = array.optJSONObject(index) ?: return@mapNotNull null
             val latitude = item.optString(Fields.Latitude).toDoubleOrNull() ?: return@mapNotNull null
@@ -194,19 +173,6 @@ class AemetProvider @Inject constructor(
         list
     }
 
-    private suspend fun datos(url: String): String {
-        val envelope = JSONObject(http.get(url, headers(), latin))
-        return http.get(envelope.getString(AemetApi.DataField), fallbackCharset = latin)
-    }
-
-    private suspend fun datosOrDirect(url: String): String {
-        val body = http.get(url, headers(), latin).trim()
-        if (body.startsWith("[")) return body
-        return http.get(JSONObject(body).getString(AemetApi.DataField), fallbackCharset = latin)
-    }
-
-    private fun headers() = mapOf(AemetApi.ApiKeyHeader to key)
-
     private data class Municipality(val id: String, val name: String, val latitude: Double, val longitude: Double)
 
     private data class Slot(
@@ -218,10 +184,14 @@ class AemetProvider @Inject constructor(
     )
 
     private companion object {
-        const val LogTag = "AemetProvider"
         const val SpainCode = "ES"
         const val IdPrefix = "id"
-        const val CacheFile = "aemet_municipios.json"
+        const val MunicipalitiesFile = "municipios.json"
+        const val HourlyPrefix = "hourly_"
+        const val DailyPrefix = "daily_"
+        const val HourlyMaxAgeMs = 60 * 60 * 1000L
+        const val DailyMaxAgeMs = 6 * 60 * 60 * 1000L
+        const val ReferenceMaxAgeMs = 90 * 24 * 60 * 60 * 1000L
         const val HoursShown = 24
         const val DaysShown = 7
         const val DateLength = 10

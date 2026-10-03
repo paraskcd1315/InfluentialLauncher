@@ -7,6 +7,7 @@ object AemetApi {
     const val BaseUrl = "https://opendata.aemet.es/opendata/api"
     const val ApiKeyHeader = "api_key"
     const val DataField = "datos"
+    const val FallbackCharset = "ISO-8859-15"
 
     object Paths {
         const val Municipalities = "/maestro/municipios"
