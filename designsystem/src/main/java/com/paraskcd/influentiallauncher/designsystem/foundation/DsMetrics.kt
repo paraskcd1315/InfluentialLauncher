@@ -74,5 +74,5 @@ object DsMetrics {
     val parallaxShadowBlur = 6.dp
     val parallaxShadowLift = 2.dp
     val parallaxShadowDrift = 3.dp
-    val parallaxLayerStep = 1.5.dp
+    val parallaxLayerStep = 2.5.dp
 }
