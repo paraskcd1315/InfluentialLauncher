@@ -17,7 +17,6 @@ reorderable = "3.1.0"
 haze = "2.0.0"
 lucide = "1.1.0"
 hiddenapibypass = "6.1"
-shizuku = "13.1.5"
 okhttp = "5.5.0"
 libadb = "3.1.1"
 conscrypt = "2.5.3"
@@ -48,8 +47,6 @@ reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.r
 haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
 haze-blur = { group = "dev.chrisbanes.haze", name = "haze-blur", version.ref = "haze" }
 hiddenapibypass = { group = "org.lsposed.hiddenapibypass", name = "hiddenapibypass", version.ref = "hiddenapibypass" }
-shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
-shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 icons-lucide ={ group = "com.composables", name = "icons-lucide", version.ref = "lucide" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 libadb = { group = "com.github.MuntashirAkon", name = "libadb-android", version.ref = "libadb" }

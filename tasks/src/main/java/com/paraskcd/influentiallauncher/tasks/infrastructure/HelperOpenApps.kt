@@ -5,10 +5,11 @@ package com.paraskcd.influentiallauncher.tasks.infrastructure
 
 import android.app.ActivityManager
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.IBinder
 import android.os.Process
 import android.util.Log
+import com.paraskcd.influentiallauncher.shellaccess.domain.model.ShellState
+import com.paraskcd.influentiallauncher.shellaccess.domain.ports.ShellAccess
 import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -20,15 +21,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.lsposed.hiddenapibypass.HiddenApiBypass
-import rikka.shizuku.Shizuku
-import rikka.shizuku.ShizukuBinderWrapper
-import rikka.shizuku.SystemServiceHelper
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ShizukuOpenApps @Inject constructor(
-    @ApplicationContext private val context: Context
+class HelperOpenApps @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val shell: ShellAccess
 ) : OpenApps {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val current = MutableStateFlow<Map<String, Int>>(emptyMap())
@@ -44,11 +43,11 @@ class ShizukuOpenApps @Inject constructor(
         scope.launch {
             if (!ready()) return@launch
             runCatching {
-                val tasks = taskService()
+                val tasks = taskService() ?: return@launch
                 recentTasks(tasks).filter { packageOf(it) == packageName }.forEach {
                     tasks.javaClass.getMethod(TasksApi.RemoveTask, Int::class.javaPrimitiveType).invoke(tasks, it.taskId)
                 }
-                val activities = service(TasksApi.ActivityService, TasksApi.ActivityStubClass)
+                val activities = service(TasksApi.ActivityService, TasksApi.ActivityStubClass) ?: return@launch
                 activities.javaClass
                     .getMethod(TasksApi.ForceStopPackage, String::class.java, Int::class.javaPrimitiveType)
                     .invoke(activities, packageName, userId())
@@ -60,7 +59,8 @@ class ShizukuOpenApps @Inject constructor(
     private fun read(): Map<String, Int> {
         if (!ready()) return emptyMap()
         return runCatching {
-            recentTasks(taskService())
+            val tasks = taskService() ?: return emptyMap()
+            recentTasks(tasks)
                 .mapNotNull(::packageOf)
                 .filter { it != context.packageName }
                 .groupingBy { it }
@@ -70,12 +70,12 @@ class ShizukuOpenApps @Inject constructor(
             .getOrDefault(emptyMap())
     }
 
-    private fun taskService(): Any = service(TasksApi.Service, TasksApi.StubClass)
+    private fun taskService(): Any? = service(TasksApi.Service, TasksApi.StubClass)
 
-    private fun service(name: String, stubClass: String): Any {
+    private fun service(name: String, stubClass: String): Any? {
         HiddenApiBypass.addHiddenApiExemptions(*TasksApi.Exemptions)
-        val binder = ShizukuBinderWrapper(SystemServiceHelper.getSystemService(name))
-        return Class.forName(stubClass).getMethod(TasksApi.AsInterface, IBinder::class.java).invoke(null, binder)!!
+        val binder: IBinder = shell.systemService(name) ?: return null
+        return Class.forName(stubClass).getMethod(TasksApi.AsInterface, IBinder::class.java).invoke(null, binder)
     }
 
     private fun recentTasks(service: Any): List<ActivityManager.RecentTaskInfo> {
@@ -91,9 +91,7 @@ class ShizukuOpenApps @Inject constructor(
 
     private fun userId(): Int = Process.myUid() / TasksApi.PerUserRange
 
-    private fun ready(): Boolean = runCatching {
-        Shizuku.pingBinder() && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-    }.getOrDefault(false)
+    private fun ready(): Boolean = shell.state.value is ShellState.Ready
 
     private companion object {
         const val LogTag = "OpenApps"

@@ -11,8 +11,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":shellaccess"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.shizuku.api)
     implementation(libs.hiddenapibypass)
 }

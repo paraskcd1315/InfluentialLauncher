@@ -29,7 +29,8 @@ import com.paraskcd.influentiallauncher.controlcenter.domain.model.QuickToggle
 import com.paraskcd.influentiallauncher.controlcenter.domain.ports.SystemControls
 import com.paraskcd.influentiallauncher.controlcenter.infrastructure.shell.ShellCommands
 import com.paraskcd.influentiallauncher.controlcenter.infrastructure.shell.ShellCommands.Values
-import com.paraskcd.influentiallauncher.controlcenter.infrastructure.shell.ShizukuShell
+import com.paraskcd.influentiallauncher.shellaccess.domain.model.ShellState
+import com.paraskcd.influentiallauncher.shellaccess.domain.ports.ShellAccess
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -46,7 +47,7 @@ import kotlin.math.roundToInt
 @Singleton
 class AndroidSystemControls @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val shell: ShizukuShell
+    private val shell: ShellAccess
 ) : SystemControls {
 
     private val resolver = context.contentResolver
@@ -111,14 +112,14 @@ class AndroidSystemControls @Inject constructor(
         }
     }.conflate()
 
-    override val state: Flow<ControlState> = combine(changes, torch, shell.access) { _, torchOn, access ->
+    override val state: Flow<ControlState> = combine(changes, torch, shell.state) { _, torchOn, shellState ->
         ControlState(
             toggles = QuickToggle.entries.associateWith { read(it, torchOn) },
             brightness = brightnessPosition(),
             autoBrightness = systemInt(Settings.System.SCREEN_BRIGHTNESS_MODE) == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC,
             volume = audio.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() /
                 audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1),
-            access = access
+            ready = shellState is ShellState.Ready
         )
     }.distinctUntilChanged()
 
@@ -140,12 +141,12 @@ class AndroidSystemControls @Inject constructor(
                 return
             }
         }
-        if (!shell.run(command)) Log.w(LogTag, "$toggle did not change")
+        if (!shell.run(command).ok) Log.w(LogTag, "$toggle did not change")
     }
 
     override fun setBrightness(level: Float) {
         if (!Settings.System.canWrite(context)) {
-            shell.requestAccess()
+            shell.ensureReady()
             return
         }
         runCatching {
@@ -173,7 +174,7 @@ class AndroidSystemControls @Inject constructor(
             .onFailure { Log.w(LogTag, "volume failed", it) }
     }
 
-    override fun requestAccess() = shell.requestAccess()
+    override fun requestAccess() = shell.ensureReady()
 
     override fun openDetails(toggle: QuickToggle) {
         val action = when (toggle) {
