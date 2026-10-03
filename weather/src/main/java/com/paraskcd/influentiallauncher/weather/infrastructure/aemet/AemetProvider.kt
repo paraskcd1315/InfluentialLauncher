@@ -200,7 +200,8 @@ class AemetProvider @Inject constructor(
 
     private suspend fun municipalities(): List<Municipality>? = lock.withLock {
         municipalities?.let { return@withLock it }
-        val text = fetcher.text(MunicipalitiesFile, AemetApi.Paths.Municipalities, ReferenceMaxAgeMs) ?: return@withLock null
+        fetcher.adopt(MunicipalitiesFile, LegacyMunicipalitiesFile)
+        val text = fetcher.text(MunicipalitiesFile, AemetApi.Paths.Municipalities, Long.MAX_VALUE) ?: return@withLock null
         val array = runCatching { JSONArray(text) }.getOrNull() ?: return@withLock null
         val list = (0 until array.length()).mapNotNull { index ->
             val item = array.optJSONObject(index) ?: return@mapNotNull null
@@ -223,11 +224,11 @@ class AemetProvider @Inject constructor(
         const val SpainCode = "ES"
         const val IdPrefix = "id"
         const val MunicipalitiesFile = "municipios.json"
+        const val LegacyMunicipalitiesFile = "aemet_municipios.json"
         const val HourlyPrefix = "hourly_"
         const val DailyPrefix = "daily_"
         const val HourlyMaxAgeMs = 60 * 60 * 1000L
         const val DailyMaxAgeMs = 6 * 60 * 60 * 1000L
-        const val ReferenceMaxAgeMs = 90 * 24 * 60 * 60 * 1000L
         const val HoursShown = 24
         const val DaysShown = 7
         const val DateLength = 10

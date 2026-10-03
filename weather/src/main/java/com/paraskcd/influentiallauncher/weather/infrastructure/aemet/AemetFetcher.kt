@@ -49,13 +49,19 @@ class AemetFetcher @Inject constructor(
         return data(JSONObject(body).getString(AemetApi.DataField))
     }
 
+    suspend fun adopt(cacheName: String, legacyName: String) = cache.adopt(FolderName, cacheName, legacyName)
+
     private suspend fun data(url: String): String {
-        val first = runCatching { http.get(url, fallbackCharset = latin).trim() }.getOrNull()
-        if (first != null && first.startsWith(JsonArrayStart)) return first
-        delay(DataRetryDelayMs)
-        val second = http.get(url, fallbackCharset = latin).trim()
-        check(second.startsWith(JsonArrayStart)) { "AEMET data is not a JSON array" }
-        return second
+        repeat(DataAttempts - 1) { attempt ->
+            val body = runCatching { http.get(url, fallbackCharset = latin).trim() }
+                .onFailure { if (it is CancellationException) throw it }
+                .getOrNull()
+            if (body != null && body.startsWith(JsonArrayStart)) return body
+            delay(DataRetryDelayMs * (attempt + 1))
+        }
+        val last = http.get(url, fallbackCharset = latin).trim()
+        check(last.startsWith(JsonArrayStart)) { "AEMET data is not a JSON array" }
+        return last
     }
 
     private companion object {
@@ -64,5 +70,6 @@ class AemetFetcher @Inject constructor(
         const val JsonArrayStart = "["
         const val FailurePauseMs = 15 * 60 * 1000L
         const val DataRetryDelayMs = 1_500L
+        const val DataAttempts = 3
     }
 }

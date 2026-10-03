@@ -24,5 +24,11 @@ class TextCache @Inject constructor(
         File(folderOf(folder), name).writeText(text)
     }
 
+    suspend fun adopt(folder: String, name: String, legacyName: String) = withContext(Dispatchers.IO) {
+        val legacy = File(context.filesDir, legacyName)
+        val target = File(folderOf(folder), name)
+        if (legacy.exists() && !target.exists()) legacy.renameTo(target)
+    }
+
     private fun folderOf(name: String): File = File(context.filesDir, name).apply { mkdirs() }
 }
