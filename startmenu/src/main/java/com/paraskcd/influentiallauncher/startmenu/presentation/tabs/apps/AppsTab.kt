@@ -36,6 +36,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.AppMenuSheet
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.ClearStorageSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.LetterIndexedBox
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.ListSkeleton
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components.AppGrid
@@ -62,6 +63,7 @@ fun AppsTab(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     var menuKey by remember { mutableStateOf<String?>(null) }
+    var clearKey by remember { mutableStateOf<String?>(null) }
     val listTop = StartMenuMetrics.searchTop + DsMetrics.searchHeight + StartMenuMetrics.searchContentGap
 
     LaunchedEffect(open) {
@@ -170,6 +172,19 @@ fun AppsTab(
             onClose()
             viewModel.uninstall(id)
         },
-        onClose = viewModel::closeApp
+        onClose = viewModel::closeApp,
+        onForceStop = viewModel::forceStop,
+        onClearStorage = { id ->
+            menuKey = null
+            clearKey = id.key
+        }
+    )
+    val clearEntry = clearKey?.let { key ->
+        content?.let { current -> (current.pinned + current.sections.flatMap { it.apps }).firstOrNull { it.app.id.key == key } }
+    }
+    ClearStorageSheet(
+        entry = clearEntry,
+        onConfirm = { viewModel.clearStorage(it.app.id) },
+        onDismiss = { clearKey = null }
     )
 }

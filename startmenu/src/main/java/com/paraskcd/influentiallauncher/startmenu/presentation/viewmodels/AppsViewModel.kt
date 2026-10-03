@@ -13,6 +13,7 @@ import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
 import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.AppSignalsSource
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreen
+import com.paraskcd.influentiallauncher.tasks.domain.ports.AppActions
 import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
@@ -36,7 +37,8 @@ class AppsViewModel @Inject constructor(
     private val pinnedApps: PinnedApps,
     private val homeScreen: HomeScreen,
     signalsSource: AppSignalsSource,
-    private val openApps: OpenApps
+    private val openApps: OpenApps,
+    private val appActions: AppActions
 ) : ViewModel() {
 
     val signals: StateFlow<AppSignals> = signalsSource.signals
@@ -44,6 +46,14 @@ class AppsViewModel @Inject constructor(
 
     fun closeApp(id: AppId) {
         openApps.close(id.packageName)
+    }
+
+    fun forceStop(id: AppId) {
+        viewModelScope.launch { appActions.forceStop(id.packageName) }
+    }
+
+    fun clearStorage(id: AppId) {
+        viewModelScope.launch { appActions.clearStorage(id.packageName) }
     }
 
     fun addToHome(id: AppId) {

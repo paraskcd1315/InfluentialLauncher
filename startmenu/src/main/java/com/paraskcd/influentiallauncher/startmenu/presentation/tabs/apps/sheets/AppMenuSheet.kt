@@ -6,6 +6,8 @@ package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.composables.icons.lucide.Ban
+import com.composables.icons.lucide.Eraser
 import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.LayoutGrid
@@ -34,7 +36,9 @@ fun AppMenuSheet(
     onAddToHome: (AppId) -> Unit,
     onInfo: (AppId) -> Unit,
     onUninstall: (AppId) -> Unit,
-    onClose: (AppId) -> Unit
+    onClose: (AppId) -> Unit,
+    onForceStop: (AppId) -> Unit,
+    onClearStorage: (AppId) -> Unit
 ) {
     val colors = InfTheme.colors
     InfSheetWindow(
@@ -62,7 +66,9 @@ fun AppMenuSheet(
                 ),
                 InfAction(Lucide.House, stringResource(R.string.startmenu_add_home), colors.textPrimary) { onAddToHome(id) },
                 InfAction(Lucide.X, stringResource(R.string.startmenu_close), colors.textPrimary) { onClose(id) },
+                InfAction(Lucide.Ban, stringResource(R.string.startmenu_force_stop), colors.textPrimary) { onForceStop(id) },
                 InfAction(Lucide.Info, stringResource(R.string.startmenu_info), colors.textPrimary) { onInfo(id) },
+                InfAction(Lucide.Eraser, stringResource(R.string.startmenu_clear_storage), colors.dangerText) { onClearStorage(id) },
                 InfAction(Lucide.Trash2, stringResource(R.string.startmenu_uninstall), colors.dangerText) { onUninstall(id) }
             ),
             onDismiss = onDismiss

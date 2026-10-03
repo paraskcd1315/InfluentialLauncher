@@ -113,4 +113,9 @@
     <string name="startmenu_shell_retry">Retry</string>
     <string name="startmenu_accent_section">System accent</string>
     <string name="startmenu_accent_wallpaper">From wallpaper</string>
+    <string name="startmenu_force_stop">Force stop</string>
+    <string name="startmenu_clear_storage">Clear storage</string>
+    <string name="startmenu_clear_storage_title">Clear %1$s\'s storage?</string>
+    <string name="startmenu_clear_storage_confirm">Clear storage</string>
+    <string name="startmenu_clear_storage_cancel">Cancel</string>
 </resources>
