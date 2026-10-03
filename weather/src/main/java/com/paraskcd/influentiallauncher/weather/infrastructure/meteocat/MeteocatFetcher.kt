@@ -8,6 +8,7 @@ import com.paraskcd.influentiallauncher.weather.BuildConfig
 import com.paraskcd.influentiallauncher.weather.infrastructure.cache.TextCache
 import com.paraskcd.influentiallauncher.weather.infrastructure.http.ApiUrl
 import com.paraskcd.influentiallauncher.weather.infrastructure.http.HttpText
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -31,7 +32,10 @@ class MeteocatFetcher @Inject constructor(
         if (plan != null && !budget.take(plan)) return@withLock cached?.text
         runCatching { http.get(ApiUrl.of(MeteocatApi.BaseUrl, path), mapOf(MeteocatApi.ApiKeyHeader to key)) }
             .onSuccess { cache.write(FolderName, cacheName, it) }
-            .onFailure { Log.w(LogTag, "request failed for $cacheName", it) }
+            .onFailure {
+                if (it is CancellationException) throw it
+                Log.w(LogTag, "request failed for $cacheName", it)
+            }
             .getOrNull() ?: cached?.text
     }
 

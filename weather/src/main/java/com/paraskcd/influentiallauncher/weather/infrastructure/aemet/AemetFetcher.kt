@@ -8,6 +8,7 @@ import com.paraskcd.influentiallauncher.weather.BuildConfig
 import com.paraskcd.influentiallauncher.weather.infrastructure.cache.TextCache
 import com.paraskcd.influentiallauncher.weather.infrastructure.http.ApiUrl
 import com.paraskcd.influentiallauncher.weather.infrastructure.http.HttpText
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -35,6 +36,7 @@ class AemetFetcher @Inject constructor(
         runCatching { fetch(path) }
             .onSuccess { cache.write(FolderName, cacheName, it) }
             .onFailure {
+                if (it is CancellationException) throw it
                 pausedUntilMs = System.currentTimeMillis() + FailurePauseMs
                 Log.w(LogTag, "request failed for $cacheName", it)
             }

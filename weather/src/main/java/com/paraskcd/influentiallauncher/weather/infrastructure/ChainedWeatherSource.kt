@@ -20,6 +20,7 @@ import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherProvider
 import com.paraskcd.influentiallauncher.weather.domain.ports.WeatherSource
 import com.paraskcd.influentiallauncher.weather.infrastructure.location.DeviceLocator
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
@@ -85,7 +86,7 @@ class ChainedWeatherSource @Inject constructor(
         val cached = forecasts[key]
         if (!force && cached?.fresh() == true) return@withLock cached.value
         val fetched = runCatching { provider.forecast(here) }
-            .onFailure { Log.w(LogTag, "${provider.name} failed", it) }
+            .onFailure { warn("${provider.name} failed", it) }
             .getOrNull()
         if (fetched == null) return@withLock cached?.value
         Log.d(LogTag, "weather from ${provider.name}")
@@ -97,11 +98,11 @@ class ChainedWeatherSource @Inject constructor(
         extras[here.key()]?.let { if (!force && it.fresh()) return@withLock it.value }
         coroutineScope {
             val air = async {
-                runCatching { airQuality.airQuality(here) }.onFailure { Log.w(LogTag, "air quality failed", it) }.getOrNull()
+                runCatching { airQuality.airQuality(here) }.onFailure { warn("air quality failed", it) }.getOrNull()
             }
             val alerts = async {
                 if (!warnings.covers(here)) emptyList()
-                else runCatching { warnings.warnings(here) }.onFailure { Log.w(LogTag, "warnings failed", it) }.getOrDefault(emptyList())
+                else runCatching { warnings.warnings(here) }.onFailure { warn("warnings failed", it) }.getOrDefault(emptyList())
             }
             Extras(air.await(), alerts.await()).also { extras[here.key()] = Cached(it) }
         }
@@ -113,6 +114,11 @@ class ChainedWeatherSource @Inject constructor(
         val found = locator.place() ?: return@withLock devicePlace?.value
         devicePlace = Cached(found)
         found
+    }
+
+    private fun warn(message: String, error: Throwable) {
+        if (error is CancellationException) throw error
+        Log.w(LogTag, message, error)
     }
 
     private data class Extras(val airQuality: AirQuality?, val warnings: List<WeatherWarning>)
