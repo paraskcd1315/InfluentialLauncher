@@ -24,8 +24,10 @@ import com.paraskcd.influentiallauncher.designsystem.atoms.InfTextField
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfGroupedCard
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfSettingsRow
 import com.paraskcd.influentiallauncher.settings.domain.model.LauncherSettings
+import com.paraskcd.influentiallauncher.shellaccess.domain.model.ShellState
 import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuTab
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.ShellAccessSection
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.SettingsActionRow
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.SettingsRemovableRow
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.sheets.DaysOffSheet
@@ -46,6 +48,10 @@ fun SettingsTab(
     schedule: WorkSchedule?,
     onCredentials: ((TrackerCredentials) -> TrackerCredentials) -> Unit,
     onSchedule: ((WorkSchedule) -> WorkSchedule) -> Unit,
+    shellState: ShellState,
+    onPairShell: (String) -> Unit,
+    onRetryShell: () -> Unit,
+    onOpenShellSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val toggles = TabToggles.of(settings)
@@ -90,6 +96,14 @@ fun SettingsTab(
                     trailing = { InfSwitch(checked = toggle.shown, onCheckedChange = { onTabShown(toggle.tab, it) }) }
                 )
             }
+        }
+        item {
+            ShellAccessSection(
+                state = shellState,
+                onPair = onPairShell,
+                onRetry = onRetryShell,
+                onOpenSettings = onOpenShellSettings
+            )
         }
         item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_tracking)) }
         item {
