@@ -23,6 +23,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Search
 import com.paraskcd.influentiallauncher.designsystem.foundation.SwipeUp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.statusbar.R
@@ -64,9 +65,14 @@ fun SearchPillHost(
                 imageVector = Lucide.Search,
                 contentDescription = null,
                 tint = InfTheme.colors.textPrimary,
-                modifier = Modifier.size(StatusBarMetrics.iconSize)
+                modifier = Modifier.infParallaxLayer().size(StatusBarMetrics.iconSize)
             )
-            Text(text = label, style = MaterialTheme.typography.labelLarge, color = InfTheme.colors.textPrimary)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = InfTheme.colors.textPrimary,
+                modifier = Modifier.infParallaxLayer()
+            )
         }
     }
 }

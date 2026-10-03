@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfGlass
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
@@ -65,7 +66,7 @@ fun InfToggleTile(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(InfSpacing.s2),
-        modifier = modifier.alpha(if (enabled) 1f else DsMetrics.disabledAlpha)
+        modifier = modifier.infParallaxLayer().alpha(if (enabled) 1f else DsMetrics.disabledAlpha)
     ) {
         Row(
             modifier = Modifier

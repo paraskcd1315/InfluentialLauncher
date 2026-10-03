@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfRadii
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -35,6 +36,7 @@ fun WeatherTile(
     Column(
         verticalArrangement = Arrangement.spacedBy(InfSpacing.s1),
         modifier = modifier
+            .infParallaxLayer()
             .infGlassSurface(RoundedCornerShape(InfRadii.md), specular = false)
             .padding(InfSpacing.s3)
     ) {

@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.statusbar.R
 import com.paraskcd.influentiallauncher.statusbar.presentation.model.StatusState
@@ -51,7 +52,6 @@ fun StatusPill(
     }
     val mobileData = status.mobileData
     Row(
-        horizontalArrangement = Arrangement.spacedBy(StatusBarMetrics.iconGap),
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .infPanelSurface(shape, blurred = LocalWindowBlurred.current)
@@ -60,42 +60,48 @@ fun StatusPill(
             .heightIn(min = StatusBarMetrics.minHeight)
             .padding(horizontal = StatusBarMetrics.paddingHorizontal, vertical = StatusBarMetrics.paddingVertical)
     ) {
-        if (status.vpn) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(StatusBarMetrics.iconGap),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.infParallaxLayer()
+        ) {
+            if (status.vpn) {
+                Icon(
+                    imageVector = StatusIcons.vpn,
+                    contentDescription = stringResource(R.string.statusbar_vpn),
+                    tint = tint,
+                    modifier = Modifier.size(StatusBarMetrics.iconSize)
+                )
+            }
+            CellularSignal(sims = status.cellular.sims, tint = tint)
+            if (mobileData != null) {
+                val label = stringResource(StatusLabels.mobileData(mobileData))
+                val description = stringResource(R.string.statusbar_mobile_data, label)
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = tint,
+                    modifier = Modifier.semantics { contentDescription = description }
+                )
+            } else {
+                Icon(
+                    imageVector = StatusIcons.wifi(status.wifi),
+                    contentDescription = wifiDescription,
+                    tint = tint,
+                    modifier = Modifier.size(StatusBarMetrics.iconSize)
+                )
+            }
             Icon(
-                imageVector = StatusIcons.vpn,
-                contentDescription = stringResource(R.string.statusbar_vpn),
+                imageVector = StatusIcons.battery(status.battery),
+                contentDescription = batteryDescription,
                 tint = tint,
                 modifier = Modifier.size(StatusBarMetrics.iconSize)
             )
-        }
-        CellularSignal(sims = status.cellular.sims, tint = tint)
-        if (mobileData != null) {
-            val label = stringResource(StatusLabels.mobileData(mobileData))
-            val description = stringResource(R.string.statusbar_mobile_data, label)
             Text(
-                text = label,
+                text = stringResource(R.string.statusbar_battery_percent, status.battery.percent),
                 style = MaterialTheme.typography.labelLarge,
-                color = tint,
-                modifier = Modifier.semantics { contentDescription = description }
-            )
-        } else {
-            Icon(
-                imageVector = StatusIcons.wifi(status.wifi),
-                contentDescription = wifiDescription,
-                tint = tint,
-                modifier = Modifier.size(StatusBarMetrics.iconSize)
+                color = tint
             )
         }
-        Icon(
-            imageVector = StatusIcons.battery(status.battery),
-            contentDescription = batteryDescription,
-            tint = tint,
-            modifier = Modifier.size(StatusBarMetrics.iconSize)
-        )
-        Text(
-            text = stringResource(R.string.statusbar_battery_percent, status.battery.percent),
-            style = MaterialTheme.typography.labelLarge,
-            color = tint
-        )
     }
 }

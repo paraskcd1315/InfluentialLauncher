@@ -34,6 +34,7 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
 import com.paraskcd.influentiallauncher.designsystem.foundation.SheetDrag
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
 import com.paraskcd.influentiallauncher.designsystem.theme.InfRadii
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
@@ -64,7 +65,7 @@ fun InfBottomSheet(
             .nestedScroll(drag.connection)
             .infSwipeUp(drag.swipe)
     ) {
-        Column(modifier = Modifier.fillMaxWidth().heightIn(max = maxHeight)) {
+        Column(modifier = Modifier.infParallaxLayer().fillMaxWidth().heightIn(max = maxHeight)) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
