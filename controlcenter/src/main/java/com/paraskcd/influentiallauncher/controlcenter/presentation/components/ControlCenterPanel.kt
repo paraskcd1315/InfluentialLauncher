@@ -44,10 +44,7 @@ fun ControlCenterPanel(
         ToggleGrid(
             state = state,
             onToggle = viewModel::toggle,
-            onDetails = {
-                viewModel.openDetails(it)
-                onClose()
-            },
+            onDetails = { viewModel.openOptions(it) },
             modifier = Modifier.weight(1f, fill = false)
         )
         Hairline()
