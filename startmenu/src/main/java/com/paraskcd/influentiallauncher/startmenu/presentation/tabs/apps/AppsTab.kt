@@ -36,8 +36,8 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.AppMenuSheet
-import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.ClearStorageSheet
-import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.DataUsageSheet
+import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.ClearStorageSheet
+import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.DataUsageSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.LetterIndexedBox
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.ListSkeleton
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components.AppGrid
@@ -58,6 +58,7 @@ fun AppsTab(
     val content by viewModel.content.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val signals by viewModel.signals.collectAsStateWithLifecycle()
+    val openPackages by viewModel.openPackages.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
     val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
     val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
@@ -161,6 +162,7 @@ fun AppsTab(
     }
     AppMenuSheet(
         entry = menuEntry,
+        isOpen = menuEntry?.app?.id?.packageName in openPackages,
         loadIcon = loadIcon,
         onDismiss = { menuKey = null },
         onToggleStart = { viewModel.togglePin(PinTarget.Start, it) },
@@ -189,15 +191,17 @@ fun AppsTab(
         content?.let { current -> (current.pinned + current.sections.flatMap { it.apps }).firstOrNull { it.app.id.key == key } }
     }
     ClearStorageSheet(
-        entry = clearEntry,
-        onConfirm = { viewModel.clearStorage(it.app.id) },
+        target = clearEntry?.app?.id,
+        label = clearEntry?.app?.label.orEmpty(),
+        onConfirm = { clearEntry?.let { viewModel.clearStorage(it.app.id) } },
         onDismiss = { clearKey = null }
     )
     val dataEntry = dataKey?.let { key ->
         content?.let { current -> (current.pinned + current.sections.flatMap { it.apps }).firstOrNull { it.app.id.key == key } }
     }
     DataUsageSheet(
-        entry = dataEntry,
+        target = dataEntry?.app?.id,
+        label = dataEntry?.app?.label.orEmpty(),
         load = viewModel::dataUsage,
         onDismiss = { dataKey = null }
     )

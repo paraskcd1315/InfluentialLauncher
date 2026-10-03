@@ -1,7 +1,7 @@
 // Copyright 2026 Paras Mohandas Khanchandani Chandani
 // All rights reserved.
 
-package com.paraskcd.influentiallauncher.startmenu.presentation.utils
+package com.paraskcd.influentiallauncher.homescreen.presentation.utils
 
 object Bytes {
     private const val Kb = 1024.0

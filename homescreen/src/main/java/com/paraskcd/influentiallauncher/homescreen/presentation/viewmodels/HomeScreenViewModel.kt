@@ -18,6 +18,9 @@ import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreen
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenState
 import com.paraskcd.influentiallauncher.homescreen.presentation.state.VisualPage
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
+import com.paraskcd.influentiallauncher.tasks.domain.model.DayData
+import com.paraskcd.influentiallauncher.tasks.domain.ports.AppActions
+import com.paraskcd.influentiallauncher.tasks.domain.ports.AppDataUsage
 import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -36,11 +40,17 @@ class HomeScreenViewModel @Inject constructor(
     private val editMode: EditMode,
     private val pinnedApps: PinnedApps,
     signalsSource: AppSignalsSource,
-    private val openApps: OpenApps
+    private val openApps: OpenApps,
+    private val appActions: AppActions,
+    private val appDataUsage: AppDataUsage
 ) : ViewModel() {
 
     val signals: StateFlow<AppSignals> = signalsSource.signals
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), AppSignals.None)
+
+    val openPackages: StateFlow<Set<String>> = openApps.taskCounts
+        .map { it.keys }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptySet())
 
     val state: StateFlow<HomeScreenState?> = home.state
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
@@ -61,6 +71,12 @@ class HomeScreenViewModel @Inject constructor(
 
     private val _deleting = MutableStateFlow<VisualPage?>(null)
     val deleting: StateFlow<VisualPage?> = _deleting.asStateFlow()
+
+    private val _clearing = MutableStateFlow<LauncherApp?>(null)
+    val clearing: StateFlow<LauncherApp?> = _clearing.asStateFlow()
+
+    private val _dataApp = MutableStateFlow<LauncherApp?>(null)
+    val dataApp: StateFlow<LauncherApp?> = _dataApp.asStateFlow()
 
     fun startWiggle() {
         _overview.value = false
@@ -114,6 +130,34 @@ class HomeScreenViewModel @Inject constructor(
     fun closeApp(app: AppId) {
         openApps.close(app.packageName)
     }
+
+    fun forceStop(app: AppId) {
+        viewModelScope.launch { appActions.forceStop(app.packageName) }
+    }
+
+    fun askClear(app: LauncherApp) {
+        _menu.value = null
+        _clearing.value = app
+    }
+
+    fun cancelClear() {
+        _clearing.value = null
+    }
+
+    fun confirmClear(app: LauncherApp) {
+        viewModelScope.launch { appActions.clearStorage(app.id.packageName) }
+    }
+
+    fun openData(app: LauncherApp) {
+        _menu.value = null
+        _dataApp.value = app
+    }
+
+    fun closeData() {
+        _dataApp.value = null
+    }
+
+    suspend fun dataUsage(app: AppId): List<DayData> = appDataUsage.weekly(app.packageName)
 
     fun addPage() = run { home.addPage() }
 

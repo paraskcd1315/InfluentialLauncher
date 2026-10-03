@@ -70,6 +70,8 @@ import com.paraskcd.influentiallauncher.homescreen.presentation.drag.DragSource
 import com.paraskcd.influentiallauncher.homescreen.presentation.gestures.GridInsets
 import com.paraskcd.influentiallauncher.homescreen.presentation.gestures.HomeGestures
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.DeletePageSheet
+import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.ClearStorageSheet
+import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.DataUsageSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.HomeAppSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.RemoveAppSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.state.HomeDragState
@@ -97,6 +99,9 @@ fun HomeScreenHost(
     val overview by viewModel.overview.collectAsStateWithLifecycle()
     val menu by viewModel.menu.collectAsStateWithLifecycle()
     val removing by viewModel.removing.collectAsStateWithLifecycle()
+    val clearing by viewModel.clearing.collectAsStateWithLifecycle()
+    val dataApp by viewModel.dataApp.collectAsStateWithLifecycle()
+    val openPackages by viewModel.openPackages.collectAsStateWithLifecycle()
     val deleting by viewModel.deleting.collectAsStateWithLifecycle()
     val taskbarIds by viewModel.taskbarIds.collectAsStateWithLifecycle()
     val signals by viewModel.signals.collectAsStateWithLifecycle()
@@ -278,6 +283,7 @@ fun HomeScreenHost(
     HomeAppSheet(
         app = menu,
         onTaskbar = menu?.id in taskbarIds,
+        isOpen = menu?.id?.packageName in openPackages,
         loadIcon = loadIcon,
         onEdit = viewModel::startWiggle,
         onToggleTaskbar = viewModel::toggleTaskbar,
@@ -291,9 +297,24 @@ fun HomeScreenHost(
             viewModel.uninstall(it)
         },
         onClose = viewModel::closeApp,
+        onForceStop = viewModel::forceStop,
+        onClearStorage = viewModel::askClear,
+        onDataUsage = { menu?.let(viewModel::openData) },
         onDismiss = viewModel::closeMenu
     )
     RemoveAppSheet(app = removing, onConfirm = viewModel::confirmRemove, onDismiss = viewModel::cancelRemove)
+    ClearStorageSheet(
+        target = clearing?.id,
+        label = clearing?.label.orEmpty(),
+        onConfirm = { clearing?.let(viewModel::confirmClear) },
+        onDismiss = viewModel::cancelClear
+    )
+    DataUsageSheet(
+        target = dataApp?.id,
+        label = dataApp?.label.orEmpty(),
+        load = viewModel::dataUsage,
+        onDismiss = viewModel::closeData
+    )
     DeletePageSheet(
         page = deleting,
         pageNumber = deleting?.let { screen -> visual.indexOfFirst { it.key == screen.key } + 1 } ?: 0,

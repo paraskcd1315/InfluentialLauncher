@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -46,6 +47,10 @@ class AppsViewModel @Inject constructor(
 
     val signals: StateFlow<AppSignals> = signalsSource.signals
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), AppSignals.None)
+
+    val openPackages: StateFlow<Set<String>> = openApps.taskCounts
+        .map { it.keys }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptySet())
 
     fun closeApp(id: AppId) {
         openApps.close(id.packageName)

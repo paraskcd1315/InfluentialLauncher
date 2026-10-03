@@ -18,6 +18,17 @@
     <string name="home_uninstall">Uninstall</string>
     <string name="home_done">Done</string>
     <string name="home_close">Close app</string>
+    <string name="home_force_stop">Force stop</string>
+    <string name="home_clear_storage">Clear storage</string>
+    <string name="home_clear_storage_title">Clear %1$s\'s storage?</string>
+    <string name="home_clear_storage_confirm">Clear storage</string>
+    <string name="home_clear_storage_cancel">Cancel</string>
+    <string name="home_data_usage">Data usage</string>
+    <string name="home_data_week">Last 7 days</string>
+    <string name="home_data_mobile">Mobile</string>
+    <string name="home_data_wifi">Wi-Fi</string>
+    <string name="home_data_grant">Allow usage access</string>
+    <string name="home_data_grant_text">Allow usage access so the launcher can read this app\'s data use.</string>
     <plurals name="home_notification_badge">
         <item quantity="one">%1$d notification</item>
         <item quantity="other">%1$d notifications</item>

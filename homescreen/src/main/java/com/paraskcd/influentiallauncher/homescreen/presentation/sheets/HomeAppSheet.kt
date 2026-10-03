@@ -6,6 +6,9 @@ package com.paraskcd.influentiallauncher.homescreen.presentation.sheets
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.composables.icons.lucide.Activity
+import com.composables.icons.lucide.Ban
+import com.composables.icons.lucide.Eraser
 import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Move
@@ -28,6 +31,7 @@ import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
 fun HomeAppSheet(
     app: LauncherApp?,
     onTaskbar: Boolean,
+    isOpen: Boolean,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onEdit: () -> Unit,
     onToggleTaskbar: (AppId) -> Unit,
@@ -35,6 +39,9 @@ fun HomeAppSheet(
     onInfo: (AppId) -> Unit,
     onUninstall: (AppId) -> Unit,
     onClose: (AppId) -> Unit,
+    onForceStop: (AppId) -> Unit,
+    onClearStorage: (LauncherApp) -> Unit,
+    onDataUsage: (AppId) -> Unit,
     onDismiss: () -> Unit
 ) {
     val colors = InfTheme.colors
@@ -47,19 +54,26 @@ fun HomeAppSheet(
         }
     ) { current ->
         InfActionList(
-            actions = listOf(
-                InfAction(Lucide.Move, stringResource(R.string.home_edit), colors.textPrimary, onEdit),
-                InfAction(
-                    icon = if (onTaskbar) Lucide.PinOff else Lucide.Pin,
-                    label = stringResource(if (onTaskbar) R.string.home_unpin_taskbar else R.string.home_pin_taskbar),
-                    tint = colors.textPrimary,
-                    run = { onToggleTaskbar(current.id) }
-                ),
-                InfAction(Lucide.SquareMinus, stringResource(R.string.home_remove_confirm), colors.textPrimary) { onRemove(current) },
-                InfAction(Lucide.X, stringResource(R.string.home_close), colors.textPrimary) { onClose(current.id) },
-                InfAction(Lucide.Info, stringResource(R.string.home_info), colors.textPrimary) { onInfo(current.id) },
-                InfAction(Lucide.Trash2, stringResource(R.string.home_uninstall), colors.dangerText) { onUninstall(current.id) }
-            ),
+            actions = buildList {
+                add(InfAction(Lucide.Move, stringResource(R.string.home_edit), colors.textPrimary, onEdit))
+                add(
+                    InfAction(
+                        icon = if (onTaskbar) Lucide.PinOff else Lucide.Pin,
+                        label = stringResource(if (onTaskbar) R.string.home_unpin_taskbar else R.string.home_pin_taskbar),
+                        tint = colors.textPrimary,
+                        run = { onToggleTaskbar(current.id) }
+                    )
+                )
+                add(InfAction(Lucide.SquareMinus, stringResource(R.string.home_remove_confirm), colors.textPrimary) { onRemove(current) })
+                if (isOpen) {
+                    add(InfAction(Lucide.X, stringResource(R.string.home_close), colors.textPrimary) { onClose(current.id) })
+                    add(InfAction(Lucide.Ban, stringResource(R.string.home_force_stop), colors.textPrimary) { onForceStop(current.id) })
+                }
+                add(InfAction(Lucide.Activity, stringResource(R.string.home_data_usage), colors.textPrimary) { onDataUsage(current.id) })
+                add(InfAction(Lucide.Info, stringResource(R.string.home_info), colors.textPrimary) { onInfo(current.id) })
+                add(InfAction(Lucide.Eraser, stringResource(R.string.home_clear_storage), colors.dangerText) { onClearStorage(current) })
+                add(InfAction(Lucide.Trash2, stringResource(R.string.home_uninstall), colors.dangerText) { onUninstall(current.id) })
+            },
             onDismiss = onDismiss
         )
     }

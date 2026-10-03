@@ -30,6 +30,7 @@ import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
 @Composable
 fun AppMenuSheet(
     entry: StartMenuApp?,
+    isOpen: Boolean,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onDismiss: () -> Unit,
     onToggleStart: (AppId) -> Unit,
@@ -53,27 +54,33 @@ fun AppMenuSheet(
     ) { current ->
         val id = current.app.id
         InfActionList(
-            actions = listOf(
-                InfAction(
-                    icon = Lucide.LayoutGrid,
-                    label = stringResource(if (current.onStart) R.string.startmenu_unpin_start else R.string.startmenu_pin_start),
-                    tint = colors.textPrimary,
-                    run = { onToggleStart(id) }
-                ),
-                InfAction(
-                    icon = if (current.onTaskbar) Lucide.PinOff else Lucide.Pin,
-                    label = stringResource(if (current.onTaskbar) R.string.startmenu_unpin_taskbar else R.string.startmenu_pin_taskbar),
-                    tint = colors.textPrimary,
-                    run = { onToggleTaskbar(id) }
-                ),
-                InfAction(Lucide.House, stringResource(R.string.startmenu_add_home), colors.textPrimary) { onAddToHome(id) },
-                InfAction(Lucide.X, stringResource(R.string.startmenu_close), colors.textPrimary) { onClose(id) },
-                InfAction(Lucide.Ban, stringResource(R.string.startmenu_force_stop), colors.textPrimary) { onForceStop(id) },
-                InfAction(Lucide.Activity, stringResource(R.string.startmenu_data_usage), colors.textPrimary) { onDataUsage(id) },
-                InfAction(Lucide.Info, stringResource(R.string.startmenu_info), colors.textPrimary) { onInfo(id) },
-                InfAction(Lucide.Eraser, stringResource(R.string.startmenu_clear_storage), colors.dangerText) { onClearStorage(id) },
-                InfAction(Lucide.Trash2, stringResource(R.string.startmenu_uninstall), colors.dangerText) { onUninstall(id) }
-            ),
+            actions = buildList {
+                add(
+                    InfAction(
+                        icon = Lucide.LayoutGrid,
+                        label = stringResource(if (current.onStart) R.string.startmenu_unpin_start else R.string.startmenu_pin_start),
+                        tint = colors.textPrimary,
+                        run = { onToggleStart(id) }
+                    )
+                )
+                add(
+                    InfAction(
+                        icon = if (current.onTaskbar) Lucide.PinOff else Lucide.Pin,
+                        label = stringResource(if (current.onTaskbar) R.string.startmenu_unpin_taskbar else R.string.startmenu_pin_taskbar),
+                        tint = colors.textPrimary,
+                        run = { onToggleTaskbar(id) }
+                    )
+                )
+                add(InfAction(Lucide.House, stringResource(R.string.startmenu_add_home), colors.textPrimary) { onAddToHome(id) })
+                if (isOpen) {
+                    add(InfAction(Lucide.X, stringResource(R.string.startmenu_close), colors.textPrimary) { onClose(id) })
+                    add(InfAction(Lucide.Ban, stringResource(R.string.startmenu_force_stop), colors.textPrimary) { onForceStop(id) })
+                }
+                add(InfAction(Lucide.Activity, stringResource(R.string.startmenu_data_usage), colors.textPrimary) { onDataUsage(id) })
+                add(InfAction(Lucide.Info, stringResource(R.string.startmenu_info), colors.textPrimary) { onInfo(id) })
+                add(InfAction(Lucide.Eraser, stringResource(R.string.startmenu_clear_storage), colors.dangerText) { onClearStorage(id) })
+                add(InfAction(Lucide.Trash2, stringResource(R.string.startmenu_uninstall), colors.dangerText) { onUninstall(id) })
+            },
             onDismiss = onDismiss
         )
     }

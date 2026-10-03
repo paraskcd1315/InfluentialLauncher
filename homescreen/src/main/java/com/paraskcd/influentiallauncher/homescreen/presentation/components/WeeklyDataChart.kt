@@ -1,7 +1,7 @@
 // Copyright 2026 Paras Mohandas Khanchandani Chandani
 // All rights reserved.
 
-package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.components
+package com.paraskcd.influentiallauncher.homescreen.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
-import com.paraskcd.influentiallauncher.startmenu.R
+import com.paraskcd.influentiallauncher.homescreen.R
 import com.paraskcd.influentiallauncher.tasks.domain.model.DayData
 import java.time.Instant
 import java.time.ZoneId
@@ -64,8 +64,8 @@ fun WeeklyDataChart(days: List<DayData>, modifier: Modifier = Modifier) {
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(InfSpacing.s4)) {
-            Legend(color = colors.brand, label = stringResource(R.string.startmenu_data_mobile))
-            Legend(color = colors.success, label = stringResource(R.string.startmenu_data_wifi))
+            Legend(color = colors.brand, label = stringResource(R.string.home_data_mobile))
+            Legend(color = colors.success, label = stringResource(R.string.home_data_wifi))
         }
     }
 }
