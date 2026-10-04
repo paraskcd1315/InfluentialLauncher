@@ -103,6 +103,8 @@ fun StartMenuHost(
     }
     val tabs by viewModel.tabs.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val iconPack by viewModel.iconPack.collectAsStateWithLifecycle()
+    val iconPacks by viewModel.packs.collectAsStateWithLifecycle()
     val appsQuery by appsViewModel.query.collectAsStateWithLifecycle()
     val contactsQuery by contactsViewModel.query.collectAsStateWithLifecycle()
     val contactsPermission by contactsViewModel.permissionState.collectAsStateWithLifecycle()
@@ -229,6 +231,10 @@ fun StartMenuHost(
                     settings = settings,
                     onTabShown = viewModel::setTabShown,
                     onSettings = viewModel::updateSettings,
+                    iconPack = iconPack,
+                    packs = iconPacks,
+                    onLoadPacks = viewModel::loadPacks,
+                    onIconPack = viewModel::setIconPack,
                     trackersAvailable = timeTracking.available,
                     schedule = schedule,
                     onSchedule = timeTracking::updateSchedule,

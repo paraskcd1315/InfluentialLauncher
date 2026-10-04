@@ -3,6 +3,7 @@
 
 package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import com.paraskcd.influentiallauncher.apps.domain.model.IconPack
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSwitch
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfTextField
@@ -32,6 +34,7 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.com
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.SettingsActionRow
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.SettingsRemovableRow
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.sheets.DaysOffSheet
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.sheets.IconPackSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.sheets.MonthHoursSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.AppearanceToggles
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.DayOffRuns
@@ -47,6 +50,10 @@ fun SettingsTab(
     settings: LauncherSettings,
     onTabShown: (StartMenuTab, Boolean) -> Unit,
     onSettings: ((LauncherSettings) -> LauncherSettings) -> Unit,
+    iconPack: String?,
+    packs: List<IconPack>?,
+    onLoadPacks: () -> Unit,
+    onIconPack: (String?) -> Unit,
     trackersAvailable: Boolean,
     schedule: WorkSchedule?,
     onSchedule: ((WorkSchedule) -> WorkSchedule) -> Unit,
@@ -63,6 +70,9 @@ fun SettingsTab(
     var weeklyHours by remember { mutableStateOf(ScheduleText.hours(held.weeklyHours)) }
     var addingDays by remember { mutableStateOf(false) }
     var addingMonth by remember { mutableStateOf(false) }
+    var pickingPack by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { onLoadPacks() }
+    val packLabel = packs?.firstOrNull { it.packageName == iconPack }?.label ?: stringResource(R.string.startmenu_settings_icon_pack_system)
     LaunchedEffect(held.weeklyHours) {
         if (ScheduleText.hoursOf(weeklyHours) != held.weeklyHours) weeklyHours = ScheduleText.hours(held.weeklyHours)
     }
@@ -98,6 +108,15 @@ fun SettingsTab(
                 InfSettingsRow(
                     label = stringResource(toggle.labelRes),
                     trailing = { InfSwitch(checked = toggle.on, onCheckedChange = { on -> onSettings { toggle.apply(it, on) } }) }
+                )
+            }
+        }
+        item(key = "appearance:iconPack") {
+            InfGroupedCard(index = 0, count = 1) {
+                InfSettingsRow(
+                    label = stringResource(R.string.startmenu_settings_icon_pack),
+                    caption = packLabel,
+                    modifier = Modifier.clickable { pickingPack = true }
                 )
             }
         }
@@ -189,6 +208,13 @@ fun SettingsTab(
             }
         }
     }
+    IconPackSheet(
+        open = pickingPack,
+        packs = packs.orEmpty(),
+        selected = iconPack,
+        onPick = onIconPack,
+        onDismiss = { pickingPack = false }
+    )
     DaysOffSheet(
         open = addingDays,
         weeklyDaysOff = held.weeklyDaysOff,
