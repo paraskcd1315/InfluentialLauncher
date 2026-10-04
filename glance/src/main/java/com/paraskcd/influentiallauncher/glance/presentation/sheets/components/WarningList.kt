@@ -26,13 +26,11 @@ import com.paraskcd.influentiallauncher.designsystem.molecules.InfGroupedCard
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.glance.R
+import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherFormats
 import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherSheetMetrics
 import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherVisuals
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherWarning
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-
-private val WarningTimeFormat = DateTimeFormatter.ofPattern("EEE HH:mm")
 
 @Composable
 fun WarningList(warnings: List<WeatherWarning>, modifier: Modifier = Modifier) {
@@ -55,8 +53,8 @@ fun WarningList(warnings: List<WeatherWarning>, modifier: Modifier = Modifier) {
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(InfSpacing.s1), modifier = Modifier.weight(1f)) {
                         Text(text = warning.headline, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
-                        val onset = warning.onset?.atZoneSameInstant(zone)?.format(WarningTimeFormat)
-                        val expires = warning.expires?.atZoneSameInstant(zone)?.format(WarningTimeFormat)
+                        val onset = warning.onset?.atZoneSameInstant(zone)?.format(WeatherFormats.weekDayClock)
+                        val expires = warning.expires?.atZoneSameInstant(zone)?.format(WeatherFormats.weekDayClock)
                         val areas = warning.areas.joinToString(", ")
                         Text(
                             text = if (onset != null && expires != null) {

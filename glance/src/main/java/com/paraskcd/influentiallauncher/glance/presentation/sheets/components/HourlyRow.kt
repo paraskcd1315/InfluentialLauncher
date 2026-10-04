@@ -24,12 +24,10 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.horizontalFading
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.glance.R
+import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherFormats
 import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherSheetMetrics
 import com.paraskcd.influentiallauncher.glance.presentation.utils.WeatherVisuals
 import com.paraskcd.influentiallauncher.weather.domain.model.HourForecast
-import java.time.format.DateTimeFormatter
-
-private val HourFormat = DateTimeFormatter.ofPattern("HH:mm")
 
 @Composable
 fun HourlyRow(hours: List<HourForecast>, horizontalInset: Dp) {
@@ -50,7 +48,7 @@ fun HourlyRow(hours: List<HourForecast>, horizontalInset: Dp) {
                 modifier = Modifier.width(WeatherSheetMetrics.hourWidth)
             ) {
                 Text(
-                    text = if (hour == hours.first()) stringResource(R.string.weather_now) else hour.time.format(HourFormat),
+                    text = if (hour == hours.first()) stringResource(R.string.weather_now) else hour.time.format(WeatherFormats.clock),
                     style = MaterialTheme.typography.labelMedium,
                     color = colors.textSecondary
                 )

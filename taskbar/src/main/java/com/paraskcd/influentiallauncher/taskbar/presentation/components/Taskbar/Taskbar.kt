@@ -24,6 +24,7 @@ import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
 import com.paraskcd.influentiallauncher.taskbar.presentation.components.Taskbar.components.PinnedApps
@@ -80,16 +81,16 @@ fun Taskbar(
                     PaddingValues(start = appsStart, end = TaskbarMetrics.barPaddingHorizontal, top = TaskbarMetrics.barPaddingVertical, bottom = TaskbarMetrics.barPaddingVertical)
                 },
                 fadeInset = startEdge,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.infParallaxLayer().fillMaxSize()
             )
         }
         StartButton(
             open = startOpen,
             onClick = onStartClick,
             modifier = if (vertical) {
-                Modifier.padding(top = center + TaskbarMetrics.barPaddingHorizontal)
+                Modifier.padding(top = center + TaskbarMetrics.barPaddingHorizontal).infParallaxLayer()
             } else {
-                Modifier.padding(start = center + TaskbarMetrics.barPaddingHorizontal)
+                Modifier.padding(start = center + TaskbarMetrics.barPaddingHorizontal).infParallaxLayer()
             }
         )
     }

@@ -51,6 +51,10 @@ object DsMetrics {
     val pickerTextSize = 13.sp
     val pickerChipHeight = 36.dp
     val groupGap = 2.dp
+    val accordionHeaderMinHeight = 52.dp
+    val accordionChevron = 20.dp
+    const val accordionChevronOpenDegrees = 180f
+    const val accordionChevronLabel = "accordionChevron"
     val toggleTileHeight = 52.dp
     val toggleTileMoreWidth = 36.dp
     val toggleTileGlyph = 20.dp
@@ -70,4 +74,5 @@ object DsMetrics {
     val parallaxShadowBlur = 6.dp
     val parallaxShadowLift = 2.dp
     val parallaxShadowDrift = 3.dp
+    val parallaxLayerStep = 2.5.dp
 }

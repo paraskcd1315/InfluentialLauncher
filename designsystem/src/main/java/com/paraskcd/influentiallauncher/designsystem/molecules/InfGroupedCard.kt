@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Shape
 import com.paraskcd.influentiallauncher.designsystem.foundation.InfGroupedCorners
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
 import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 
 @Composable
 fun InfGroupedCard(
@@ -24,6 +25,7 @@ fun InfGroupedCard(
     val blurred = LocalInfBlurred.current
     Column(
         modifier = modifier
+            .infParallaxLayer()
             .fillMaxWidth()
             .infGlassSurface(shape, specular = index == 0, strong = !blurred, panel = blurred),
         content = content

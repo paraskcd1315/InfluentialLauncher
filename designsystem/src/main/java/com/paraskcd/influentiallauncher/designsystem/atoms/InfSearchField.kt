@@ -28,6 +28,7 @@ import com.composables.icons.lucide.X
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 
@@ -56,10 +57,11 @@ fun InfSearchField(
             contentDescription = null,
             tint = colors.textTertiary,
             modifier = Modifier
+                .infParallaxLayer()
                 .padding(start = DsMetrics.searchIconStart, end = DsMetrics.searchIconEnd)
                 .size(DsMetrics.searchIconSize)
         )
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+        Box(modifier = Modifier.weight(1f).infParallaxLayer(), contentAlignment = Alignment.CenterStart) {
             if (value.isEmpty()) {
                 Text(text = placeholder, style = textStyle, color = colors.textTertiary, maxLines = 1)
             }

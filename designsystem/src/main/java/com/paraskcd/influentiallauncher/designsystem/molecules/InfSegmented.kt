@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSegment
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 
@@ -33,7 +34,9 @@ fun InfSegmented(
             .padding(InfSpacing.s1)
     ) {
         Row(
-            modifier = if (equalWidth) Modifier.fillMaxWidth() else Modifier.horizontalScroll(rememberScrollState()),
+            modifier = Modifier
+                .infParallaxLayer()
+                .then(if (equalWidth) Modifier.fillMaxWidth() else Modifier.horizontalScroll(rememberScrollState())),
             horizontalArrangement = Arrangement.spacedBy(InfSpacing.s1),
             verticalAlignment = Alignment.CenterVertically
         ) {

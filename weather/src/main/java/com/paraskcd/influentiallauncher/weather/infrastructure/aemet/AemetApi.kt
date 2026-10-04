@@ -7,6 +7,7 @@ object AemetApi {
     const val BaseUrl = "https://opendata.aemet.es/opendata/api"
     const val ApiKeyHeader = "api_key"
     const val DataField = "datos"
+    const val FallbackCharset = "ISO-8859-15"
 
     object Paths {
         const val Municipalities = "/maestro/municipios"
@@ -32,6 +33,10 @@ object AemetApi {
         const val RainChance = "probPrecipitacion"
         const val WindAndGust = "vientoAndRachaMax"
         const val Speed = "velocidad"
+        const val Direction = "direccion"
+        const val Wind = "viento"
+        const val Gust = "rachaMax"
+        const val SnowLevel = "cotaNieveProv"
         const val Sunrise = "orto"
         const val Sunset = "ocaso"
         const val Maximum = "maxima"

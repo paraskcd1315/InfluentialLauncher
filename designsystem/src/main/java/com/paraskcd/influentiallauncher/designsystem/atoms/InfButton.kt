@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -25,6 +26,7 @@ fun InfButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier,
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
+            .infParallaxLayer()
             .height(DsMetrics.buttonHeight)
             .alpha(if (enabled) 1f else DsMetrics.disabledAlpha)
             .clip(InfShapes.pill)

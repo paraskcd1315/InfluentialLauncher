@@ -32,6 +32,7 @@ import com.paraskcd.influentiallauncher.controlcenter.presentation.components.Co
 import com.paraskcd.influentiallauncher.controlcenter.presentation.utils.ControlCenterMetrics
 import com.paraskcd.influentiallauncher.controlcenter.presentation.viewmodels.ControlCenterViewModel
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.windowing.presentation.InfWindow
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
@@ -84,7 +85,9 @@ fun ControlCenterHost(
         ) {
             val current = state
             if (current != null) {
-                ControlCenterPanel(state = current, viewModel = viewModel, onClose = onClose)
+                Box(modifier = Modifier.infParallaxLayer()) {
+                    ControlCenterPanel(state = current, viewModel = viewModel, onClose = onClose)
+                }
             } else {
                 Box(modifier = Modifier.height(ControlCenterMetrics.cornerRadius * 2))
             }

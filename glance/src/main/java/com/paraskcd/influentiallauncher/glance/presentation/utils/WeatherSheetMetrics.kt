@@ -17,8 +17,10 @@ object WeatherSheetMetrics {
     val dayLabelWidth = 64.dp
     val dayRainWidth = 40.dp
     val dayTemperatureWidth = 36.dp
-    val rangeBarWidth = 80.dp
     val rangeBarHeight = 4.dp
+    const val detailColumns = 2
+    val detailIcon = 16.dp
+    val partIcon = 22.dp
     val warningDot = 10.dp
     const val skeletonStatCount = 3
     const val skeletonHourCount = 6

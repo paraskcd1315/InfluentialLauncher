@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 
 @Composable
 fun InfIconButton(
@@ -32,6 +33,7 @@ fun InfIconButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
+            .infParallaxLayer()
             .size(size)
             .alpha(if (enabled) 1f else DsMetrics.disabledAlpha)
             .infGlassSurface(CircleShape, specular = false, strong = true)

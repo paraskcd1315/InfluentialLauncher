@@ -34,6 +34,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallaxLayers
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.windowing.infrastructure.DialogWindowSetup
 import kotlinx.coroutines.android.awaitFrame
@@ -56,7 +57,6 @@ fun InfWindow(
     showStatusBar: Boolean = false,
     alpha: Float = 1f,
     blurBehind: Boolean = true,
-    followsTilt: Boolean = true,
     dropPx: () -> Float = { 0f },
     heightPx: Int? = null,
     content: @Composable () -> Unit
@@ -131,7 +131,7 @@ fun InfWindow(
         val baseX = rememberUpdatedState(offsetXPx)
         val baseY = rememberUpdatedState(offsetYPx)
         val shownAlpha = rememberUpdatedState(progress)
-        val drift = if (fullScreen || !followsTilt) 0f else with(density) { WindowMetrics.ParallaxShift.toPx() }
+        val drift = if (fullScreen) 0f else with(density) { WindowMetrics.ParallaxShift.toPx() }
         val xSign = if (gravity and Gravity.HORIZONTAL_GRAVITY_MASK == Gravity.RIGHT) -1f else 1f
         val ySign = if (gravity and Gravity.VERTICAL_GRAVITY_MASK == Gravity.BOTTOM) -1f else 1f
         val placement = {
@@ -163,7 +163,8 @@ fun InfWindow(
         }
         CompositionLocalProvider(
             LocalWindowBlurred provides blurAvailable,
-            LocalInfBlurred provides blurAvailable
+            LocalInfBlurred provides blurAvailable,
+            LocalParallaxLayers provides true
         ) {
             if (fullScreen || heightPx != null) {
                 content()

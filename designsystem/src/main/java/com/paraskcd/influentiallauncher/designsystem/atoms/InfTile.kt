@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -61,6 +62,7 @@ fun InfTile(
     )
     Box(
         modifier = modifier
+            .infParallaxLayer()
             .size(size)
             .graphicsLayer {
                 scaleX = scale

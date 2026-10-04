@@ -30,7 +30,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.glance.R
 import com.paraskcd.influentiallauncher.glance.presentation.model.WeatherSheetState
-import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.DailyList
+import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.DailyList.DailyList
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.HourlyRow
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WarningList
 import com.paraskcd.influentiallauncher.glance.presentation.sheets.components.WeatherExtras

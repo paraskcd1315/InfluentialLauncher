@@ -94,9 +94,10 @@ fun <T : Any> InfSheetWindow(
         cornerRadius = InfRadii.xl,
         onDismissRequest = onDismiss,
         fillWidth = true,
+        horizontalMargin = WindowMetrics.ParallaxShift,
+        offsetY = -WindowMetrics.ParallaxShift,
         visible = open,
         focusable = true,
-        followsTilt = false,
         dropPx = { drag.height * (1f - shown.value) + drag.offset },
         heightPx = drag.height.roundToInt().takeIf { it > 0 }
     ) {
@@ -104,7 +105,7 @@ fun <T : Any> InfSheetWindow(
         InfBottomSheet(
             drag = drag,
             maxHeight = screenHeight - statusTop - InfSpacing.s2,
-            bottomInset = navigationBottom,
+            bottomInset = navigationBottom + WindowMetrics.ParallaxShift,
             title = title(current),
             leading = leading?.let { { it(current) } },
             edgeToEdge = edgeToEdge,

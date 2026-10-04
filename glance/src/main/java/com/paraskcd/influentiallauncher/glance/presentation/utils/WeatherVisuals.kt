@@ -17,6 +17,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Moon
 import com.composables.icons.lucide.Sun
 import com.paraskcd.influentiallauncher.glance.R
+import com.paraskcd.influentiallauncher.weather.domain.model.CompassPoint
 import com.paraskcd.influentiallauncher.weather.domain.model.WarningLevel
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherCondition
 import com.paraskcd.influentiallauncher.weather.domain.model.WeatherSourceName
@@ -75,6 +76,18 @@ object WeatherVisuals {
         europeanAqi <= 80 -> R.string.weather_air_poor
         europeanAqi <= 100 -> R.string.weather_air_very_poor
         else -> R.string.weather_air_extremely_poor
+    }
+
+    @StringRes
+    fun compassOf(point: CompassPoint): Int = when (point) {
+        CompassPoint.N -> R.string.weather_compass_n
+        CompassPoint.NE -> R.string.weather_compass_ne
+        CompassPoint.E -> R.string.weather_compass_e
+        CompassPoint.SE -> R.string.weather_compass_se
+        CompassPoint.S -> R.string.weather_compass_s
+        CompassPoint.SW -> R.string.weather_compass_sw
+        CompassPoint.W -> R.string.weather_compass_w
+        CompassPoint.NW -> R.string.weather_compass_nw
     }
 
     fun warningArgbOf(level: WarningLevel): Long = when (level) {

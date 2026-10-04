@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
 import com.paraskcd.influentiallauncher.windowing.presentation.InfWindow
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
@@ -67,6 +68,7 @@ fun StartMenuWindow(
         ) {
             Box(
                 modifier = Modifier
+                    .infParallaxLayer()
                     .fillMaxWidth()
                     .wrapContentHeight(Alignment.Top, unbounded = true)
                     .height(height),

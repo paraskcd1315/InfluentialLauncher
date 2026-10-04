@@ -30,6 +30,7 @@ import com.composables.icons.lucide.Play
 import com.composables.icons.lucide.Square
 import com.paraskcd.influentiallauncher.designsystem.foundation.infAccentGradientTint
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfRadii
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
@@ -74,6 +75,7 @@ fun TimerButtonWindow(
                     contentDescription = label,
                     tint = Color.White,
                     modifier = Modifier
+                        .infParallaxLayer()
                         .size(TimelineMetrics.fabGlyph)
                         .infAccentGradientTint()
                 )
@@ -102,12 +104,18 @@ private fun RunningTimer(entry: TimeEntry, onStop: (TimeEntry) -> Unit, modifier
             .clickable(onClickLabel = label) { onStop(entry) }
             .padding(horizontal = InfSpacing.s4)
     ) {
-        Icon(imageVector = Lucide.Square, contentDescription = label, tint = colors.danger, modifier = Modifier.size(TimelineMetrics.fabGlyph))
+        Icon(
+            imageVector = Lucide.Square,
+            contentDescription = label,
+            tint = colors.danger,
+            modifier = Modifier.infParallaxLayer().size(TimelineMetrics.fabGlyph)
+        )
         Text(
             text = format(elapsed),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = colors.textPrimary
+            color = colors.textPrimary,
+            modifier = Modifier.infParallaxLayer()
         )
         val title = entry.description.ifBlank { entry.projectName.orEmpty() }
         if (title.isNotBlank()) {
@@ -117,7 +125,7 @@ private fun RunningTimer(entry: TimeEntry, onStop: (TimeEntry) -> Unit, modifier
                 color = colors.textSecondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.widthIn(max = TimelineMetrics.fabLabelMax)
+                modifier = Modifier.infParallaxLayer().widthIn(max = TimelineMetrics.fabLabelMax)
             )
         }
     }

@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
+import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -41,6 +42,7 @@ fun InfTextField(
     val textStyle = TextStyle(fontSize = DsMetrics.settingsItemTextSize, color = colors.textPrimary)
     Column(
         modifier = modifier
+            .infParallaxLayer()
             .fillMaxWidth()
             .heightIn(min = DsMetrics.settingsRowHeight)
             .infGlassSurface(InfShapes.md, specular = false, strong = true)
