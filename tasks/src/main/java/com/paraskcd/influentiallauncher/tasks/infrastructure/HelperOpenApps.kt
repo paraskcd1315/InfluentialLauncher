@@ -36,11 +36,18 @@ class HelperOpenApps @Inject constructor(
     override val running: StateFlow<Set<String>> = processes.asStateFlow()
     private var reading: Job? = null
 
+    @Volatile
+    private var pending = false
+
     override fun refresh() {
+        pending = true
         if (reading?.isActive == true) return
         reading = scope.launch {
-            current.value = read()
-            processes.value = readProcesses()
+            while (pending) {
+                pending = false
+                current.value = read()
+                processes.value = readProcesses()
+            }
         }
     }
 
@@ -83,6 +90,7 @@ class HelperOpenApps @Inject constructor(
         return runCatching {
             val tasks = taskService() ?: return emptyMap()
             recentTasks(tasks)
+                .filter { it.isRunning }
                 .mapNotNull(::packageOf)
                 .filter { it != context.packageName }
                 .groupingBy { it }

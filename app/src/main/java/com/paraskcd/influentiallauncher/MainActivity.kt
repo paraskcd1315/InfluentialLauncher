@@ -20,6 +20,11 @@ import com.paraskcd.influentiallauncher.presentation.viewmodels.DesktopViewModel
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.toArgb
 import android.graphics.Bitmap
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
@@ -46,11 +51,18 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         shellAccess.ensureReady()
-        openApps.refresh()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                while (true) {
+                    openApps.refresh()
+                    delay(OpenAppsRefreshMs)
+                }
+            }
+        }
         enableEdgeToEdge()
         WindowCompat.getInsetsController(window, window.decorView).apply {
             hide(WindowInsetsCompat.Type.statusBars())
@@ -74,5 +86,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private companion object {
+        const val OpenAppsRefreshMs = 2_000L
     }
 }

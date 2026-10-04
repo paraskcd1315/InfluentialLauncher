@@ -67,7 +67,10 @@ class AppsViewModel @Inject constructor(
     }
 
     fun forceStop(id: AppId) {
-        viewModelScope.launch { appActions.forceStop(id.packageName) }
+        viewModelScope.launch {
+            appActions.forceStop(id.packageName)
+            openApps.refresh()
+        }
     }
 
     fun clearStorage(id: AppId) {

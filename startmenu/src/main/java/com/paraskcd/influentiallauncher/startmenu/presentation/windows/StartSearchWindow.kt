@@ -28,7 +28,8 @@ fun StartSearchWindow(
     fromEnd: Boolean = false,
     offsetX: Dp = 0.dp,
     alpha: Float = 1f,
-    swipe: SwipeUp? = null
+    swipe: SwipeUp? = null,
+    back: @Composable () -> Unit = {}
 ) {
     InfWindow(
         cornerRadius = InfRadii.pill,
@@ -43,6 +44,7 @@ fun StartSearchWindow(
         showStatusBar = true,
         alpha = alpha
     ) {
+        back()
         Box(modifier = Modifier.infSwipeUp(swipe)) {
             InfSearchField(
                 value = value,

@@ -63,8 +63,6 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.ShellA
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.TimerButtonWindow
 import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.windowing.presentation.WindowMetrics
-import androidx.activity.compose.PredictiveBackHandler
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -211,16 +209,7 @@ fun StartMenuHost(
         offsetX = if (landscape) menuEnd else 0.dp,
         fromEnd = landscape
     ) {
-        PredictiveBackHandler(enabled = open) { events ->
-            try {
-                events.collect { swipe.back(it.progress) }
-                swipe.endBack()
-                currentOnClose()
-            } catch (cancelled: CancellationException) {
-                swipe.endBack()
-                throw cancelled
-            }
-        }
+        StartMenuBack(open = open, swipe = swipe, onClose = currentOnClose)
         Box(modifier = Modifier.fillMaxSize().nestedScroll(closeAtTop)) {
             when (selected) {
                 StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose, onLaunched = onAppLaunched, onScrub = { scrubLetter = it }, viewModel = appsViewModel)
@@ -279,7 +268,8 @@ fun StartMenuHost(
         clearDescription = stringResource(R.string.startmenu_clear),
         onClose = onClose,
         fromEnd = landscape,
-        offsetX = if (landscape) menuEnd + StartMenuMetrics.listPadding else 0.dp
+        offsetX = if (landscape) menuEnd + StartMenuMetrics.listPadding else 0.dp,
+        back = { StartMenuBack(open = open, swipe = swipe, onClose = currentOnClose) }
     )
     LetterBubbleWindow(letter = scrubLetter.takeIf { open }, offsetY = bubbleOffset)
     StartTimerSheet(

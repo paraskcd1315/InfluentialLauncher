@@ -144,7 +144,10 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun forceStop(app: AppId) {
-        viewModelScope.launch { appActions.forceStop(app.packageName) }
+        viewModelScope.launch {
+            appActions.forceStop(app.packageName)
+            openApps.refresh()
+        }
     }
 
     fun askClear(app: LauncherApp) {
