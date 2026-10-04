@@ -214,10 +214,12 @@ class TimeTracking @Inject constructor(
 
     suspend fun preferred(date: LocalDate, shown: List<Tracker>): Tracker? {
         if (shown.size < 2) return shown.firstOrNull()
+        val held = scheduleCodec.read(store.credentials.first().workSchedule) ?: WorkSchedule()
+        val order = if (held.isDayOff(date)) shown.sortedBy { it in contracted } else shown.sortedBy { it !in contracted }
         if (date == LocalDate.now()) {
-            shown.firstOrNull { quietly(null) { running(it) } != null }?.let { return it }
+            order.firstOrNull { quietly(null) { running(it) } != null }?.let { return it }
         }
-        return shown.firstOrNull { quietly(emptyList()) { day(it, date) }.isNotEmpty() } ?: shown.first()
+        return order.firstOrNull { quietly(emptyList()) { day(it, date) }.isNotEmpty() } ?: order.first()
     }
 
     private suspend fun <T> quietly(fallback: T, read: suspend () -> T): T =

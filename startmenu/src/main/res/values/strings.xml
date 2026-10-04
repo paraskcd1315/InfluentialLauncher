@@ -62,7 +62,7 @@
     <string name="startmenu_timer_loading">Loading…</string>
     <string name="startmenu_settings_schedule">Work schedule</string>
     <string name="startmenu_settings_weekly_hours">Hours a week</string>
-    <string name="startmenu_settings_workdays">Working days a week</string>
+    <string name="startmenu_settings_weekly_days_off">Weekly days off</string>
     <string name="startmenu_settings_months">Months with other hours</string>
     <string name="startmenu_settings_month_hours">%1$s h a week</string>
     <string name="startmenu_settings_add_month">Add a month</string>

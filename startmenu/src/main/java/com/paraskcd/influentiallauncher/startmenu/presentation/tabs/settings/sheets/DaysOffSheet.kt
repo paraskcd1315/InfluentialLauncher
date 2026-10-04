@@ -16,12 +16,13 @@ import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.DayOffRuns
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.ScheduleText
 import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
+import java.time.DayOfWeek
 import java.time.LocalDate
 
 @Composable
 fun DaysOffSheet(
     open: Boolean,
-    workdays: Int,
+    weeklyDaysOff: Set<DayOfWeek>,
     onAdd: (List<LocalDate>) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -39,7 +40,7 @@ fun DaysOffSheet(
                 if (start == null) {
                     first = day
                 } else {
-                    onAdd(DayOffRuns.between(minOf(start, day), maxOf(start, day), workdays))
+                    onAdd(DayOffRuns.between(minOf(start, day), maxOf(start, day), weeklyDaysOff))
                     onDismiss()
                 }
             },

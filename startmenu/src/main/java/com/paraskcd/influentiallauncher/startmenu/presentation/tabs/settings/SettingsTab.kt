@@ -38,6 +38,7 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.utils.ScheduleTex
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TabToggles
 import com.paraskcd.influentiallauncher.timetracking.domain.model.WorkSchedule
+import java.time.DayOfWeek
 import java.time.LocalDate
 
 @Composable
@@ -57,16 +58,15 @@ fun SettingsTab(
     val toggles = TabToggles.of(settings)
     val held = schedule ?: WorkSchedule()
     var weeklyHours by remember { mutableStateOf(ScheduleText.hours(held.weeklyHours)) }
-    var workdays by remember { mutableStateOf(held.workdays.toString()) }
     var addingDays by remember { mutableStateOf(false) }
     var addingMonth by remember { mutableStateOf(false) }
-    LaunchedEffect(held.weeklyHours, held.workdays) {
+    LaunchedEffect(held.weeklyHours) {
         if (ScheduleText.hoursOf(weeklyHours) != held.weeklyHours) weeklyHours = ScheduleText.hours(held.weeklyHours)
-        if (ScheduleText.workdaysOf(workdays) != held.workdays) workdays = held.workdays.toString()
     }
     val today = LocalDate.now()
+    val weekdays = DayOfWeek.entries
     val months = held.hoursByMonth.toSortedMap().toList()
-    val runs = DayOffRuns.of(held.holidays, held.workdays)
+    val runs = DayOffRuns.of(held.holidays, held.weeklyDaysOff)
     val upcoming = runs.filter { !it.to.isBefore(today) }
     val earlier = runs.filter { it.to.isBefore(today) }.sumOf { it.days.size }
     LazyColumn(
@@ -115,16 +115,21 @@ fun SettingsTab(
                 keyboardType = KeyboardType.Decimal
             )
         }
-        item {
-            InfTextField(
-                value = workdays,
-                onValueChange = { value ->
-                    workdays = value
-                    ScheduleText.workdaysOf(value)?.let { days -> onSchedule { it.copy(workdays = days) } }
-                },
-                label = stringResource(R.string.startmenu_settings_workdays),
-                keyboardType = KeyboardType.Number
-            )
+        item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_weekly_days_off)) }
+        itemsIndexed(weekdays, key = { _, day -> "weekday:${day.name}" }) { index, day ->
+            InfGroupedCard(index = index, count = weekdays.size) {
+                InfSettingsRow(
+                    label = ScheduleText.weekday(day),
+                    trailing = {
+                        InfSwitch(
+                            checked = day in held.weeklyDaysOff,
+                            onCheckedChange = { off ->
+                                onSchedule { it.copy(weeklyDaysOff = if (off) it.weeklyDaysOff + day else it.weeklyDaysOff - day) }
+                            }
+                        )
+                    }
+                )
+            }
         }
         item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_months)) }
         itemsIndexed(months, key = { _, entry -> "month:${entry.first}" }) { index, (month, hours) ->
@@ -174,7 +179,7 @@ fun SettingsTab(
     }
     DaysOffSheet(
         open = addingDays,
-        workdays = held.workdays,
+        weeklyDaysOff = held.weeklyDaysOff,
         onAdd = { days -> onSchedule { it.copy(holidays = it.holidays + days) } },
         onDismiss = { addingDays = false }
     )

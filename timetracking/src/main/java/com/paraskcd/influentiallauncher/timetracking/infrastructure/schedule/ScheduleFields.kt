@@ -8,6 +8,7 @@ object ScheduleFields {
     const val WeeklyHours = "weeklyHours"
     const val HoursByMonth = "weeklyHoursByMonth"
     const val Workdays = "workdays"
+    const val WeeklyDaysOff = "weeklyDaysOff"
     const val Holidays = "holidays"
     const val HolidayDate = "date"
 }

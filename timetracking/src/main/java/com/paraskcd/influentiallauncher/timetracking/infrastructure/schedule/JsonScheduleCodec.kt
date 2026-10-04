@@ -7,6 +7,7 @@ import com.paraskcd.influentiallauncher.timetracking.domain.model.WorkSchedule
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.ScheduleCodec
 import org.json.JSONArray
 import org.json.JSONObject
+import java.time.DayOfWeek
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,9 +24,18 @@ class JsonScheduleCodec @Inject constructor() : ScheduleCodec {
         return WorkSchedule(
             weeklyHours = held.optDouble(ScheduleFields.WeeklyHours, WorkSchedule.DefaultWeeklyHours),
             hoursByMonth = hoursByMonth(held.optJSONObject(ScheduleFields.HoursByMonth)),
-            workdays = held.optInt(ScheduleFields.Workdays, WorkSchedule.DefaultWorkdays),
+            weeklyDaysOff = weeklyDaysOff(held),
             holidays = holidays(held)
         )
+    }
+
+    private fun weeklyDaysOff(held: JSONObject): Set<DayOfWeek> {
+        val list = held.optJSONArray(ScheduleFields.WeeklyDaysOff)
+        if (list != null) {
+            return (0 until list.length()).mapNotNull { index -> runCatching { DayOfWeek.valueOf(list.optString(index)) }.getOrNull() }.toSet()
+        }
+        if (held.has(ScheduleFields.Workdays)) return WorkSchedule.daysOffAfter(held.optInt(ScheduleFields.Workdays))
+        return WorkSchedule.DefaultWeeklyDaysOff
     }
 
     override fun write(schedule: WorkSchedule): String {
@@ -33,10 +43,13 @@ class JsonScheduleCodec @Inject constructor() : ScheduleCodec {
         schedule.hoursByMonth.toSortedMap().forEach { (month, hours) -> months.put(month.toString(), hours) }
         val holidays = JSONArray()
         schedule.holidays.sorted().forEach { holidays.put(JSONObject().put(ScheduleFields.HolidayDate, it.toString())) }
+        val daysOff = JSONArray()
+        schedule.weeklyDaysOff.sorted().forEach { daysOff.put(it.name) }
         return JSONObject()
             .put(ScheduleFields.WeeklyHours, schedule.weeklyHours)
             .put(ScheduleFields.HoursByMonth, months)
             .put(ScheduleFields.Workdays, schedule.workdays)
+            .put(ScheduleFields.WeeklyDaysOff, daysOff)
             .put(ScheduleFields.Holidays, holidays)
             .toString()
     }
@@ -65,6 +78,7 @@ class JsonScheduleCodec @Inject constructor() : ScheduleCodec {
             ScheduleFields.WeeklyHours,
             ScheduleFields.HoursByMonth,
             ScheduleFields.Workdays,
+            ScheduleFields.WeeklyDaysOff,
             ScheduleFields.Holidays
         )
     }
