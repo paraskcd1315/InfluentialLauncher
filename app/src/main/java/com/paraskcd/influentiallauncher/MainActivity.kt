@@ -19,6 +19,12 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
 import com.paraskcd.influentiallauncher.presentation.viewmodels.DesktopViewModel
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.toArgb
+import android.graphics.Bitmap
+import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
+import com.paraskcd.influentiallauncher.homescreen.presentation.components.LocalIconLayers
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
@@ -56,7 +62,15 @@ class MainActivity : ComponentActivity() {
             val settings by desktop.settings.collectAsStateWithLifecycle()
             CompositionLocalProvider(LocalParallax provides tilt, LocalPanelTint provides settings.tintPanels) {
                 InfluentialTheme {
-                    Desktop(activity = this, viewModel = desktop)
+                    val iconStyle by desktop.iconStyle.collectAsStateWithLifecycle()
+                    val tint = InfTheme.colors.brandText.toArgb()
+                    val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
+                    val iconLayers: suspend (AppId, Int) -> Pair<Bitmap, Bitmap>? = remember(tint, iconBackground, iconStyle) {
+                        { id, px -> desktop.iconLayers(id, px, tint, iconBackground) }
+                    }
+                    CompositionLocalProvider(LocalIconLayers provides iconLayers) {
+                        Desktop(activity = this, viewModel = desktop)
+                    }
                 }
             }
         }

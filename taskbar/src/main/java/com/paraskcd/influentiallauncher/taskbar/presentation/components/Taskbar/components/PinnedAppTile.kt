@@ -31,6 +31,7 @@ import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.infrastructure.LaunchOrigins
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
 import com.paraskcd.influentiallauncher.homescreen.presentation.components.IconSignals
+import com.paraskcd.influentiallauncher.homescreen.presentation.components.LocalIconLayers
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
 
 @Composable
@@ -87,6 +88,7 @@ fun PinnedAppTile(
             size = TaskbarMetrics.pinIconSize,
             load = { loadIcon(app.id, it) },
             version = loadIcon,
+            layers = LocalIconLayers.current?.let { layers -> { px: Int -> layers(app.id, px) } },
             modifier = Modifier.onGloballyPositioned { iconBounds = it.boundsInWindow() }
         )
         IconSignals(badge = badge, openTasks = openTasks, running = running)

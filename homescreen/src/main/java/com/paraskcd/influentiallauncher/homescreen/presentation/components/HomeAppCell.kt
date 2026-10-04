@@ -62,6 +62,7 @@ fun HomeAppCell(
                     size = iconSize,
                     load = { loadIcon(app.id, it) },
                     version = loadIcon,
+                    layers = LocalIconLayers.current?.let { layers -> { px: Int -> layers(app.id, px) } },
                     modifier = Modifier.infParallaxShadow(LocalParallax.current)
                 )
                 IconSignals(badge = badge, openTasks = openTasks, running = running)

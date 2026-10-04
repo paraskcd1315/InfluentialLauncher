@@ -19,6 +19,7 @@ import android.util.LruCache
 import androidx.core.graphics.drawable.toBitmap
 import com.paraskcd.influentiallauncher.apps.domain.model.AppIconChoice
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.IconLayers
 import com.paraskcd.influentiallauncher.apps.domain.model.IconStyle
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
@@ -48,6 +49,7 @@ class LauncherAppsInstalledApps @Inject constructor(
     private val launcherApps = context.getSystemService(LauncherApps::class.java)
     private val user: UserHandle = Process.myUserHandle()
     private val iconCache = LruCache<String, Bitmap>(IconCacheEntries)
+    private val layerCache = LruCache<String, IconLayers>(IconCacheEntries)
 
     override val iconStyle: StateFlow<IconStyle> = styleStore.style
 
@@ -98,6 +100,21 @@ class LauncherAppsInstalledApps @Inject constructor(
                     ?: style.iconPack?.let { pack -> runCatching { packIcon(pack, info, sizePx) }.getOrNull() }
                     ?: systemIcon(info, sizePx, tint, background)
             }.onFailure { Log.w(LogTag, "icon failed for ${id.key}", it) }.getOrNull()?.also { iconCache.put(cacheKey, it) }
+        }
+    }
+
+    override suspend fun iconLayers(id: AppId, sizePx: Int, tint: Int, background: Int?): IconLayers? {
+        val style = iconStyle.value
+        if (style.choices[id] != null || style.iconPack != null) return null
+        val cacheKey = cacheKeyOf(id, sizePx, tint, background, style)
+        layerCache.get(cacheKey)?.let { return it }
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val info = findActivity(id) ?: return@runCatching null
+                val drawable = info.getIcon(context.resources.displayMetrics.densityDpi)
+                val (plate, glyph) = ThemedIconRenderer.renderLayers(drawable, tint, background, sizePx)
+                IconLayers(plate, glyph)
+            }.onFailure { Log.w(LogTag, "icon layers failed for ${id.key}", it) }.getOrNull()?.also { layerCache.put(cacheKey, it) }
         }
     }
 

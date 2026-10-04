@@ -6,6 +6,7 @@ package com.paraskcd.influentiallauncher.apps.domain.ports
 import android.graphics.Bitmap
 import android.graphics.Rect
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.IconLayers
 import com.paraskcd.influentiallauncher.apps.domain.model.IconStyle
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
@@ -26,4 +27,6 @@ interface InstalledApps {
     suspend fun icon(id: AppId, sizePx: Int, tint: Int?, background: Int? = null): Bitmap?
 
     fun cachedIcon(id: AppId, sizePx: Int, tint: Int?, background: Int? = null): Bitmap?
+
+    suspend fun iconLayers(id: AppId, sizePx: Int, tint: Int, background: Int? = null): IconLayers?
 }

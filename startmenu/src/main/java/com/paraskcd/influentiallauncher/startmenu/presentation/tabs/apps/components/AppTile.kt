@@ -34,6 +34,7 @@ import com.paraskcd.influentiallauncher.designsystem.atoms.InfAsyncIcon
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.homescreen.presentation.components.IconSignals
+import com.paraskcd.influentiallauncher.homescreen.presentation.components.LocalIconLayers
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuApp
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
 
@@ -70,6 +71,7 @@ fun AppTile(
                 size = StartMenuMetrics.pinnedIconSize,
                 load = { loadIcon(entry.app.id, it) },
                 version = loadIcon,
+                layers = LocalIconLayers.current?.let { layers -> { px: Int -> layers(entry.app.id, px) } },
                 modifier = Modifier.onGloballyPositioned { iconBounds = it.boundsInWindow() }
             )
             IconSignals(badge = badge, openTasks = openTasks, running = running)

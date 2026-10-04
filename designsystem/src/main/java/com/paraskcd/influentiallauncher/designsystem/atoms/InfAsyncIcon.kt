@@ -18,7 +18,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.graphicsLayer
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 
 @Composable
@@ -27,14 +29,36 @@ fun InfAsyncIcon(
     size: Dp,
     load: suspend (Int) -> Bitmap?,
     modifier: Modifier = Modifier,
-    version: Any? = null
+    version: Any? = null,
+    layers: (suspend (Int) -> Pair<Bitmap, Bitmap>?)? = null
 ) {
-    val sizePx = with(LocalDensity.current) { size.roundToPx() }
-    val icon by produceState<ImageBitmap?>(initialValue = null, key, sizePx, version) {
-        value = load(sizePx)?.asImageBitmap()
+    val density = LocalDensity.current
+    val sizePx = with(density) { size.roundToPx() }
+    val loaded by produceState<Pair<ImageBitmap, ImageBitmap?>?>(initialValue = null, key, sizePx, version, layers != null) {
+        value = layers?.invoke(sizePx)?.let { (plate, glyph) -> plate.asImageBitmap() to glyph.asImageBitmap() }
+            ?: load(sizePx)?.let { it.asImageBitmap() to null }
     }
-    val bitmap = icon
-    if (bitmap == null) {
+    val icon = loaded
+    val bitmap = icon?.first
+    val glyph = icon?.second
+    if (bitmap != null && glyph != null) {
+        val tilt = LocalParallax.current
+        val step = with(density) { DsMetrics.parallaxLayerStep.toPx() }
+        Box(modifier = modifier.size(size).clip(CircleShape)) {
+            Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(size))
+            Image(
+                bitmap = glyph,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(size)
+                    .graphicsLayer {
+                        val lean = tilt.value
+                        translationX = -lean.x * step
+                        translationY = -lean.y * step
+                    }
+            )
+        }
+    } else if (bitmap == null) {
         Box(
             modifier = modifier
                 .size(size)

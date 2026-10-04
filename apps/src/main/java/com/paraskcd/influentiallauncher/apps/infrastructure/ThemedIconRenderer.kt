@@ -41,7 +41,25 @@ internal object ThemedIconRenderer {
     private const val RingFraction = 0.02f
     private const val RingColor = 0x1FFFFFFF
 
+    /** The plate and the glyph flattened into one bitmap, for drags and sheets. */
     fun render(icon: Drawable, tint: Int, background: Int?, sizePx: Int): Bitmap {
+        val (shape, shapeSize) = shapeOf(icon, sizePx)
+        val bitmap = createBitmap(sizePx, sizePx)
+        val canvas = Canvas(bitmap)
+        drawPlate(canvas, tint, background, sizePx)
+        drawGlyph(canvas, shape, tint, sizePx, shapeSize)
+        return bitmap
+    }
+
+    /** The plate and the glyph as two bitmaps of the same size, so each can sit at its own parallax depth. */
+    fun renderLayers(icon: Drawable, tint: Int, background: Int?, sizePx: Int): Pair<Bitmap, Bitmap> {
+        val (shape, shapeSize) = shapeOf(icon, sizePx)
+        val plate = createBitmap(sizePx, sizePx).also { drawPlate(Canvas(it), tint, background, sizePx) }
+        val glyph = createBitmap(sizePx, sizePx).also { drawGlyph(Canvas(it), shape, tint, sizePx, shapeSize) }
+        return plate to glyph
+    }
+
+    private fun shapeOf(icon: Drawable, sizePx: Int): Pair<Bitmap, Int> {
         val adaptive = icon as? AdaptiveIconDrawable
         val layer = adaptive?.monochrome ?: adaptive?.foreground
         return if (layer != null) {
@@ -50,20 +68,18 @@ internal object ThemedIconRenderer {
             if (shape == null && adaptive?.monochrome == null) {
                 val iconSize = (sizePx * PlainIconScale).roundToInt()
                 val composite = silhouette(icon.toBitmap(iconSize, iconSize))
-                onCircle(composite ?: source, tint, background, sizePx, if (composite != null) iconSize else sizePx)
+                (composite ?: source) to (if (composite != null) iconSize else sizePx)
             } else {
-                onCircle(shape ?: source, tint, background, sizePx, sizePx)
+                (shape ?: source) to sizePx
             }
         } else {
             val iconSize = (sizePx * PlainIconScale).roundToInt()
             val source = icon.toBitmap().scale(iconSize, iconSize)
-            onCircle(silhouette(source) ?: source, tint, background, sizePx, iconSize)
+            (silhouette(source) ?: source) to iconSize
         }
     }
 
-    private fun onCircle(shape: Bitmap, tint: Int, background: Int?, sizePx: Int, shapeSize: Int): Bitmap {
-        val bitmap = createBitmap(sizePx, sizePx)
-        val canvas = Canvas(bitmap)
+    private fun drawPlate(canvas: Canvas, tint: Int, background: Int?, sizePx: Int) {
         val radius = sizePx / 2f
         if (background != null) {
             canvas.drawCircle(radius, radius, radius, Paint().apply {
@@ -88,13 +104,15 @@ internal object ThemedIconRenderer {
                 )
             })
         }
+    }
+
+    private fun drawGlyph(canvas: Canvas, shape: Bitmap, tint: Int, sizePx: Int, shapeSize: Int) {
         val offset = (sizePx - shapeSize) / 2f
         val tinted = Paint().apply {
             isAntiAlias = true
             colorFilter = PorterDuffColorFilter(tint, PorterDuff.Mode.SRC_IN)
         }
         canvas.drawBitmap(shape, offset, offset, tinted)
-        return bitmap
     }
 
     private fun silhouette(source: Bitmap): Bitmap? {
