@@ -57,8 +57,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSearchField
 import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
+import com.paraskcd.influentiallauncher.designsystem.foundation.rememberInfHazeArea
+import com.paraskcd.influentiallauncher.designsystem.foundation.infHazeSource
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartTabsWindow
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.sheets.StartTimerSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TimelineMetrics
@@ -212,9 +212,9 @@ fun StartMenuHost(
         fromEnd = landscape
     ) {
         StartMenuBack(open = open, swipe = swipe, onClose = currentOnClose)
-        val haze = rememberHazeState()
+        val haze = rememberInfHazeArea()
         Box(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.fillMaxSize().hazeSource(haze).nestedScroll(closeAtTop)) {
+        Box(modifier = Modifier.fillMaxSize().infHazeSource(haze).nestedScroll(closeAtTop)) {
             when (selected) {
                 StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose, onLaunched = onAppLaunched, onScrub = { scrubLetter = it }, viewModel = appsViewModel)
                 StartMenuTab.Calendar -> CalendarTab(

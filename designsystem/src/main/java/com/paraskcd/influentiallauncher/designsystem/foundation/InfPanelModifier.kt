@@ -12,7 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
 import dev.chrisbanes.haze.HazeInput
-import dev.chrisbanes.haze.HazeState
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import dev.chrisbanes.haze.blur.HazeBlurStyle
 import dev.chrisbanes.haze.blur.HazeColorEffect
 import dev.chrisbanes.haze.blur.hazeBlur
@@ -30,12 +31,15 @@ fun Modifier.infPanelSurface(shape: Shape, blurred: Boolean): Modifier {
 }
 
 @Composable
-fun Modifier.infHazeSurface(shape: Shape, state: HazeState, alpha: Float = 1f): Modifier {
-    val tint = panelBase().copy(alpha = InfGlass.panelAlphaBlurred)
+fun Modifier.infHazeSurface(shape: Shape, area: InfHazeArea, alpha: Float = 1f): Modifier {
+    val tint = panelBase().copy(alpha = InfGlass.hazeTintAlpha)
+    val key = remember { Any() }
+    DisposableEffect(area, key) { onDispose { area.holes.remove(key) } }
     return this
+        .infHazeHole(area, key)
         .clip(shape)
         .hazeBlur(
-            input = HazeInput.Backdrop(state),
+            input = HazeInput.Backdrop(area.state),
             style = HazeBlurStyle {
                 backgroundColor(Color.Transparent)
                 colorEffects(listOf(HazeColorEffect.tint(tint)))

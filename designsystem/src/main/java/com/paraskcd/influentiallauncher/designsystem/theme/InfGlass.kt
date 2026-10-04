@@ -12,5 +12,6 @@ object InfGlass {
     const val panelAlphaBlurred = 0.45f
     const val panelAlphaSolid = 0.94f
     const val panelTint = 0.28f
-    val hazeBlur = 24.dp
+    val hazeBlur = 10.dp
+    const val hazeTintAlpha = 0.3f
 }

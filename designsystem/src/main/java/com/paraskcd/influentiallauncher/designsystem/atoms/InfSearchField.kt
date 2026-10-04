@@ -30,7 +30,7 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
 import com.paraskcd.influentiallauncher.designsystem.foundation.infHazeSurface
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
 import androidx.compose.ui.graphics.graphicsLayer
-import dev.chrisbanes.haze.HazeState
+import com.paraskcd.influentiallauncher.designsystem.foundation.InfHazeArea
 import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -45,7 +45,7 @@ fun InfSearchField(
     onSearch: () -> Unit = { },
     shape: Shape = InfShapes.pill,
     height: Dp = DsMetrics.searchHeight,
-    haze: HazeState? = null,
+    haze: InfHazeArea? = null,
     alpha: Float = 1f
 ) {
     val colors = InfTheme.colors

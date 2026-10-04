@@ -39,8 +39,8 @@ import androidx.compose.ui.platform.LocalDensity
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfHaze
 import com.paraskcd.influentiallauncher.designsystem.foundation.SwipeUp
 import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
+import com.paraskcd.influentiallauncher.designsystem.foundation.rememberInfHazeArea
+import com.paraskcd.influentiallauncher.designsystem.foundation.infHazeSource
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.PermissionState
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.TimelineDetail
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar.sheets.TimelineDetailSheet
@@ -125,10 +125,10 @@ fun CalendarTab(
     val stripShown = permission == PermissionState.Missing || allDay.isNotEmpty()
     val switchShown = trackers.size > 1
     val headerBottom = StartMenuMetrics.listTopPlain + headerHeight
-    val haze = rememberHazeState()
+    val haze = rememberInfHazeArea()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.fillMaxSize().hazeSource(haze)) {
+        Box(modifier = Modifier.fillMaxSize().infHazeSource(haze)) {
         DayTimeline(
             date = date,
             entries = entries,
