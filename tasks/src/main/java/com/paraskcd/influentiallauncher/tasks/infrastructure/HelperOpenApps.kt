@@ -32,11 +32,16 @@ class HelperOpenApps @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val current = MutableStateFlow<Map<String, Int>>(emptyMap())
     override val taskCounts: StateFlow<Map<String, Int>> = current.asStateFlow()
-    private var running: Job? = null
+    private val processes = MutableStateFlow<Set<String>>(emptySet())
+    override val running: StateFlow<Set<String>> = processes.asStateFlow()
+    private var reading: Job? = null
 
     override fun refresh() {
-        if (running?.isActive == true) return
-        running = scope.launch { current.value = read() }
+        if (reading?.isActive == true) return
+        reading = scope.launch {
+            current.value = read()
+            processes.value = readProcesses()
+        }
     }
 
     override fun close(packageName: String) {
@@ -53,7 +58,24 @@ class HelperOpenApps @Inject constructor(
                     .invoke(activities, packageName, userId())
             }.onFailure { Log.w(LogTag, "close failed", it) }
             current.value = read()
+            processes.value = readProcesses()
         }
+    }
+
+    private fun readProcesses(): Set<String> {
+        if (!ready()) return emptySet()
+        return runCatching {
+            val activities = service(TasksApi.ActivityService, TasksApi.ActivityStubClass) ?: return emptySet()
+            @Suppress("UNCHECKED_CAST")
+            val infos = activities.javaClass.getMethod(TasksApi.GetRunningAppProcesses).invoke(activities) as List<ActivityManager.RunningAppProcessInfo>?
+            infos.orEmpty()
+                .filter { it.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_SERVICE }
+                .flatMap { it.pkgList?.toList().orEmpty() }
+                .filter { it != context.packageName }
+                .toSet()
+        }
+            .onFailure { Log.w(LogTag, "running processes unavailable", it) }
+            .getOrDefault(emptySet())
     }
 
     private fun read(): Map<String, Int> {

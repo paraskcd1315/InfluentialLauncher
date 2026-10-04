@@ -47,6 +47,7 @@ fun AppTile(
     modifier: Modifier = Modifier,
     badge: Int = 0,
     openTasks: Int = 0,
+    running: Boolean = false,
     showLabel: Boolean = true
 ) {
     val view = LocalView.current
@@ -71,7 +72,7 @@ fun AppTile(
                 version = loadIcon,
                 modifier = Modifier.onGloballyPositioned { iconBounds = it.boundsInWindow() }
             )
-            IconSignals(badge = badge, openTasks = openTasks)
+            IconSignals(badge = badge, openTasks = openTasks, running = running)
         }
         if (showLabel) {
             Text(

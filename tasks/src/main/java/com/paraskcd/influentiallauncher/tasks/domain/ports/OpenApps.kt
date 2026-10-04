@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 interface OpenApps {
     val taskCounts: StateFlow<Map<String, Int>>
 
+    val running: StateFlow<Set<String>>
+
     fun refresh()
 
     fun close(packageName: String)

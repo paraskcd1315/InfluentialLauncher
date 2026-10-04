@@ -38,6 +38,7 @@ fun AppGrid(
                         onLongPress = { onLongPress(entry) },
                         badge = signals.badgeOf(entry.app.id),
                         openTasks = signals.openOf(entry.app.id),
+                        running = signals.runningOf(entry.app.id),
                         showLabel = showLabels,
                         modifier = Modifier.weight(1f)
                     )

@@ -16,10 +16,11 @@ class AppSignalsSource @Inject constructor(
     openApps: OpenApps,
     settingsStore: SettingsStore
 ) {
-    val signals: Flow<AppSignals> = combine(badges.counts, openApps.taskCounts, settingsStore.settings) { counts, tasks, settings ->
+    val signals: Flow<AppSignals> = combine(badges.counts, openApps.taskCounts, openApps.running, settingsStore.settings) { counts, tasks, running, settings ->
         AppSignals(
             badges = if (settings.showBadges) counts else emptyMap(),
-            openTasks = if (settings.showRunningDots) tasks else emptyMap()
+            openTasks = if (settings.showRunningDots) tasks else emptyMap(),
+            running = if (settings.showRunningDots) running else emptySet()
         )
     }
 }

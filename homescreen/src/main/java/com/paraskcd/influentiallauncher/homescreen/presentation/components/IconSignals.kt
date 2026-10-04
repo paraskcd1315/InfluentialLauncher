@@ -11,12 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.Dp
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfCountBadge
+import com.paraskcd.influentiallauncher.designsystem.atoms.InfOpenBar
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfRunningDots
 import com.paraskcd.influentiallauncher.homescreen.R
 import com.paraskcd.influentiallauncher.homescreen.presentation.utils.HomeMetrics
 
 @Composable
-fun BoxScope.IconSignals(badge: Int, openTasks: Int, dotsDrop: Dp = HomeMetrics.signalDotsDrop) {
+fun BoxScope.IconSignals(badge: Int, openTasks: Int, running: Boolean = false, dotsDrop: Dp = HomeMetrics.signalDotsDrop) {
     if (badge > 0) {
         InfCountBadge(
             count = badge,
@@ -26,12 +27,12 @@ fun BoxScope.IconSignals(badge: Int, openTasks: Int, dotsDrop: Dp = HomeMetrics.
                 .offset(x = HomeMetrics.signalBadgeNudge, y = -HomeMetrics.signalBadgeNudge)
         )
     }
+    val marker = Modifier
+        .align(Alignment.BottomCenter)
+        .offset(y = dotsDrop)
     if (openTasks > 0) {
-        InfRunningDots(
-            count = openTasks,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .offset(y = dotsDrop)
-        )
+        InfOpenBar(modifier = marker)
+    } else if (running) {
+        InfRunningDots(count = 1, modifier = marker)
     }
 }

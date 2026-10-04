@@ -70,6 +70,8 @@ object DsMetrics {
     val runningDotSize = 4.dp
     val runningDotGap = 3.dp
     const val runningDotsMax = 3
+    val openBarWidth = 14.dp
+    val openBarHeight = 4.dp
     const val parallaxShadowAlpha = 0.22f
     val parallaxShadowBlur = 6.dp
     val parallaxShadowLift = 2.dp

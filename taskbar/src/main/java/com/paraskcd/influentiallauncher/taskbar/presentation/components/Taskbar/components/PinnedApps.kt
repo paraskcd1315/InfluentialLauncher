@@ -107,7 +107,8 @@ fun PinnedApps(
                     onMenu = { onMenu(app) },
                     onDrag = { onDragApp(app) },
                     badge = signals.badgeOf(app.id),
-                    openTasks = signals.openOf(app.id)
+                    openTasks = signals.openOf(app.id),
+                    running = signals.runningOf(app.id)
                 )
             }
         }

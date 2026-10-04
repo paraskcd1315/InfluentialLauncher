@@ -44,7 +44,8 @@ fun PinnedAppTile(
     onDrag: () -> Unit,
     modifier: Modifier = Modifier,
     badge: Int = 0,
-    openTasks: Int = 0
+    openTasks: Int = 0,
+    running: Boolean = false
 ) {
     val view = LocalView.current
     var iconBounds by remember { mutableStateOf<Rect?>(null) }
@@ -88,7 +89,7 @@ fun PinnedAppTile(
             version = loadIcon,
             modifier = Modifier.onGloballyPositioned { iconBounds = it.boundsInWindow() }
         )
-        IconSignals(badge = badge, openTasks = openTasks)
+        IconSignals(badge = badge, openTasks = openTasks, running = running)
     }
 }
 

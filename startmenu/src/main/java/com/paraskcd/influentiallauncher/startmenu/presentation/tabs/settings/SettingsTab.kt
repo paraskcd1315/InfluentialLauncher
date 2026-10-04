@@ -5,6 +5,21 @@ package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
+import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -107,14 +122,12 @@ fun SettingsTab(
             }
             return@AnimatedContent
         }
-        Column(modifier = Modifier.fillMaxSize()) {
-            SettingsCrumb(
-                label = stringResource(section.titleRes),
-                onBack = { opened = null },
-                modifier = Modifier.padding(start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding, top = StartMenuMetrics.listTopPlain)
-            )
+        val listState = rememberLazyListState()
+        val density = LocalDensity.current
+        var headerHeight by remember { mutableStateOf(0.dp) }
+        Box(modifier = Modifier.fillMaxSize()) {
             when (section) {
-                SettingsSection.Appearance -> SettingsList(top = false) {
+                SettingsSection.Appearance -> SettingsList(listState, headerHeight) {
                     item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_home_screen)) }
                     toggleRows(AppearanceToggles.homeScreen(settings), onSettings)
                     item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_section)) }
@@ -125,14 +138,26 @@ fun SettingsTab(
                     item(key = "appearance:accent") { AccentSection(onPick = onPickAccent, onWallpaper = onAccentFromWallpaper) }
                     toggleRows(AppearanceToggles.colours(settings), onSettings)
                 }
-                SettingsSection.Shell -> SettingsList(top = false) {
+                SettingsSection.Shell -> SettingsList(listState, headerHeight) {
                     item { ShellAccessSection(state = shellState, onStartPairing = onStartPairing, onRetry = onRetryShell) }
                 }
                 SettingsSection.Schedule -> ScheduleSection(
+                    listState = listState,
+                    top = headerHeight,
                     held = held,
                     onSchedule = onSchedule,
                     onAddDays = { addingDays = true },
                     onAddMonth = { addingMonth = true }
+                )
+            }
+            SettingsHeader(
+                scrolled = listState.canScrollBackward,
+                modifier = Modifier.onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
+            ) {
+                SettingsCrumb(
+                    label = stringResource(section.titleRes),
+                    onBack = { opened = null },
+                    modifier = Modifier.padding(start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding, top = StartMenuMetrics.listTopPlain)
                 )
             }
         }
@@ -160,18 +185,47 @@ fun SettingsTab(
 }
 
 @Composable
-private fun SettingsList(top: Boolean = true, content: LazyListScope.() -> Unit) {
+private fun SettingsList(
+    state: LazyListState = rememberLazyListState(),
+    top: Dp = 0.dp,
+    content: LazyListScope.() -> Unit
+) {
     LazyColumn(
+        state = state,
         verticalArrangement = Arrangement.spacedBy(StartMenuMetrics.rowGap),
         contentPadding = PaddingValues(
             start = StartMenuMetrics.listPadding,
             end = StartMenuMetrics.listPadding,
-            top = if (top) StartMenuMetrics.listTopPlain else StartMenuMetrics.rowGap,
+            top = top + StartMenuMetrics.listTopPlain,
             bottom = StartMenuMetrics.listBottom
         ),
         modifier = Modifier.fillMaxSize(),
         content = content
     )
+}
+
+@Composable
+private fun SettingsHeader(scrolled: Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val colors = InfTheme.colors
+    val fill by animateFloatAsState(
+        targetValue = if (scrolled) 1f else 0f,
+        animationSpec = tween(InfMotion.durMorphMs, easing = InfMotion.easeIos),
+        label = "settingsHeader"
+    )
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .drawBehind { drawRect(colors.glassStrongBg.copy(alpha = colors.glassStrongBg.alpha * fill)) }
+    ) {
+        content()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(DsMetrics.hairlineThickness)
+                .graphicsLayer { alpha = fill }
+                .background(colors.hairline)
+        )
+    }
 }
 
 private fun LazyListScope.toggleRows(
@@ -234,6 +288,8 @@ private fun LazyListScope.iconRows(
 
 @Composable
 private fun ScheduleSection(
+    listState: LazyListState,
+    top: Dp,
     held: WorkSchedule,
     onSchedule: ((WorkSchedule) -> WorkSchedule) -> Unit,
     onAddDays: () -> Unit,
@@ -249,7 +305,7 @@ private fun ScheduleSection(
     val runs = DayOffRuns.of(held.holidays, held.weeklyDaysOff)
     val upcoming = runs.filter { !it.to.isBefore(today) }
     val earlier = runs.filter { it.to.isBefore(today) }.sumOf { it.days.size }
-    SettingsList(top = false) {
+    SettingsList(listState, top) {
         item {
             InfTextField(
                 value = weeklyHours,

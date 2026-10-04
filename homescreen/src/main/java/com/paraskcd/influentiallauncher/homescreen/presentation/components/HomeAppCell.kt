@@ -47,6 +47,7 @@ fun HomeAppCell(
     onRemove: (() -> Unit)? = null,
     badge: Int = 0,
     openTasks: Int = 0,
+    running: Boolean = false,
     showLabel: Boolean = true
 ) {
     val ink = LocalWallpaperInk.current
@@ -63,7 +64,7 @@ fun HomeAppCell(
                     version = loadIcon,
                     modifier = Modifier.infParallaxShadow(LocalParallax.current)
                 )
-                IconSignals(badge = badge, openTasks = openTasks)
+                IconSignals(badge = badge, openTasks = openTasks, running = running)
                 if (onRemove != null) {
                     val label = stringResource(R.string.home_remove_app, app.label)
                     Box(

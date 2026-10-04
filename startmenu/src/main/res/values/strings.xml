@@ -48,7 +48,7 @@
     <string name="startmenu_settings_shell_caption">Pairing for the control center and app actions</string>
     <string name="startmenu_settings_schedule_caption">Weekly hours, days off and holidays</string>
     <string name="startmenu_settings_icons">Icons</string>
-    <string name="startmenu_settings_running_dots">Dots under running apps</string>
+    <string name="startmenu_settings_running_dots">Running dots and open bars</string>
     <string name="startmenu_settings_badges">Notification badges</string>
     <string name="startmenu_settings_start_button">Start button on the taskbar</string>
     <string name="startmenu_settings_tint_panels">Tint panels with the accent colour</string>

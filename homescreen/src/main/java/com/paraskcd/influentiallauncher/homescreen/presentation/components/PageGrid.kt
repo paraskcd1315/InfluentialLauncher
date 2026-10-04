@@ -78,6 +78,7 @@ fun PageGrid(
                         onRemove = onRemove?.let { remove -> { remove(slot.app) } },
                         badge = signals.badgeOf(slot.app.id),
                         openTasks = signals.openOf(slot.app.id),
+                        running = signals.runningOf(slot.app.id),
                         showLabel = showLabels,
                         modifier = Modifier
                             .offset { position }

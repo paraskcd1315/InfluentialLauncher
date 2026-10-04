@@ -13,6 +13,7 @@ object TasksApi {
     const val ActivityService = "activity"
     const val ActivityStubClass = "android.app.IActivityManager\$Stub"
     const val ForceStopPackage = "forceStopPackage"
+    const val GetRunningAppProcesses = "getRunningAppProcesses"
     const val MaxTasks = 64
     const val IgnoreUnavailable = 0x0002
     const val PerUserRange = 100_000
