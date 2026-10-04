@@ -60,8 +60,26 @@ class TimeTrackingViewModel @Inject constructor(
     val running: StateFlow<Map<Tracker, TimeEntry?>> = _running.asStateFlow()
 
     private var shownDay: LocalDate = LocalDate.now()
+    private var picked = false
+
+    fun forgetPick() {
+        picked = false
+    }
+
+    fun autoSelect(date: LocalDate) {
+        if (picked) return
+        viewModelScope.launch {
+            val best = tracking.preferred(date, shown.value) ?: return@launch
+            if (!picked) _tracker.value = best
+        }
+    }
+
+    fun keepShown(trackers: List<Tracker>) {
+        if (trackers.isNotEmpty() && _tracker.value !in trackers) _tracker.value = trackers.first()
+    }
 
     fun selectTracker(tracker: Tracker) {
+        picked = true
         _tracker.value = tracker
     }
 

@@ -212,11 +212,22 @@ class TimeTracking @Inject constructor(
         }
     }
 
+    suspend fun preferred(date: LocalDate, shown: List<Tracker>): Tracker? {
+        if (shown.size < 2) return shown.firstOrNull()
+        if (date == LocalDate.now()) {
+            shown.firstOrNull { quietly(null) { running(it) } != null }?.let { return it }
+        }
+        return shown.firstOrNull { quietly(emptyList()) { day(it, date) }.isNotEmpty() } ?: shown.first()
+    }
+
+    private suspend fun <T> quietly(fallback: T, read: suspend () -> T): T =
+        runCatching { read() }.onFailure { if (it is CancellationException) throw it }.getOrDefault(fallback)
+
     suspend fun probe() {
         val credentials = store.credentials.first()
         Tracker.entries
             .filter { it !in alwaysShown && credentials.configured(it) }
-            .forEach { tracker -> runCatching { running(tracker) }.onFailure { if (it is CancellationException) throw it } }
+            .forEach { tracker -> quietly(null) { running(tracker) } }
     }
 
     private companion object {

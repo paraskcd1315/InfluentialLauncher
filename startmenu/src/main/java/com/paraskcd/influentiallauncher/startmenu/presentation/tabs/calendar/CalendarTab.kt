@@ -79,10 +79,15 @@ fun CalendarTab(
     val trackersShown = timeTracking.available
     val trackers by timeTracking.shown.collectAsStateWithLifecycle()
     LaunchedEffect(open) {
-        if (open && trackersShown) timeTracking.probe()
+        if (!open || !trackersShown) return@LaunchedEffect
+        timeTracking.forgetPick()
+        timeTracking.probe()
+    }
+    LaunchedEffect(open, date, trackers) {
+        if (open && trackersShown) timeTracking.autoSelect(date)
     }
     LaunchedEffect(trackers, tracker) {
-        if (trackers.isNotEmpty() && tracker !in trackers) timeTracking.selectTracker(trackers.first())
+        timeTracking.keepShown(trackers)
     }
     LaunchedEffect(open, tracker, date, credentials) {
         if (open && trackersShown) timeTracking.load(date)
