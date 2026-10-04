@@ -32,6 +32,7 @@ import com.paraskcd.influentiallauncher.windowing.presentation.InfSheetWindow
 fun AppMenuSheet(
     entry: StartMenuApp?,
     isOpen: Boolean,
+    isRunning: Boolean = false,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onDismiss: () -> Unit,
     onToggleStart: (AppId) -> Unit,
@@ -77,6 +78,8 @@ fun AppMenuSheet(
                 add(InfAction(Lucide.Shapes, stringResource(R.string.startmenu_icon), colors.textPrimary) { onIcon(current) })
                 if (isOpen) {
                     add(InfAction(Lucide.X, stringResource(R.string.startmenu_close), colors.textPrimary) { onClose(id) })
+                }
+                if (isOpen || isRunning) {
                     add(InfAction(Lucide.Ban, stringResource(R.string.startmenu_force_stop), colors.textPrimary) { onForceStop(id) })
                 }
                 add(InfAction(Lucide.Activity, stringResource(R.string.startmenu_data_usage), colors.textPrimary) { onDataUsage(id) })

@@ -56,6 +56,9 @@ class TaskbarViewModel @Inject constructor(
         .map { it.keys }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptySet())
 
+    val runningPackages: StateFlow<Set<String>> = openApps.running
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptySet())
+
     val pinned: StateFlow<List<LauncherApp>?> = pinnedApps.pinned(PinTarget.Taskbar)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
 

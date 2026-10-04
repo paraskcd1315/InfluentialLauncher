@@ -32,6 +32,16 @@ class StartSwipe {
         distance = ((distance ?: travel) + up).coerceIn(0f, travel)
     }
 
+    fun back(progress: Float) {
+        closing = true
+        distance = travel * (1f - progress.coerceIn(0f, 1f))
+    }
+
+    fun endBack() {
+        distance = null
+        closing = false
+    }
+
     fun releaseStaysOpen(velocityUp: Float, flingVelocity: Float): Boolean {
         val shown = progress ?: return false
         val commit = if (closing) 1f - StartMenuMetrics.swipeCommit else StartMenuMetrics.swipeCommit

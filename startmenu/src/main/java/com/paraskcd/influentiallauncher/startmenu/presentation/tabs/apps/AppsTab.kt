@@ -61,6 +61,7 @@ fun AppsTab(
     val query by viewModel.query.collectAsStateWithLifecycle()
     val signals by viewModel.signals.collectAsStateWithLifecycle()
     val openPackages by viewModel.openPackages.collectAsStateWithLifecycle()
+    val runningPackages by viewModel.runningPackages.collectAsStateWithLifecycle()
     val showLabels by viewModel.showLabels.collectAsStateWithLifecycle()
     val iconStyle by viewModel.iconStyle.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
@@ -170,6 +171,7 @@ fun AppsTab(
     AppMenuSheet(
         entry = menuEntry,
         isOpen = menuEntry?.app?.id?.packageName in openPackages,
+        isRunning = menuEntry?.app?.id?.packageName in runningPackages,
         loadIcon = loadIcon,
         onDismiss = { menuKey = null },
         onToggleStart = { viewModel.togglePin(PinTarget.Start, it) },

@@ -44,6 +44,7 @@ fun TaskbarHost(
     val wiggling by viewModel.wiggling.collectAsStateWithLifecycle()
     val signals by viewModel.signals.collectAsStateWithLifecycle()
     val openPackages by viewModel.openPackages.collectAsStateWithLifecycle()
+    val runningPackages by viewModel.runningPackages.collectAsStateWithLifecycle()
     val iconStyle by viewModel.iconStyle.collectAsStateWithLifecycle()
     val showStart by viewModel.showStart.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
@@ -81,6 +82,7 @@ fun TaskbarHost(
         app = menuApp,
         onStart = menuApp?.id in startPins,
         isOpen = menuApp?.id?.packageName in openPackages,
+        isRunning = menuApp?.id?.packageName in runningPackages,
         loadIcon = loadIcon,
         onDismiss = { menuApp = null },
         onEdit = { viewModel.startEdit() },

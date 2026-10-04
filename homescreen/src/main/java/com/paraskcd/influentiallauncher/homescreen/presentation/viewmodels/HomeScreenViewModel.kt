@@ -59,6 +59,9 @@ class HomeScreenViewModel @Inject constructor(
         .map { it.keys }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptySet())
 
+    val runningPackages: StateFlow<Set<String>> = openApps.running
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptySet())
+
     val state: StateFlow<HomeScreenState?> = home.state
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), null)
 

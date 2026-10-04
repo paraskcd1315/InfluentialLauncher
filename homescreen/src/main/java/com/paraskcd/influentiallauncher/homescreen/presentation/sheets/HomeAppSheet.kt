@@ -33,6 +33,7 @@ fun HomeAppSheet(
     app: LauncherApp?,
     onTaskbar: Boolean,
     isOpen: Boolean,
+    isRunning: Boolean = false,
     loadIcon: suspend (AppId, Int) -> Bitmap?,
     onEdit: () -> Unit,
     onToggleTaskbar: (AppId) -> Unit,
@@ -70,6 +71,8 @@ fun HomeAppSheet(
                 add(InfAction(Lucide.Shapes, stringResource(R.string.home_icon), colors.textPrimary) { onIcon(current) })
                 if (isOpen) {
                     add(InfAction(Lucide.X, stringResource(R.string.home_close), colors.textPrimary) { onClose(current.id) })
+                }
+                if (isOpen || isRunning) {
                     add(InfAction(Lucide.Ban, stringResource(R.string.home_force_stop), colors.textPrimary) { onForceStop(current.id) })
                 }
                 add(InfAction(Lucide.Activity, stringResource(R.string.home_data_usage), colors.textPrimary) { onDataUsage(current.id) })

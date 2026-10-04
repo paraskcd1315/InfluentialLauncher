@@ -104,6 +104,7 @@ fun HomeScreenHost(
     val clearing by viewModel.clearing.collectAsStateWithLifecycle()
     val dataApp by viewModel.dataApp.collectAsStateWithLifecycle()
     val openPackages by viewModel.openPackages.collectAsStateWithLifecycle()
+    val runningPackages by viewModel.runningPackages.collectAsStateWithLifecycle()
     val deleting by viewModel.deleting.collectAsStateWithLifecycle()
     val taskbarIds by viewModel.taskbarIds.collectAsStateWithLifecycle()
     val signals by viewModel.signals.collectAsStateWithLifecycle()
@@ -290,6 +291,7 @@ fun HomeScreenHost(
         app = menu,
         onTaskbar = menu?.id in taskbarIds,
         isOpen = menu?.id?.packageName in openPackages,
+        isRunning = menu?.id?.packageName in runningPackages,
         loadIcon = loadIcon,
         onEdit = viewModel::startWiggle,
         onToggleTaskbar = viewModel::toggleTaskbar,

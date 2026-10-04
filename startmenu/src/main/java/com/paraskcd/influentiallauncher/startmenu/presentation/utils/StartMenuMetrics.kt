@@ -26,7 +26,7 @@ object StartMenuMetrics {
     val rowIconGap = 8.dp
     val pinnedColumns = 4
     val pinnedIconSize = 54.dp
-    val pinnedLabelGap = 6.dp
+    val pinnedLabelGap = 12.dp
     val pinnedCellPadding = 8.dp
     val permissionPadding = InfSpacing.s5
     val permissionGap = InfSpacing.s4

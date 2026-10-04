@@ -25,7 +25,7 @@ object HomeMetrics {
     val maxCellHeight = 104.dp
     val cellInset = 4.dp
     const val labelLineFallback = 1.45f
-    val labelGap = 4.dp
+    val labelGap = 12.dp
     val badgeSize = 22.dp
     val badgeGlyph = 14.dp
     val signalBadgeNudge = 3.dp

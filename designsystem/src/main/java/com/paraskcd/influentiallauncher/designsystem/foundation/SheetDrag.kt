@@ -73,6 +73,17 @@ class SheetDrag(
         offset = 0f
     }
 
+    fun back(progress: Float) {
+        settling?.cancel()
+        offset = height * progress.coerceIn(0f, 1f)
+    }
+
+    fun settle() {
+        settling = scope.launch {
+            animate(offset, 0f, animationSpec = tween(InfMotion.durMorphMs, easing = InfMotion.easeIos)) { value, _ -> offset = value }
+        }
+    }
+
     private fun follow(from: Float = fingerY) {
         settling?.cancel()
         val start = anchor ?: (from - offset).also { anchor = it }
@@ -91,8 +102,6 @@ class SheetDrag(
             onDismiss()
             return
         }
-        settling = scope.launch {
-            animate(offset, 0f, animationSpec = tween(InfMotion.durMorphMs, easing = InfMotion.easeIos)) { value, _ -> offset = value }
-        }
+        settle()
     }
 }

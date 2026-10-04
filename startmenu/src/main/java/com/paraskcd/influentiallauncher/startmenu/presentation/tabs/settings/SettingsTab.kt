@@ -3,8 +3,13 @@
 
 package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings
 
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.SeekableTransitionState
+import androidx.compose.animation.core.rememberTransition
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -102,15 +107,24 @@ fun SettingsTab(
     var addingMonth by remember { mutableStateOf(false) }
     var pickingPack by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { onLoadPacks() }
-    BackHandler(enabled = opened != null) { opened = null }
+    val seek = remember { SeekableTransitionState(opened) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(opened) { if (seek.targetState != opened || seek.fraction != 0f) seek.animateTo(opened) }
+    PredictiveBackHandler(enabled = opened != null) { progress ->
+        try {
+            progress.collect { event -> seek.seekTo(event.progress, targetState = null) }
+            opened = null
+        } catch (cancelled: CancellationException) {
+            scope.launch { seek.animateTo(seek.currentState) }
+            throw cancelled
+        }
+    }
     val push = tween<IntOffset>(InfMotion.durPushMs, easing = InfMotion.easeIos)
-    AnimatedContent(
-        targetState = opened,
+    rememberTransition(seek, label = "settingsSection").AnimatedContent(
         transitionSpec = {
             val forward = if (targetState != null) 1 else -1
             slideInHorizontally(push) { width -> width * forward } togetherWith slideOutHorizontally(push) { width -> -width * forward }
         },
-        label = "settingsSection",
         modifier = modifier.fillMaxSize()
     ) { section ->
         if (section == null) {

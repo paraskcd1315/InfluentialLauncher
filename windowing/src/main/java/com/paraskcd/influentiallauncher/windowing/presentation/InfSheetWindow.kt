@@ -21,6 +21,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.activity.compose.PredictiveBackHandler
+import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -102,6 +104,15 @@ fun <T : Any> InfSheetWindow(
         heightPx = drag.height.roundToInt().takeIf { it > 0 }
     ) {
         WindowTouches { event -> drag.onFinger(event.eventTime, event.rawY, down = event.actionMasked == MotionEvent.ACTION_DOWN) }
+        PredictiveBackHandler(enabled = open) { events ->
+            try {
+                events.collect { drag.back(it.progress) }
+                dismiss()
+            } catch (cancelled: CancellationException) {
+                drag.settle()
+                throw cancelled
+            }
+        }
         InfBottomSheet(
             drag = drag,
             maxHeight = screenHeight - statusTop - InfSpacing.s2,

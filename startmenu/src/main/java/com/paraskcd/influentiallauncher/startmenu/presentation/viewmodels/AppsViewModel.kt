@@ -59,6 +59,9 @@ class AppsViewModel @Inject constructor(
         .map { it.keys }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptySet())
 
+    val runningPackages: StateFlow<Set<String>> = openApps.running
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), emptySet())
+
     fun closeApp(id: AppId) {
         openApps.close(id.packageName)
     }
