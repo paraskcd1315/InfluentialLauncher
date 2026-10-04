@@ -27,7 +27,9 @@ import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.X
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
+import com.paraskcd.influentiallauncher.designsystem.foundation.infHazeSurface
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import dev.chrisbanes.haze.HazeState
 import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -41,7 +43,8 @@ fun InfSearchField(
     modifier: Modifier = Modifier,
     onSearch: () -> Unit = { },
     shape: Shape = InfShapes.pill,
-    height: Dp = DsMetrics.searchHeight
+    height: Dp = DsMetrics.searchHeight,
+    haze: HazeState? = null
 ) {
     val colors = InfTheme.colors
     val textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.textPrimary)
@@ -50,7 +53,7 @@ fun InfSearchField(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .infPanelSurface(shape, blurred = LocalInfBlurred.current)
+            .then(if (haze != null) Modifier.infHazeSurface(shape, haze) else Modifier.infPanelSurface(shape, blurred = LocalInfBlurred.current))
     ) {
         Icon(
             imageVector = Lucide.Search,

@@ -41,7 +41,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.startmenu.R
-import com.paraskcd.influentiallauncher.startmenu.presentation.model.HeaderPlacement
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.PermissionState
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuTab
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.AppsTab
@@ -54,7 +53,16 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.Contac
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.StartMenuViewModel
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.LetterBubbleWindow
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartMenuWindow
-import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartSearchWindow
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.ui.graphics.graphicsLayer
+import com.paraskcd.influentiallauncher.designsystem.atoms.InfSearchField
+import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartTabsWindow
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.sheets.StartTimerSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TimelineMetrics
@@ -134,8 +142,6 @@ fun StartMenuHost(
     val menuWidth = if (landscape) screenWidth - menuStart - menuEnd else screenWidth * StartMenuMetrics.widthFraction
     val menuFraction = menuWidth / screenWidth
     val bubbleOffset = effectiveBottom + (menuHeight - DsMetrics.bubbleSize) / 2f
-    val searchOffset = screenHeight - menuTop - StartMenuMetrics.searchTop - DsMetrics.searchHeight
-    val searchFraction = (menuWidth - StartMenuMetrics.listPadding * 2) / screenWidth
     val timerX = if (landscape) menuEnd + TimelineMetrics.fabInset else screenWidth * (1f - StartMenuMetrics.widthFraction) / 2f + TimelineMetrics.fabInset
     val searchesContacts = selected == StartMenuTab.Contacts
     val sheet = remember { Animatable(0f) }
@@ -210,22 +216,17 @@ fun StartMenuHost(
         fromEnd = landscape
     ) {
         StartMenuBack(open = open, swipe = swipe, onClose = currentOnClose)
-        Box(modifier = Modifier.fillMaxSize().nestedScroll(closeAtTop)) {
+        val haze = rememberHazeState()
+        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().hazeSource(haze).nestedScroll(closeAtTop)) {
             when (selected) {
                 StartMenuTab.Apps -> AppsTab(open = open, onClose = onClose, onLaunched = onAppLaunched, onScrub = { scrubLetter = it }, viewModel = appsViewModel)
                 StartMenuTab.Calendar -> CalendarTab(
                     open = open,
                     onClose = onClose,
                     timeTracking = timeTracking,
-                    placement = HeaderPlacement(
-                        top = menuTop + StartMenuMetrics.listTopPlain,
-                        widthFraction = searchFraction,
-                        fromEnd = landscape,
-                        offsetX = if (landscape) menuEnd + StartMenuMetrics.listPadding else 0.dp,
-                        shift = menuHeight * (1f - grown),
-                        alpha = searchReveal,
-                        swipe = closeBySwipe
-                    )
+                    headerAlpha = searchReveal,
+                    headerSwipe = closeBySwipe
                 )
                 StartMenuTab.Contacts -> ContactsTab(open = open, onClose = onClose, onScrub = { scrubLetter = it }, viewModel = contactsViewModel)
                 StartMenuTab.Settings -> SettingsTab(
@@ -247,6 +248,25 @@ fun StartMenuHost(
                 )
             }
         }
+        AnimatedVisibility(
+            visible = searchShown,
+            enter = fadeIn(tween(InfMotion.durMorphMs, easing = InfMotion.easeIos)),
+            exit = fadeOut(tween(InfMotion.durMorphMs, easing = InfMotion.easeIos)),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = StartMenuMetrics.searchTop, start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding)
+                .graphicsLayer { alpha = searchReveal }
+        ) {
+            InfSearchField(
+                value = if (searchesContacts) contactsQuery else appsQuery,
+                onValueChange = if (searchesContacts) contactsViewModel::setQuery else appsViewModel::setQuery,
+                placeholder = stringResource(if (searchesContacts) R.string.startmenu_search_contacts else R.string.startmenu_search),
+                clearDescription = stringResource(R.string.startmenu_clear),
+                haze = haze,
+                modifier = Modifier.infSwipeUp(closeBySwipe)
+            )
+        }
+        }
     }
     TimerButtonWindow(
         visible = timerShown,
@@ -255,21 +275,6 @@ fun StartMenuHost(
         offsetY = effectiveBottom + TimelineMetrics.fabInset,
         onStart = { startFor = calendarTracker },
         onStop = timeTracking::stop
-    )
-    StartSearchWindow(
-        visible = searchShown,
-        offsetY = searchOffset - menuHeight * (1f - grown),
-        alpha = searchReveal,
-        swipe = closeBySwipe,
-        widthFraction = searchFraction,
-        value = if (searchesContacts) contactsQuery else appsQuery,
-        onValueChange = if (searchesContacts) contactsViewModel::setQuery else appsViewModel::setQuery,
-        placeholder = stringResource(if (searchesContacts) R.string.startmenu_search_contacts else R.string.startmenu_search),
-        clearDescription = stringResource(R.string.startmenu_clear),
-        onClose = onClose,
-        fromEnd = landscape,
-        offsetX = if (landscape) menuEnd + StartMenuMetrics.listPadding else 0.dp,
-        back = { StartMenuBack(open = open, swipe = swipe, onClose = currentOnClose) }
     )
     LetterBubbleWindow(letter = scrubLetter.takeIf { open }, offsetY = bubbleOffset)
     StartTimerSheet(

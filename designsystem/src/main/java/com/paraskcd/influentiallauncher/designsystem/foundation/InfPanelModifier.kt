@@ -8,19 +8,49 @@ import androidx.compose.foundation.border
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.blur.HazeBlurStyle
+import dev.chrisbanes.haze.blur.HazeColorEffect
+import dev.chrisbanes.haze.blur.hazeBlur
 import com.paraskcd.influentiallauncher.designsystem.theme.InfGlass
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 
 @Composable
 fun Modifier.infPanelSurface(shape: Shape, blurred: Boolean): Modifier {
-    val colors = InfTheme.colors
+    LocalInfHaze.current?.let { return infHazeSurface(shape, it) }
     val alpha = if (blurred) InfGlass.panelAlphaBlurred else InfGlass.panelAlphaSolid
-    val base = if (LocalPanelTint.current) lerp(colors.bgBase, colors.brand, InfGlass.panelTint) else colors.bgBase
     return this
         .clip(shape)
-        .background(base.copy(alpha = alpha))
-        .border(InfGlass.borderWidth, colors.glassBorder, shape)
-        .infSpecularEdge(shape)
+        .background(panelBase().copy(alpha = alpha))
+        .infPanelEdge(shape)
 }
+
+@Composable
+fun Modifier.infHazeSurface(shape: Shape, state: HazeState): Modifier {
+    val tint = panelBase().copy(alpha = InfGlass.panelAlphaBlurred)
+    return this
+        .clip(shape)
+        .hazeBlur(
+            input = HazeInput.Backdrop(state),
+            style = HazeBlurStyle {
+                backgroundColor(Color.Transparent)
+                colorEffects(listOf(HazeColorEffect.tint(tint)))
+                blurRadius(InfGlass.hazeBlur)
+            }
+        )
+        .infPanelEdge(shape)
+}
+
+@Composable
+private fun panelBase(): Color {
+    val colors = InfTheme.colors
+    return if (LocalPanelTint.current) lerp(colors.bgBase, colors.brand, InfGlass.panelTint) else colors.bgBase
+}
+
+@Composable
+private fun Modifier.infPanelEdge(shape: Shape): Modifier =
+    this.border(InfGlass.borderWidth, InfTheme.colors.glassBorder, shape).infSpecularEdge(shape)

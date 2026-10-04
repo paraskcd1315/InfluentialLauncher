@@ -31,7 +31,17 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.startmenu.R
-import com.paraskcd.influentiallauncher.startmenu.presentation.model.HeaderPlacement
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfHaze
+import com.paraskcd.influentiallauncher.designsystem.foundation.SwipeUp
+import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.PermissionState
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.TimelineDetail
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.calendar.sheets.TimelineDetailSheet
@@ -44,7 +54,6 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TimelineMet
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TrackerLabels
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.CalendarViewModel
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.TimeTrackingViewModel
-import com.paraskcd.influentiallauncher.startmenu.presentation.windows.HeaderWindow
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.TrackerWeek
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerTotals
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
@@ -58,7 +67,8 @@ fun CalendarTab(
     open: Boolean,
     onClose: () -> Unit,
     timeTracking: TimeTrackingViewModel,
-    placement: HeaderPlacement,
+    headerAlpha: Float,
+    headerSwipe: SwipeUp?,
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
     val colors = InfTheme.colors
@@ -111,58 +121,16 @@ fun CalendarTab(
         else -> null
     }
 
-    var dateHeight by remember { mutableStateOf(0.dp) }
-    var trackerHeight by remember { mutableStateOf(0.dp) }
-    var stripHeight by remember { mutableStateOf(0.dp) }
+    var headerHeight by remember { mutableStateOf(0.dp) }
+    val density = LocalDensity.current
     val gap = TimelineMetrics.sectionGap
     val stripShown = permission == PermissionState.Missing || allDay.isNotEmpty()
-    val trackerTop = dateHeight + gap
     val switchShown = trackers.size > 1
-    val trackerBottom = if (switchShown) trackerTop + trackerHeight else dateHeight
-    val stripTop = trackerBottom + gap
-    val headerBottom = StartMenuMetrics.listTopPlain + (if (stripShown) stripTop + stripHeight else trackerBottom)
-
-    HeaderWindow(visible = open, placement = placement, offsetTop = 0.dp, onHeight = { dateHeight = it }, onClose = onClose) {
-        DateBar(
-            date = date,
-            caption = caption,
-            onPrevious = viewModel::previousDay,
-            onNext = viewModel::nextDay,
-            onPick = { picking = date }
-        )
-    }
-    HeaderWindow(visible = open && switchShown, placement = placement, offsetTop = trackerTop, onHeight = { trackerHeight = it }, onClose = onClose) {
-        InfSegmented(
-            labels = trackers.map { stringResource(TrackerLabels.nameOf(it)) },
-            selected = trackers.indexOf(tracker),
-            onSelect = { timeTracking.selectTracker(trackers[it]) },
-            blurred = LocalWindowBlurred.current,
-            modifier = Modifier.fillMaxWidth(),
-            equalWidth = true
-        )
-    }
-    HeaderWindow(visible = open && stripShown, placement = placement, offsetTop = stripTop, onHeight = { stripHeight = it }, onClose = onClose) {
-        if (permission == PermissionState.Missing) {
-            Text(
-                text = stringResource(R.string.startmenu_calendar_allow),
-                style = MaterialTheme.typography.labelLarge,
-                color = colors.brandText,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .infPanelSurface(InfShapes.pill, blurred = LocalWindowBlurred.current)
-                    .clickable { calendarLauncher.launch(viewModel.permission) }
-                    .padding(horizontal = InfSpacing.s4, vertical = InfSpacing.s3)
-            )
-        } else {
-            AllDayStrip(
-                events = allDay,
-                onOpen = { detail = TimelineDetail.Event(it) }
-            )
-        }
-    }
+    val headerBottom = StartMenuMetrics.listTopPlain + headerHeight
+    val haze = rememberHazeState()
 
     Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().hazeSource(haze)) {
         DayTimeline(
             date = date,
             entries = entries,
@@ -188,6 +156,54 @@ fun CalendarTab(
                     .infGlassSurface(InfShapes.md, specular = false, strong = true)
                     .padding(InfSpacing.s3)
             )
+        }
+        }
+        CompositionLocalProvider(LocalInfHaze provides haze) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(gap),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = StartMenuMetrics.listTopPlain, start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding)
+                    .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
+                    .graphicsLayer { alpha = headerAlpha }
+                    .infSwipeUp(headerSwipe)
+            ) {
+                DateBar(
+                    date = date,
+                    caption = caption,
+                    onPrevious = viewModel::previousDay,
+                    onNext = viewModel::nextDay,
+                    onPick = { picking = date }
+                )
+                if (switchShown) {
+                    InfSegmented(
+                        labels = trackers.map { stringResource(TrackerLabels.nameOf(it)) },
+                        selected = trackers.indexOf(tracker),
+                        onSelect = { timeTracking.selectTracker(trackers[it]) },
+                        blurred = LocalWindowBlurred.current,
+                        modifier = Modifier.fillMaxWidth(),
+                        equalWidth = true
+                    )
+                }
+                if (stripShown && permission == PermissionState.Missing) {
+                    Text(
+                        text = stringResource(R.string.startmenu_calendar_allow),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = colors.brandText,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .infPanelSurface(InfShapes.pill, blurred = LocalWindowBlurred.current)
+                            .clickable { calendarLauncher.launch(viewModel.permission) }
+                            .padding(horizontal = InfSpacing.s4, vertical = InfSpacing.s3)
+                    )
+                } else if (stripShown) {
+                    AllDayStrip(
+                        events = allDay,
+                        onOpen = { detail = TimelineDetail.Event(it) }
+                    )
+                }
+            }
         }
     }
 
