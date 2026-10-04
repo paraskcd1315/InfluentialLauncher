@@ -14,9 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import com.composables.icons.lucide.Grip
+import com.composables.icons.lucide.Lucide
 import com.paraskcd.influentiallauncher.designsystem.foundation.infAccentGradientTint
 import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
-import com.paraskcd.influentiallauncher.designsystem.icons.WindowsLogo
 import com.paraskcd.influentiallauncher.taskbar.R
 import com.paraskcd.influentiallauncher.taskbar.presentation.utils.TaskbarMetrics
 
@@ -36,7 +37,7 @@ fun StartButton(
             .clickable(onClickLabel = label, onClick = onClick)
     ) {
         Icon(
-            imageVector = WindowsLogo,
+            imageVector = Lucide.Grip,
             contentDescription = label,
             tint = Color.White,
             modifier = Modifier
