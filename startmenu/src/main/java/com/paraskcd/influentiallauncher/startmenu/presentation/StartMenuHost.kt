@@ -183,7 +183,7 @@ fun StartMenuHost(
             }
         }
     }
-    val timerShown = open && selected == StartMenuTab.Calendar && credentials.configured(calendarTracker)
+    val timerShown = open && timeTracking.available && selected == StartMenuTab.Calendar && credentials.configured(calendarTracker)
     val searchShown = open && (selected == StartMenuTab.Apps || (searchesContacts && contactsPermission != PermissionState.Missing))
 
     StartTabsWindow(
@@ -228,9 +228,8 @@ fun StartMenuHost(
                 StartMenuTab.Settings -> SettingsTab(
                     settings = settings,
                     onTabShown = viewModel::setTabShown,
-                    credentials = credentials,
+                    trackersAvailable = timeTracking.available,
                     schedule = schedule,
-                    onCredentials = timeTracking::updateCredentials,
                     onSchedule = timeTracking::updateSchedule,
                     shellState = shellState,
                     onStartPairing = shellAccess::startPairingFlow,

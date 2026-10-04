@@ -12,10 +12,14 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
 
         extensions.configure<ApplicationExtension> {
             compileSdk = InfluentialSdk.COMPILE
+            buildFeatures {
+                buildConfig = true
+            }
             defaultConfig {
                 minSdk = InfluentialSdk.MIN
                 targetSdk = InfluentialSdk.TARGET
                 testInstrumentationRunner = InfluentialSdk.TEST_RUNNER
+                buildConfigField("boolean", InfluentialEdition.FLAG, isPersonalEdition.toString())
             }
             compileOptions {
                 sourceCompatibility = InfluentialSdk.JAVA

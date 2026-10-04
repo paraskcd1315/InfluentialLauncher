@@ -12,9 +12,13 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
 
         extensions.configure<LibraryExtension> {
             compileSdk = InfluentialSdk.COMPILE
+            buildFeatures {
+                buildConfig = true
+            }
             defaultConfig {
                 minSdk = InfluentialSdk.MIN
                 testInstrumentationRunner = InfluentialSdk.TEST_RUNNER
+                buildConfigField("boolean", InfluentialEdition.FLAG, isPersonalEdition.toString())
             }
             compileOptions {
                 sourceCompatibility = InfluentialSdk.JAVA

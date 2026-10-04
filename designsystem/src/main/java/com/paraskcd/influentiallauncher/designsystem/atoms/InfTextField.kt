@@ -19,8 +19,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.foundation.infGlassSurface
 import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
@@ -35,7 +33,6 @@ fun InfTextField(
     label: String,
     modifier: Modifier = Modifier,
     placeholder: String = "",
-    secret: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
     val colors = InfTheme.colors
@@ -59,9 +56,8 @@ fun InfTextField(
                 singleLine = true,
                 textStyle = textStyle,
                 cursorBrush = SolidColor(colors.textPrimary),
-                visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = if (secret) KeyboardType.Password else keyboardType,
+                    keyboardType = keyboardType,
                     imeAction = ImeAction.Done
                 ),
                 modifier = Modifier.fillMaxWidth()

@@ -37,7 +37,6 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.utils.DayOffRuns
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.ScheduleText
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.TabToggles
-import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerCredentials
 import com.paraskcd.influentiallauncher.timetracking.domain.model.WorkSchedule
 import java.time.LocalDate
 
@@ -45,9 +44,8 @@ import java.time.LocalDate
 fun SettingsTab(
     settings: LauncherSettings,
     onTabShown: (StartMenuTab, Boolean) -> Unit,
-    credentials: TrackerCredentials,
+    trackersAvailable: Boolean,
     schedule: WorkSchedule?,
-    onCredentials: ((TrackerCredentials) -> TrackerCredentials) -> Unit,
     onSchedule: ((WorkSchedule) -> WorkSchedule) -> Unit,
     shellState: ShellState,
     onStartPairing: () -> Unit,
@@ -58,18 +56,10 @@ fun SettingsTab(
 ) {
     val toggles = TabToggles.of(settings)
     val held = schedule ?: WorkSchedule()
-    var togglToken by remember { mutableStateOf(credentials.togglToken) }
-    var kimaiUrl by remember { mutableStateOf(credentials.kimaiUrl) }
-    var kimaiToken by remember { mutableStateOf(credentials.kimaiToken) }
     var weeklyHours by remember { mutableStateOf(ScheduleText.hours(held.weeklyHours)) }
     var workdays by remember { mutableStateOf(held.workdays.toString()) }
     var addingDays by remember { mutableStateOf(false) }
     var addingMonth by remember { mutableStateOf(false) }
-    LaunchedEffect(credentials) {
-        if (togglToken.isEmpty()) togglToken = credentials.togglToken
-        if (kimaiUrl.isEmpty()) kimaiUrl = credentials.kimaiUrl
-        if (kimaiToken.isEmpty()) kimaiToken = credentials.kimaiToken
-    }
     LaunchedEffect(held.weeklyHours, held.workdays) {
         if (ScheduleText.hoursOf(weeklyHours) != held.weeklyHours) weeklyHours = ScheduleText.hours(held.weeklyHours)
         if (ScheduleText.workdaysOf(workdays) != held.workdays) workdays = held.workdays.toString()
@@ -112,41 +102,7 @@ fun SettingsTab(
                 onWallpaper = onAccentFromWallpaper
             )
         }
-        item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_tracking)) }
-        item {
-            InfTextField(
-                value = togglToken,
-                onValueChange = { value ->
-                    togglToken = value
-                    onCredentials { it.copy(togglToken = value.trim()) }
-                },
-                label = stringResource(R.string.startmenu_settings_toggl_token),
-                secret = true
-            )
-        }
-        item {
-            InfTextField(
-                value = kimaiUrl,
-                onValueChange = { value ->
-                    kimaiUrl = value
-                    onCredentials { it.copy(kimaiUrl = value.trim()) }
-                },
-                label = stringResource(R.string.startmenu_settings_kimai_url),
-                placeholder = KimaiUrlHint,
-                keyboardType = KeyboardType.Uri
-            )
-        }
-        item {
-            InfTextField(
-                value = kimaiToken,
-                onValueChange = { value ->
-                    kimaiToken = value
-                    onCredentials { it.copy(kimaiToken = value.trim()) }
-                },
-                label = stringResource(R.string.startmenu_settings_kimai_token),
-                secret = true
-            )
-        }
+        if (!trackersAvailable) return@LazyColumn
         item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_schedule)) }
         item {
             InfTextField(
@@ -230,5 +186,3 @@ fun SettingsTab(
         onDismiss = { addingMonth = false }
     )
 }
-
-private const val KimaiUrlHint = "https://kimai.example.com"

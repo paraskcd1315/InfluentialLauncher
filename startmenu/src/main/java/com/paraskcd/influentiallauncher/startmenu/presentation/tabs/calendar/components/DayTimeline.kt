@@ -71,7 +71,8 @@ fun DayTimeline(
     onOpenEntry: (TimeEntry) -> Unit,
     onDay: (Long) -> Unit,
     modifier: Modifier = Modifier,
-    topPadding: Dp = 0.dp
+    topPadding: Dp = 0.dp,
+    showsTracker: Boolean = true
 ) {
     val colors = InfTheme.colors
     val density = LocalDensity.current
@@ -144,10 +145,11 @@ fun DayTimeline(
             .verticalScroll(scroll)
     ) {
         val contentWidth = maxWidth - TimelineMetrics.gutterWidth - TimelineMetrics.columnGap
-        val trackerWidth = contentWidth * TimelineMetrics.trackerShare
-        val eventsWidth = contentWidth - trackerWidth - TimelineMetrics.columnGap
+        val trackerWidth = if (showsTracker) contentWidth * TimelineMetrics.trackerShare else 0.dp
+        val trackerGap = if (showsTracker) TimelineMetrics.columnGap else 0.dp
+        val eventsWidth = contentWidth - trackerWidth - trackerGap
         val trackerLeft = TimelineMetrics.gutterWidth + TimelineMetrics.columnGap
-        val eventsLeft = trackerLeft + trackerWidth + TimelineMetrics.columnGap
+        val eventsLeft = trackerLeft + trackerWidth + trackerGap
         Box(modifier = Modifier.fillMaxWidth().padding(top = topPadding).height(hourHeight * TimelineMetrics.hours + TimelineMetrics.fabSize + TimelineMetrics.fabInset * 2)) {
             repeat(TimelineMetrics.hours) { hour ->
                 Box(

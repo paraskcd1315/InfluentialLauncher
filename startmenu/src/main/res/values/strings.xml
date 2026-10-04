@@ -44,8 +44,8 @@
     <string name="startmenu_next_year">Next year</string>
     <string name="startmenu_tracker_toggl">Toggl</string>
     <string name="startmenu_tracker_kimai">Kimai</string>
-    <string name="startmenu_tracker_setup">Add your %1$s details in the Settings tab to see your hours here.</string>
-    <string name="startmenu_tracker_failed">%1$s did not answer. Check its details in the Settings tab.</string>
+    <string name="startmenu_tracker_setup">This build has no %1$s key. Add it to secrets.properties and build again.</string>
+    <string name="startmenu_tracker_failed">%1$s did not answer.</string>
     <string name="startmenu_total">%1$dh %2$02dm</string>
     <string name="startmenu_today_total">Today · %1$s</string>
     <string name="startmenu_today_week_total">Today · %1$s · Week · %2$s</string>
@@ -60,10 +60,6 @@
     <string name="startmenu_timer_activity">Activity</string>
     <string name="startmenu_timer_no_project">No project</string>
     <string name="startmenu_timer_loading">Loading…</string>
-    <string name="startmenu_settings_tracking">Time tracking</string>
-    <string name="startmenu_settings_toggl_token">Toggl API token</string>
-    <string name="startmenu_settings_kimai_url">Kimai URL</string>
-    <string name="startmenu_settings_kimai_token">Kimai API token</string>
     <string name="startmenu_settings_schedule">Work schedule</string>
     <string name="startmenu_settings_weekly_hours">Hours a week</string>
     <string name="startmenu_settings_workdays">Working days a week</string>

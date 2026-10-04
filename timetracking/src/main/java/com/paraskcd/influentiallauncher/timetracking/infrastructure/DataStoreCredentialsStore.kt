@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.paraskcd.influentiallauncher.timetracking.BuildConfig
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerCredentials
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.CredentialsStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,26 +41,19 @@ class DataStoreCredentialsStore @Inject constructor(
 
     override suspend fun update(transform: (TrackerCredentials) -> TrackerCredentials) {
         context.trackingStore.edit { preferences ->
-            val next = transform(preferences.toCredentials())
-            preferences[TogglToken] = next.togglToken
-            preferences[KimaiUrl] = next.kimaiUrl
-            preferences[KimaiToken] = next.kimaiToken
-            preferences[WorkSchedule] = next.workSchedule
+            preferences[WorkSchedule] = transform(preferences.toCredentials()).workSchedule
         }
     }
 
     private fun Preferences.toCredentials() = TrackerCredentials(
-        togglToken = this[TogglToken].orEmpty(),
-        kimaiUrl = this[KimaiUrl].orEmpty(),
-        kimaiToken = this[KimaiToken].orEmpty(),
+        togglToken = BuildConfig.TOGGL_API_TOKEN,
+        kimaiUrl = BuildConfig.KIMAI_URL,
+        kimaiToken = BuildConfig.KIMAI_TOKEN,
         workSchedule = this[WorkSchedule].orEmpty()
     )
 
     private companion object {
         const val LogTag = "CredentialsStore"
-        val TogglToken = stringPreferencesKey("toggl_token")
-        val KimaiUrl = stringPreferencesKey("kimai_url")
-        val KimaiToken = stringPreferencesKey("kimai_token")
         val WorkSchedule = stringPreferencesKey("work_schedule")
     }
 }

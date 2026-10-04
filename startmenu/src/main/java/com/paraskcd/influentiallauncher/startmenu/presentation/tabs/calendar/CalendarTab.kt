@@ -77,8 +77,9 @@ fun CalendarTab(
         if (open) viewModel.refreshPermission() else viewModel.today()
         if (!open) detail = null
     }
+    val trackersShown = timeTracking.available
     LaunchedEffect(open, tracker, date, credentials) {
-        if (open) timeTracking.load(date)
+        if (open && trackersShown) timeTracking.load(date)
     }
 
     val trackers = Tracker.entries
@@ -87,13 +88,14 @@ fun CalendarTab(
     val dayEvents = events.orEmpty()
     val allDay = dayEvents.filter { it.allDay }
     val trackerWeek by timeTracking.week.collectAsStateWithLifecycle()
-    val caption = totalCaption(
+    val caption = if (!trackersShown) null else totalCaption(
         durations = entries.map { Duration.between(it.start, it.end ?: Instant.now()) },
         today = date == LocalDate.now(),
         week = trackerWeek?.takeIf { it.tracker == tracker }
     )
     val trackerName = stringResource(TrackerLabels.nameOf(tracker))
     val notice = when {
+        !trackersShown -> null
         !credentials.configured(tracker) -> stringResource(R.string.startmenu_tracker_setup, trackerName)
         current?.failed == true -> stringResource(R.string.startmenu_tracker_failed, trackerName)
         else -> null
@@ -105,8 +107,9 @@ fun CalendarTab(
     val gap = TimelineMetrics.sectionGap
     val stripShown = permission == PermissionState.Missing || allDay.isNotEmpty()
     val trackerTop = dateHeight + gap
-    val stripTop = trackerTop + trackerHeight + gap
-    val headerBottom = StartMenuMetrics.listTopPlain + (if (stripShown) stripTop + stripHeight else trackerTop + trackerHeight)
+    val trackerBottom = if (trackersShown) trackerTop + trackerHeight else dateHeight
+    val stripTop = trackerBottom + gap
+    val headerBottom = StartMenuMetrics.listTopPlain + (if (stripShown) stripTop + stripHeight else trackerBottom)
 
     HeaderWindow(visible = open, placement = placement, offsetTop = 0.dp, onHeight = { dateHeight = it }, onClose = onClose) {
         DateBar(
@@ -117,7 +120,7 @@ fun CalendarTab(
             onPick = { picking = date }
         )
     }
-    HeaderWindow(visible = open, placement = placement, offsetTop = trackerTop, onHeight = { trackerHeight = it }, onClose = onClose) {
+    HeaderWindow(visible = open && trackersShown, placement = placement, offsetTop = trackerTop, onHeight = { trackerHeight = it }, onClose = onClose) {
         InfSegmented(
             labels = trackers.map { stringResource(TrackerLabels.nameOf(it)) },
             selected = trackers.indexOf(tracker),
@@ -158,6 +161,7 @@ fun CalendarTab(
             onOpenEntry = { detail = TimelineDetail.Entry(it) },
             onDay = { viewModel.setDay(date.plusDays(it)) },
             topPadding = headerBottom + gap,
+            showsTracker = trackersShown,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = StartMenuMetrics.listPadding)

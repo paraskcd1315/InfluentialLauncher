@@ -62,6 +62,7 @@ class GlanceViewModel @Inject constructor(
 
     private val timers = timerRefresh.flatMapLatest {
         channelFlow {
+            if (!tracking.available) return@channelFlow
             launch { tracking.changes.collect { tracker -> readTimer(tracker) { send(it) } } }
             while (true) {
                 coroutineScope { Tracker.entries.forEach { tracker -> launch { readTimer(tracker) { send(it) } } } }

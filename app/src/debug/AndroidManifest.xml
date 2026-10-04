@@ -3,10 +3,6 @@
 
     <application>
         <receiver
-            android:name=".debug.TrackerSeedReceiver"
-            android:exported="true"
-            android:permission="android.permission.DUMP" />
-        <receiver
             android:name=".debug.ShellProofReceiver"
             android:exported="true" />
     </application>

@@ -3,6 +3,7 @@
 
 package com.paraskcd.influentiallauncher.timetracking.domain.usecase
 
+import com.paraskcd.influentiallauncher.timetracking.BuildConfig
 import com.paraskcd.influentiallauncher.timetracking.domain.model.RunningUpdate
 import com.paraskcd.influentiallauncher.timetracking.domain.model.StartTimer
 import com.paraskcd.influentiallauncher.timetracking.domain.model.StreamSignal
@@ -62,6 +63,8 @@ class TimeTracking @Inject constructor(
     private val contracted = setOf(Tracker.Toggl)
     private var seen: TrackerCredentials? = null
 
+    val available: Boolean = BuildConfig.PERSONAL_EDITION
+
     val credentials: Flow<TrackerCredentials> = store.credentials
 
     val schedule: Flow<WorkSchedule?> = store.credentials
@@ -75,8 +78,6 @@ class TimeTracking @Inject constructor(
     init {
         scope.launch { takeSchedule() }
     }
-
-    suspend fun updateCredentials(transform: (TrackerCredentials) -> TrackerCredentials) = store.update(transform)
 
     suspend fun takeSchedule() {
         val text = scheduleInbox.take() ?: return

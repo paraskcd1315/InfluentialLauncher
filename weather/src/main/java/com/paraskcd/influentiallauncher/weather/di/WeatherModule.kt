@@ -3,6 +3,7 @@
 
 package com.paraskcd.influentiallauncher.weather.di
 
+import com.paraskcd.influentiallauncher.weather.BuildConfig
 import com.paraskcd.influentiallauncher.weather.domain.ports.AirQualityProvider
 import com.paraskcd.influentiallauncher.weather.domain.ports.SavedPlaces
 import com.paraskcd.influentiallauncher.weather.domain.ports.WarningProvider
@@ -44,6 +45,6 @@ abstract class WeatherModule {
     companion object {
         @Provides
         fun provideProviders(aemet: AemetProvider, meteocat: MeteocatProvider, openMeteo: OpenMeteoProvider): List<@JvmSuppressWildcards WeatherProvider> =
-            listOf(aemet, meteocat, openMeteo)
+            if (BuildConfig.PERSONAL_EDITION) listOf(aemet, meteocat, openMeteo) else listOf(openMeteo)
     }
 }

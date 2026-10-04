@@ -8,6 +8,11 @@ plugins {
 
 android {
     namespace = "com.paraskcd.influentiallauncher.timetracking"
+    defaultConfig {
+        buildConfigField("String", "TOGGL_API_TOKEN", "\"${personalSecret("TOGGL_API_TOKEN")}\"")
+        buildConfigField("String", "KIMAI_URL", "\"${personalSecret("KIMAI_URL")}\"")
+        buildConfigField("String", "KIMAI_TOKEN", "\"${personalSecret("KIMAI_TOKEN")}\"")
+    }
 }
 
 dependencies {

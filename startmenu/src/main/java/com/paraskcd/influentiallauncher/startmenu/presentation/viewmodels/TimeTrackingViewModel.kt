@@ -32,6 +32,8 @@ class TimeTrackingViewModel @Inject constructor(
     private val tracking: TimeTracking
 ) : ViewModel() {
 
+    val available: Boolean = tracking.available
+
     val credentials: StateFlow<TrackerCredentials> = tracking.credentials
         .stateIn(viewModelScope, SharingStarted.Eagerly, TrackerCredentials())
 
@@ -127,10 +129,6 @@ class TimeTrackingViewModel @Inject constructor(
 
     suspend fun activities(tracker: Tracker, projectId: String?): List<TrackerActivity> =
         runCatching { tracking.activities(tracker, projectId) }.onFailure { Log.w(LogTag, "activities failed", it) }.getOrDefault(emptyList())
-
-    fun updateCredentials(transform: (TrackerCredentials) -> TrackerCredentials) {
-        viewModelScope.launch { tracking.updateCredentials(transform) }
-    }
 
     fun updateSchedule(transform: (WorkSchedule) -> WorkSchedule) {
         viewModelScope.launch { tracking.updateSchedule(transform) }
