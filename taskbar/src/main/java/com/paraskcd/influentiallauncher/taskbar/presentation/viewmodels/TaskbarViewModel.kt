@@ -11,6 +11,7 @@ import com.paraskcd.influentiallauncher.apps.domain.model.IconStyle
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
+import com.paraskcd.influentiallauncher.settings.domain.ports.SettingsStore
 import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.AppSignalsSource
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.EditMode
@@ -40,8 +41,13 @@ class TaskbarViewModel @Inject constructor(
     signalsSource: AppSignalsSource,
     private val openApps: OpenApps,
     private val appActions: AppActions,
-    private val appDataUsage: AppDataUsage
+    private val appDataUsage: AppDataUsage,
+    settingsStore: SettingsStore
 ) : ViewModel() {
+
+    val showStart: StateFlow<Boolean> = settingsStore.settings
+        .map { it.showStartButton }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), true)
 
     val signals: StateFlow<AppSignals> = signalsSource.signals
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), AppSignals.None)

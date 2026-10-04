@@ -9,5 +9,7 @@ data class LauncherSettings(
     val showContactsTab: Boolean = true,
     val showLabels: Boolean = true,
     val showClock: Boolean = true,
-    val showGlance: Boolean = true
+    val showGlance: Boolean = true,
+    val showStartButton: Boolean = true,
+    val tintPanels: Boolean = false
 )

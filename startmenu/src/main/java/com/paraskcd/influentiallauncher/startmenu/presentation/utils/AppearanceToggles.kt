@@ -11,6 +11,8 @@ object AppearanceToggles {
     fun of(settings: LauncherSettings): List<AppearanceToggle> = listOf(
         AppearanceToggle("labels", R.string.startmenu_settings_labels, settings.showLabels) { held, on -> held.copy(showLabels = on) },
         AppearanceToggle("clock", R.string.startmenu_settings_clock, settings.showClock) { held, on -> held.copy(showClock = on) },
-        AppearanceToggle("glance", R.string.startmenu_settings_glance, settings.showGlance) { held, on -> held.copy(showGlance = on) }
+        AppearanceToggle("glance", R.string.startmenu_settings_glance, settings.showGlance) { held, on -> held.copy(showGlance = on) },
+        AppearanceToggle("start", R.string.startmenu_settings_start_button, settings.showStartButton) { held, on -> held.copy(showStartButton = on) },
+        AppearanceToggle("tint", R.string.startmenu_settings_tint_panels, settings.tintPanels) { held, on -> held.copy(tintPanels = on) }
     )
 }

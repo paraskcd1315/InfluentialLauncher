@@ -45,6 +45,8 @@ class DataStoreSettingsStore @Inject constructor(
             preferences[ShowLabels] = next.showLabels
             preferences[ShowClock] = next.showClock
             preferences[ShowGlance] = next.showGlance
+            preferences[ShowStartButton] = next.showStartButton
+            preferences[TintPanels] = next.tintPanels
         }
     }
 
@@ -56,7 +58,9 @@ class DataStoreSettingsStore @Inject constructor(
             showContactsTab = this[ShowContacts] ?: defaults.showContactsTab,
             showLabels = this[ShowLabels] ?: defaults.showLabels,
             showClock = this[ShowClock] ?: defaults.showClock,
-            showGlance = this[ShowGlance] ?: defaults.showGlance
+            showGlance = this[ShowGlance] ?: defaults.showGlance,
+            showStartButton = this[ShowStartButton] ?: defaults.showStartButton,
+            tintPanels = this[TintPanels] ?: defaults.tintPanels
         )
     }
 
@@ -68,5 +72,7 @@ class DataStoreSettingsStore @Inject constructor(
         val ShowLabels = booleanPreferencesKey("show_labels")
         val ShowClock = booleanPreferencesKey("show_clock")
         val ShowGlance = booleanPreferencesKey("show_glance")
+        val ShowStartButton = booleanPreferencesKey("show_start_button")
+        val TintPanels = booleanPreferencesKey("tint_panels")
     }
 }

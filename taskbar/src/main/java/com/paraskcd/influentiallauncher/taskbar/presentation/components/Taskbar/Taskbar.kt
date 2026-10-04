@@ -46,7 +46,8 @@ fun Taskbar(
     onDrop: (AppDragPayload, Int) -> Unit,
     modifier: Modifier = Modifier,
     vertical: Boolean = false,
-    signals: AppSignals = AppSignals.None
+    signals: AppSignals = AppSignals.None,
+    showStart: Boolean = true
 ) {
     BoxWithConstraints(
         contentAlignment = if (vertical) Alignment.TopCenter else Alignment.CenterStart,
@@ -56,9 +57,9 @@ fun Taskbar(
     ) {
         val length = if (vertical) maxHeight else maxWidth
         val count = pinned?.size ?: TaskbarMetrics.skeletonTileCount
-        val center by animateDpAsState(centerOffset(length, count), label = "taskbarCenter")
-        val startEdge = center + TaskbarMetrics.barPaddingHorizontal + TaskbarMetrics.startSize
-        val appsStart = startEdge + TaskbarMetrics.itemGap
+        val center by animateDpAsState(centerOffset(length, count, showStart), label = "taskbarCenter")
+        val startEdge = center + TaskbarMetrics.barPaddingHorizontal + if (showStart) TaskbarMetrics.startSize else 0.dp
+        val appsStart = startEdge + if (showStart) TaskbarMetrics.itemGap else 0.dp
         if (pinned == null) {
             PinnedAppsSkeleton(
                 vertical = vertical,
@@ -84,20 +85,23 @@ fun Taskbar(
                 modifier = Modifier.infParallaxLayer().fillMaxSize()
             )
         }
-        StartButton(
-            open = startOpen,
-            onClick = onStartClick,
-            modifier = if (vertical) {
-                Modifier.padding(top = center + TaskbarMetrics.barPaddingHorizontal).infParallaxLayer()
-            } else {
-                Modifier.padding(start = center + TaskbarMetrics.barPaddingHorizontal).infParallaxLayer()
-            }
-        )
+        if (showStart) {
+            StartButton(
+                open = startOpen,
+                onClick = onStartClick,
+                modifier = if (vertical) {
+                    Modifier.padding(top = center + TaskbarMetrics.barPaddingHorizontal).infParallaxLayer()
+                } else {
+                    Modifier.padding(start = center + TaskbarMetrics.barPaddingHorizontal).infParallaxLayer()
+                }
+            )
+        }
     }
 }
 
-private fun centerOffset(length: Dp, count: Int): Dp {
-    val content = TaskbarMetrics.barPaddingHorizontal * 2 + TaskbarMetrics.startSize +
+private fun centerOffset(length: Dp, count: Int, showStart: Boolean): Dp {
+    val start = if (showStart) TaskbarMetrics.startSize else 0.dp
+    val content = TaskbarMetrics.barPaddingHorizontal * 2 + start +
         (TaskbarMetrics.pinIconSize + TaskbarMetrics.itemGap) * count
     return ((length - content) / 2).coerceAtLeast(0.dp)
 }

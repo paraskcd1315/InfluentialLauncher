@@ -45,6 +45,7 @@ fun TaskbarHost(
     val signals by viewModel.signals.collectAsStateWithLifecycle()
     val openPackages by viewModel.openPackages.collectAsStateWithLifecycle()
     val iconStyle by viewModel.iconStyle.collectAsStateWithLifecycle()
+    val showStart by viewModel.showStart.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
     val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
     val pinPx = with(LocalDensity.current) { TaskbarMetrics.pinIconSize.roundToPx() }
@@ -73,7 +74,8 @@ fun TaskbarHost(
         visible = visible,
         alpha = alpha,
         signals = signals,
-        swipeUp = swipeUp
+        swipeUp = swipeUp,
+        showStart = showStart
     )
     TaskbarAppSheet(
         app = menuApp,

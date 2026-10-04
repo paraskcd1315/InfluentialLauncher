@@ -11,4 +11,5 @@ object InfGlass {
     const val specularStop = 0.06f
     const val panelAlphaBlurred = 0.45f
     const val panelAlphaSolid = 0.94f
+    const val panelTint = 0.28f
 }

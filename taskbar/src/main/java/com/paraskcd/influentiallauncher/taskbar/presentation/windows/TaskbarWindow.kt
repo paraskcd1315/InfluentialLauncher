@@ -41,7 +41,8 @@ fun TaskbarWindow(
     visible: Boolean,
     alpha: Float,
     signals: AppSignals,
-    swipeUp: SwipeUp?
+    swipeUp: SwipeUp?,
+    showStart: Boolean = true
 ) {
     val vertical = isLandscape()
     val density = LocalDensity.current
@@ -69,6 +70,7 @@ fun TaskbarWindow(
             onDrop = onDrop,
             vertical = vertical,
             signals = signals,
+            showStart = showStart,
             modifier = (if (vertical) Modifier.height(screenHeight * TaskbarMetrics.heightFraction) else Modifier).infSwipeUp(swipeUp)
         )
     }
