@@ -49,7 +49,7 @@ class AppsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val showLabels: StateFlow<Boolean> = settingsStore.settings
-        .map { it.showLabels }
+        .map { it.showStartLabels }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), true)
 
     val signals: StateFlow<AppSignals> = signalsSource.signals

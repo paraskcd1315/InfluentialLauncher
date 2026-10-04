@@ -43,10 +43,13 @@ class DataStoreSettingsStore @Inject constructor(
             preferences[ShowCalendar] = next.showCalendarTab
             preferences[ShowContacts] = next.showContactsTab
             preferences[ShowLabels] = next.showLabels
+            preferences[ShowStartLabels] = next.showStartLabels
             preferences[ShowClock] = next.showClock
             preferences[ShowGlance] = next.showGlance
             preferences[ShowStartButton] = next.showStartButton
             preferences[TintPanels] = next.tintPanels
+            preferences[ShowRunningDots] = next.showRunningDots
+            preferences[ShowBadges] = next.showBadges
         }
     }
 
@@ -57,10 +60,13 @@ class DataStoreSettingsStore @Inject constructor(
             showCalendarTab = this[ShowCalendar] ?: defaults.showCalendarTab,
             showContactsTab = this[ShowContacts] ?: defaults.showContactsTab,
             showLabels = this[ShowLabels] ?: defaults.showLabels,
+            showStartLabels = this[ShowStartLabels] ?: defaults.showStartLabels,
             showClock = this[ShowClock] ?: defaults.showClock,
             showGlance = this[ShowGlance] ?: defaults.showGlance,
             showStartButton = this[ShowStartButton] ?: defaults.showStartButton,
-            tintPanels = this[TintPanels] ?: defaults.tintPanels
+            tintPanels = this[TintPanels] ?: defaults.tintPanels,
+            showRunningDots = this[ShowRunningDots] ?: defaults.showRunningDots,
+            showBadges = this[ShowBadges] ?: defaults.showBadges
         )
     }
 
@@ -70,9 +76,12 @@ class DataStoreSettingsStore @Inject constructor(
         val ShowCalendar = booleanPreferencesKey("show_calendar_tab")
         val ShowContacts = booleanPreferencesKey("show_contacts_tab")
         val ShowLabels = booleanPreferencesKey("show_labels")
+        val ShowStartLabels = booleanPreferencesKey("show_start_labels")
         val ShowClock = booleanPreferencesKey("show_clock")
         val ShowGlance = booleanPreferencesKey("show_glance")
         val ShowStartButton = booleanPreferencesKey("show_start_button")
         val TintPanels = booleanPreferencesKey("tint_panels")
+        val ShowRunningDots = booleanPreferencesKey("show_running_dots")
+        val ShowBadges = booleanPreferencesKey("show_badges")
     }
 }

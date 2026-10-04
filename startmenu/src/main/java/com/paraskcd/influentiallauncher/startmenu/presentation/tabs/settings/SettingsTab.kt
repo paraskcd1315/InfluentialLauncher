@@ -40,6 +40,7 @@ import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.settings.domain.model.LauncherSettings
 import com.paraskcd.influentiallauncher.shellaccess.domain.model.ShellState
 import com.paraskcd.influentiallauncher.startmenu.R
+import com.paraskcd.influentiallauncher.startmenu.presentation.model.AppearanceToggle
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.SettingsSection
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuTab
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.AccentSection
@@ -113,12 +114,16 @@ fun SettingsTab(
                 modifier = Modifier.padding(start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding, top = StartMenuMetrics.listTopPlain)
             )
             when (section) {
-                SettingsSection.StartMenu -> SettingsList(top = false) { startMenuRows(settings, onTabShown) }
                 SettingsSection.Appearance -> SettingsList(top = false) {
-                    appearanceRows(settings, onSettings, iconPack, packs, onPickPack = { pickingPack = true })
-                }
-                SettingsSection.Accent -> SettingsList(top = false) {
-                    item { AccentSection(onPick = onPickAccent, onWallpaper = onAccentFromWallpaper) }
+                    item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_home_screen)) }
+                    toggleRows(AppearanceToggles.homeScreen(settings), onSettings)
+                    item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_section)) }
+                    startMenuRows(settings, onTabShown, onSettings)
+                    item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_icons)) }
+                    iconRows(settings, onSettings, iconPack, packs, onPickPack = { pickingPack = true })
+                    item { InfSectionHeader(text = stringResource(R.string.startmenu_accent_section)) }
+                    item(key = "appearance:accent") { AccentSection(onPick = onPickAccent, onWallpaper = onAccentFromWallpaper) }
+                    toggleRows(AppearanceToggles.colours(settings), onSettings)
                 }
                 SettingsSection.Shell -> SettingsList(top = false) {
                     item { ShellAccessSection(state = shellState, onStartPairing = onStartPairing, onRetry = onRetryShell) }
@@ -169,10 +174,32 @@ private fun SettingsList(top: Boolean = true, content: LazyListScope.() -> Unit)
     )
 }
 
-private fun LazyListScope.startMenuRows(settings: LauncherSettings, onTabShown: (StartMenuTab, Boolean) -> Unit) {
-    val toggles = TabToggles.of(settings)
-    itemsIndexed(toggles, key = { _, toggle -> toggle.tab.name }) { index, toggle ->
-        InfGroupedCard(index = index, count = toggles.size) {
+private fun LazyListScope.toggleRows(
+    toggles: List<AppearanceToggle>,
+    onSettings: ((LauncherSettings) -> LauncherSettings) -> Unit,
+    first: Int = 0,
+    count: Int = toggles.size
+) {
+    itemsIndexed(toggles, key = { _, toggle -> "appearance:${toggle.key}" }) { index, toggle ->
+        InfGroupedCard(index = first + index, count = count) {
+            InfSettingsRow(
+                label = stringResource(toggle.labelRes),
+                trailing = { InfSwitch(checked = toggle.on, onCheckedChange = { on -> onSettings { toggle.apply(it, on) } }) }
+            )
+        }
+    }
+}
+
+private fun LazyListScope.startMenuRows(
+    settings: LauncherSettings,
+    onTabShown: (StartMenuTab, Boolean) -> Unit,
+    onSettings: ((LauncherSettings) -> LauncherSettings) -> Unit
+) {
+    val tabs = TabToggles.of(settings)
+    val toggles = AppearanceToggles.startMenu(settings)
+    val count = tabs.size + toggles.size
+    itemsIndexed(tabs, key = { _, toggle -> toggle.tab.name }) { index, toggle ->
+        InfGroupedCard(index = index, count = count) {
             InfSettingsRow(
                 label = stringResource(toggle.labelRes),
                 caption = stringResource(R.string.startmenu_settings_caption),
@@ -180,28 +207,21 @@ private fun LazyListScope.startMenuRows(settings: LauncherSettings, onTabShown: 
             )
         }
     }
+    toggleRows(toggles, onSettings, first = tabs.size, count = count)
 }
 
-private fun LazyListScope.appearanceRows(
+private fun LazyListScope.iconRows(
     settings: LauncherSettings,
     onSettings: ((LauncherSettings) -> LauncherSettings) -> Unit,
     iconPack: String?,
     packs: List<IconPack>?,
     onPickPack: () -> Unit
 ) {
-    val appearance = AppearanceToggles.of(settings)
-    itemsIndexed(appearance, key = { _, toggle -> "appearance:${toggle.key}" }) { index, toggle ->
-        InfGroupedCard(index = index, count = appearance.size) {
-            InfSettingsRow(
-                label = stringResource(toggle.labelRes),
-                trailing = { InfSwitch(checked = toggle.on, onCheckedChange = { on -> onSettings { toggle.apply(it, on) } }) }
-            )
-        }
-    }
-    item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_icons)) }
+    val toggles = AppearanceToggles.icons(settings)
+    val count = toggles.size + 1
     item(key = "appearance:iconPack") {
         val packLabel = packs?.firstOrNull { it.packageName == iconPack }?.label ?: stringResource(R.string.startmenu_settings_icon_pack_system)
-        InfGroupedCard(index = 0, count = 1) {
+        InfGroupedCard(index = 0, count = count) {
             InfSettingsRow(
                 label = stringResource(R.string.startmenu_settings_icon_pack),
                 caption = packLabel,
@@ -209,6 +229,7 @@ private fun LazyListScope.appearanceRows(
             )
         }
     }
+    toggleRows(toggles, onSettings, first = 1, count = count)
 }
 
 @Composable
