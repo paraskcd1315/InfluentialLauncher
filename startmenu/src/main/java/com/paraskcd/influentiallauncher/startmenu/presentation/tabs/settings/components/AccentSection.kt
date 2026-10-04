@@ -17,7 +17,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfButton
-import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.startmenu.R
@@ -33,7 +32,6 @@ fun AccentSection(
         verticalArrangement = Arrangement.spacedBy(InfSpacing.s3),
         modifier = modifier.fillMaxWidth()
     ) {
-        InfSectionHeader(text = stringResource(R.string.startmenu_accent_section))
         Row(horizontalArrangement = Arrangement.spacedBy(InfSpacing.s3)) {
             AccentPalette.seeds.forEach { seed ->
                 Row(

@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfButton
-import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfGroupedCard
 import com.paraskcd.influentiallauncher.designsystem.molecules.InfSettingsRow
 import com.paraskcd.influentiallauncher.designsystem.theme.InfSpacing
@@ -40,7 +39,6 @@ fun ShellAccessSection(
         verticalArrangement = Arrangement.spacedBy(InfSpacing.s3),
         modifier = modifier.fillMaxWidth()
     ) {
-        InfSectionHeader(text = stringResource(R.string.startmenu_shell_section))
         InfGroupedCard(index = 0, count = 1) {
             InfSettingsRow(
                 label = stringResource(stateLabel(state)),
