@@ -67,7 +67,7 @@ import com.paraskcd.influentiallauncher.controlcenter.presentation.ControlCenter
 import com.paraskcd.influentiallauncher.glance.presentation.GlanceHost
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.infrastructure.NotificationShade
-import com.paraskcd.influentiallauncher.infrastructure.SpotlightSearchLauncher
+import com.paraskcd.influentiallauncher.infrastructure.SearchLauncher
 import com.paraskcd.influentiallauncher.infrastructure.spotlight.SpotlightPeek
 import com.paraskcd.influentiallauncher.presentation.utils.SearchPeekRelease
 import com.paraskcd.influentiallauncher.infrastructure.WallpaperShift
@@ -100,12 +100,14 @@ import kotlin.math.sign
 fun Desktop(activity: ComponentActivity) {
     var startOpen by rememberSaveable { mutableStateOf(false) }
     var controlOpen by rememberSaveable { mutableStateOf(false) }
+    var controlsReady by remember { mutableStateOf(false) }
     var homeOverview by remember { mutableStateOf(false) }
     var hiddenFor by remember { mutableStateOf<DesktopAction?>(null) }
     var left by remember { mutableStateOf(false) }
     var direction by remember { mutableFloatStateOf(-1f) }
     var introPending by remember { mutableStateOf(false) }
     var introPlaying by remember { mutableStateOf(false) }
+    val searchAvailable = remember(activity) { mutableStateOf(SearchLauncher.available(activity)) }
     val hidden = hiddenFor != null
     val fade = remember { Animatable(1f) }
     val barsHidden = hidden && fade.value == 0f
@@ -152,7 +154,10 @@ fun Desktop(activity: ComponentActivity) {
         activity.addOnNewIntentListener(listener)
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME && keyguard?.isKeyguardLocked != true) playIntro()
-            if (event == Lifecycle.Event.ON_RESUME) peek.bind()
+            if (event == Lifecycle.Event.ON_RESUME) {
+                peek.bind()
+                searchAvailable.value = SearchLauncher.available(activity)
+            }
             if (event == Lifecycle.Event.ON_RESUME && hiddenFor == DesktopAction.Peek) reveal()
             if (hiddenFor != DesktopAction.Search && hiddenFor != DesktopAction.App) return@LifecycleEventObserver
             when (event) {
@@ -205,7 +210,7 @@ fun Desktop(activity: ComponentActivity) {
         fade.animateTo(0f, tween(InfMotion.durMorphMs, easing = InfMotion.easeIos))
         if (action == DesktopAction.Peek) return@LaunchedEffect
         val opened = when (action) {
-            DesktopAction.Search -> SpotlightSearchLauncher.open(activity)
+            DesktopAction.Search -> SearchLauncher.open(activity)
             DesktopAction.Notifications -> NotificationShade.expand(activity)
             DesktopAction.App, DesktopAction.Peek -> true
         }
@@ -350,6 +355,10 @@ fun Desktop(activity: ComponentActivity) {
                             return@detectVerticalDragGestures
                         }
                         dragged += amount
+                        if (dragged < 0f && !searchAvailable.value) {
+                            dragged = 0f
+                            return@detectVerticalDragGestures
+                        }
                         if (!peeking && dragged < 0f && peekAllowed.value) peeking = peek.start()
                         if (peeking) peek.progress(-dragged / swipeDistance, swipeDistance)
                         if (dragged != 0f) direction = sign(dragged)
@@ -427,15 +436,15 @@ fun Desktop(activity: ComponentActivity) {
         offsetY = if (landscape) pillTop else aboveTaskbar,
         visible = !startShown && !barsHidden && !homeOverview,
         alpha = chromeAlpha,
-        active = controlOpen,
-        onClick = { controlOpen = !controlOpen },
+        active = controlOpen && controlsReady,
+        onClick = { if (controlsReady) controlOpen = !controlOpen },
         fromTop = landscape,
         swipeUp = if (landscape) null else openStartBySwipe
     )
     SearchPillHost(
         offsetX = taskbarEdge,
         offsetY = if (landscape) navigationBottom + DesktopMetrics.windowGap else aboveTaskbar,
-        visible = !startShown && !barsHidden && !homeOverview,
+        visible = searchAvailable.value && !startShown && !barsHidden && !homeOverview,
         onClick = {
             controlOpen = false
             hiddenFor = DesktopAction.Search
@@ -449,7 +458,11 @@ fun Desktop(activity: ComponentActivity) {
         offsetY = if (landscape) belowPill else aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap,
         widthFraction = TaskbarLayout.widthFraction,
         onClose = { controlOpen = false },
-        fromTop = landscape
+        fromTop = landscape,
+        onReadyChange = { ready ->
+            controlsReady = ready
+            if (!ready) controlOpen = false
+        }
     )
     StartMenuHost(
         open = startShown && !hidden,

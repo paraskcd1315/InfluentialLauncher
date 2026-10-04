@@ -8,6 +8,7 @@
     <queries>
         <package android:name="com.paraskcd.spotlightsearch" />
         <package android:name="com.paraskcd.spotlightsearch.dev" />
+        <package android:name="com.google.android.googlequicksearchbox" />
     </queries>
 
     <application
