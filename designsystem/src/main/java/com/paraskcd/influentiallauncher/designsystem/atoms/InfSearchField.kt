@@ -29,6 +29,7 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
 import com.paraskcd.influentiallauncher.designsystem.foundation.infHazeSurface
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import androidx.compose.ui.graphics.graphicsLayer
 import dev.chrisbanes.haze.HazeState
 import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.theme.InfShapes
@@ -44,27 +45,29 @@ fun InfSearchField(
     onSearch: () -> Unit = { },
     shape: Shape = InfShapes.pill,
     height: Dp = DsMetrics.searchHeight,
-    haze: HazeState? = null
+    haze: HazeState? = null,
+    alpha: Float = 1f
 ) {
     val colors = InfTheme.colors
     val textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.textPrimary)
+    val faded = Modifier.graphicsLayer { this.alpha = alpha }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .then(if (haze != null) Modifier.infHazeSurface(shape, haze) else Modifier.infPanelSurface(shape, blurred = LocalInfBlurred.current))
+            .then(if (haze != null) Modifier.infHazeSurface(shape, haze, alpha) else Modifier.infPanelSurface(shape, blurred = LocalInfBlurred.current))
     ) {
         Icon(
             imageVector = Lucide.Search,
             contentDescription = null,
             tint = colors.textTertiary,
-            modifier = Modifier
+            modifier = faded
                 .infParallaxLayer()
                 .padding(start = DsMetrics.searchIconStart, end = DsMetrics.searchIconEnd)
                 .size(DsMetrics.searchIconSize)
         )
-        Box(modifier = Modifier.weight(1f).infParallaxLayer(), contentAlignment = Alignment.CenterStart) {
+        Box(modifier = faded.weight(1f).infParallaxLayer(), contentAlignment = Alignment.CenterStart) {
             if (value.isEmpty()) {
                 Text(text = placeholder, style = textStyle, color = colors.textTertiary, maxLines = 1)
             }

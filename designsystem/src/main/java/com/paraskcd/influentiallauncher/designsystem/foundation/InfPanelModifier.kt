@@ -30,7 +30,7 @@ fun Modifier.infPanelSurface(shape: Shape, blurred: Boolean): Modifier {
 }
 
 @Composable
-fun Modifier.infHazeSurface(shape: Shape, state: HazeState): Modifier {
+fun Modifier.infHazeSurface(shape: Shape, state: HazeState, alpha: Float = 1f): Modifier {
     val tint = panelBase().copy(alpha = InfGlass.panelAlphaBlurred)
     return this
         .clip(shape)
@@ -40,6 +40,8 @@ fun Modifier.infHazeSurface(shape: Shape, state: HazeState): Modifier {
                 backgroundColor(Color.Transparent)
                 colorEffects(listOf(HazeColorEffect.tint(tint)))
                 blurRadius(InfGlass.hazeBlur)
+                noiseFactor(0f)
+                alpha(alpha)
             }
         )
         .infPanelEdge(shape)

@@ -34,7 +34,6 @@ import com.paraskcd.influentiallauncher.startmenu.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfHaze
@@ -67,7 +66,6 @@ fun CalendarTab(
     open: Boolean,
     onClose: () -> Unit,
     timeTracking: TimeTrackingViewModel,
-    headerAlpha: Float,
     headerSwipe: SwipeUp?,
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
@@ -165,7 +163,6 @@ fun CalendarTab(
                     .fillMaxWidth()
                     .padding(top = StartMenuMetrics.listTopPlain, start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding)
                     .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
-                    .graphicsLayer { alpha = headerAlpha }
                     .infSwipeUp(headerSwipe)
             ) {
                 DateBar(

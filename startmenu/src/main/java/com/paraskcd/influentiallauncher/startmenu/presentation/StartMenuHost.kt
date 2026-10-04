@@ -53,12 +53,8 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.Contac
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.StartMenuViewModel
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.LetterBubbleWindow
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.StartMenuWindow
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.ui.graphics.graphicsLayer
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSearchField
 import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
 import dev.chrisbanes.haze.hazeSource
@@ -225,7 +221,6 @@ fun StartMenuHost(
                     open = open,
                     onClose = onClose,
                     timeTracking = timeTracking,
-                    headerAlpha = searchReveal,
                     headerSwipe = closeBySwipe
                 )
                 StartMenuTab.Contacts -> ContactsTab(open = open, onClose = onClose, onScrub = { scrubLetter = it }, viewModel = contactsViewModel)
@@ -248,22 +243,18 @@ fun StartMenuHost(
                 )
             }
         }
-        AnimatedVisibility(
-            visible = searchShown,
-            enter = fadeIn(tween(InfMotion.durMorphMs, easing = InfMotion.easeIos)),
-            exit = fadeOut(tween(InfMotion.durMorphMs, easing = InfMotion.easeIos)),
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = StartMenuMetrics.searchTop, start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding)
-                .graphicsLayer { alpha = searchReveal }
-        ) {
+        if (searchShown) {
             InfSearchField(
                 value = if (searchesContacts) contactsQuery else appsQuery,
                 onValueChange = if (searchesContacts) contactsViewModel::setQuery else appsViewModel::setQuery,
                 placeholder = stringResource(if (searchesContacts) R.string.startmenu_search_contacts else R.string.startmenu_search),
                 clearDescription = stringResource(R.string.startmenu_clear),
                 haze = haze,
-                modifier = Modifier.infSwipeUp(closeBySwipe)
+                alpha = searchReveal,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = StartMenuMetrics.searchTop, start = StartMenuMetrics.listPadding, end = StartMenuMetrics.listPadding)
+                    .infSwipeUp(closeBySwipe)
             )
         }
         }
