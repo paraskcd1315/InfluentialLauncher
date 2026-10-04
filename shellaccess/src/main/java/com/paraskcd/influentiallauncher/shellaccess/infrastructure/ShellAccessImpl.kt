@@ -68,13 +68,19 @@ class ShellAccessImpl(
     }
 
     override fun startPairing(pairingCode: String) {
-        if (job?.isActive == true) return
-        job = scope.launch { pairThenBringUp(null, pairingCode) }
+        replaceJob { pairThenBringUp(null, pairingCode) }
     }
 
     override fun pairAt(host: String, port: Int, pairingCode: String) {
-        if (job?.isActive == true) return
-        job = scope.launch { pairThenBringUp(ResolvedService(host, port), pairingCode) }
+        replaceJob { pairThenBringUp(ResolvedService(host, port), pairingCode) }
+    }
+
+    private fun replaceJob(block: suspend () -> Unit) {
+        job?.takeIf { it.isActive }?.let {
+            Log.w(LogTag, "pairing replaces a running connect attempt")
+            it.cancel()
+        }
+        job = scope.launch { block() }
     }
 
     override fun retry() = ensureReady()
