@@ -17,28 +17,39 @@ import android.os.UserHandle
 import android.util.Log
 import android.util.LruCache
 import androidx.core.graphics.drawable.toBitmap
+import com.paraskcd.influentiallauncher.apps.domain.model.AppIconChoice
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.IconStyle
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
+import com.paraskcd.influentiallauncher.apps.domain.ports.IconStyleStore
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
+import com.paraskcd.influentiallauncher.apps.infrastructure.iconpack.IconPackRenderer
+import com.paraskcd.influentiallauncher.apps.infrastructure.iconpack.IconPackSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class LauncherAppsInstalledApps @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val styleStore: IconStyleStore,
+    private val iconPacks: IconPackSource
 ) : InstalledApps {
 
     private val launcherApps = context.getSystemService(LauncherApps::class.java)
     private val user: UserHandle = Process.myUserHandle()
     private val iconCache = LruCache<String, Bitmap>(IconCacheEntries)
+
+    override val iconStyle: StateFlow<IconStyle> = styleStore.style
 
     override val apps: Flow<List<LauncherApp>> = callbackFlow {
         val callback = object : LauncherApps.Callback() {
@@ -68,20 +79,40 @@ class LauncherAppsInstalledApps @Inject constructor(
     }.onFailure { Log.w(LogTag, "uninstall failed for ${id.key}", it) }.isSuccess
 
     override fun cachedIcon(id: AppId, sizePx: Int, tint: Int?, background: Int?): Bitmap? =
-        iconCache.get(cacheKeyOf(id, sizePx, tint, background))
+        iconCache.get(cacheKeyOf(id, sizePx, tint, background, iconStyle.value))
 
-    private fun cacheKeyOf(id: AppId, sizePx: Int, tint: Int?, background: Int?) = "${id.key}#$sizePx#${tint ?: 0}#${background ?: 0}"
+    private fun cacheKeyOf(id: AppId, sizePx: Int, tint: Int?, background: Int?, style: IconStyle): String {
+        val pack = style.iconPack?.let { "#$it#${LocalDate.now().dayOfMonth}" }.orEmpty()
+        val chosen = style.choices[id]?.let { "#${it.iconPack}/${it.drawable}" }.orEmpty()
+        return "${id.key}#$sizePx#${tint ?: 0}#${background ?: 0}$pack$chosen"
+    }
 
     override suspend fun icon(id: AppId, sizePx: Int, tint: Int?, background: Int?): Bitmap? {
-        val cacheKey = cacheKeyOf(id, sizePx, tint, background)
+        val style = iconStyle.value
+        val cacheKey = cacheKeyOf(id, sizePx, tint, background, style)
         iconCache.get(cacheKey)?.let { return it }
         return withContext(Dispatchers.IO) {
             runCatching {
                 val info = findActivity(id) ?: return@runCatching null
-                val drawable = info.getIcon(context.resources.displayMetrics.densityDpi)
-                if (tint != null) ThemedIconRenderer.render(drawable, tint, background, sizePx) else drawable.toBitmap(sizePx, sizePx)
+                style.choices[id]?.let { chosenIcon(it, sizePx) }
+                    ?: style.iconPack?.let { pack -> runCatching { packIcon(pack, info, sizePx) }.getOrNull() }
+                    ?: systemIcon(info, sizePx, tint, background)
             }.onFailure { Log.w(LogTag, "icon failed for ${id.key}", it) }.getOrNull()?.also { iconCache.put(cacheKey, it) }
         }
+    }
+
+    private fun chosenIcon(choice: AppIconChoice, sizePx: Int): Bitmap? =
+        runCatching { iconPacks.named(choice.iconPack, choice.drawable)?.toBitmap(sizePx, sizePx) }.getOrNull()
+
+    private fun packIcon(pack: String, info: LauncherActivityInfo, sizePx: Int): Bitmap? {
+        iconPacks.icon(pack, info.componentName)?.let { return it.toBitmap(sizePx, sizePx) }
+        val decoration = iconPacks.decoration(pack) ?: return null
+        return IconPackRenderer.render(info.getIcon(0), decoration, info.componentName.packageName.hashCode(), sizePx)
+    }
+
+    private fun systemIcon(info: LauncherActivityInfo, sizePx: Int, tint: Int?, background: Int?): Bitmap {
+        val drawable = info.getIcon(context.resources.displayMetrics.densityDpi)
+        return if (tint != null) ThemedIconRenderer.render(drawable, tint, background, sizePx) else drawable.toBitmap(sizePx, sizePx)
     }
 
     private fun readApps(): List<LauncherApp> = runCatching {

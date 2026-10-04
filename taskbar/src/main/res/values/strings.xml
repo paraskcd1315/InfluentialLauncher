@@ -11,4 +11,5 @@
     <string name="taskbar_force_stop">Force stop</string>
     <string name="taskbar_clear_storage">Clear storage</string>
     <string name="taskbar_data_usage">Data usage</string>
+    <string name="taskbar_icon">Icon</string>
 </resources>

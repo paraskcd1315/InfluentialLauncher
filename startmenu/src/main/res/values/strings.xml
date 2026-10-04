@@ -119,6 +119,7 @@
     <string name="startmenu_clear_storage_confirm">Clear storage</string>
     <string name="startmenu_clear_storage_cancel">Cancel</string>
     <string name="startmenu_data_usage">Data usage</string>
+    <string name="startmenu_icon">Icon</string>
     <string name="startmenu_data_week">Last 7 days</string>
     <string name="startmenu_data_mobile">Mobile</string>
     <string name="startmenu_data_wifi">Wi-Fi</string>

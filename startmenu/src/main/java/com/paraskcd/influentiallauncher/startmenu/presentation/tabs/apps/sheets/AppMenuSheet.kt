@@ -15,6 +15,7 @@ import com.composables.icons.lucide.LayoutGrid
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pin
 import com.composables.icons.lucide.PinOff
+import com.composables.icons.lucide.Shapes
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
@@ -41,7 +42,8 @@ fun AppMenuSheet(
     onClose: (AppId) -> Unit,
     onForceStop: (AppId) -> Unit,
     onClearStorage: (AppId) -> Unit,
-    onDataUsage: (AppId) -> Unit
+    onDataUsage: (AppId) -> Unit,
+    onIcon: (StartMenuApp) -> Unit
 ) {
     val colors = InfTheme.colors
     InfSheetWindow(
@@ -72,6 +74,7 @@ fun AppMenuSheet(
                     )
                 )
                 add(InfAction(Lucide.House, stringResource(R.string.startmenu_add_home), colors.textPrimary) { onAddToHome(id) })
+                add(InfAction(Lucide.Shapes, stringResource(R.string.startmenu_icon), colors.textPrimary) { onIcon(current) })
                 if (isOpen) {
                     add(InfAction(Lucide.X, stringResource(R.string.startmenu_close), colors.textPrimary) { onClose(id) })
                     add(InfAction(Lucide.Ban, stringResource(R.string.startmenu_force_stop), colors.textPrimary) { onForceStop(id) })

@@ -60,6 +60,8 @@ class HomeScreen @Inject constructor(
 
     fun launch(app: AppId, origin: LaunchOrigin?) = installedApps.launch(app, origin)
 
+    val iconStyle = installedApps.iconStyle
+
     suspend fun icon(app: AppId, sizePx: Int, tint: Int?, background: Int?) = installedApps.icon(app, sizePx, tint, background)
 
     fun cachedIcon(app: AppId, sizePx: Int, tint: Int?, background: Int?) = installedApps.cachedIcon(app, sizePx, tint, background)

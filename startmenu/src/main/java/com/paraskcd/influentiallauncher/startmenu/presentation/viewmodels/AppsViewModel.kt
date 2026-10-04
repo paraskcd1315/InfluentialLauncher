@@ -8,6 +8,7 @@ import android.graphics.Rect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.IconStyle
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
 import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
@@ -109,6 +110,8 @@ class AppsViewModel @Inject constructor(
     fun uninstall(id: AppId) {
         installedApps.uninstall(id)
     }
+
+    val iconStyle: StateFlow<IconStyle> = installedApps.iconStyle
 
     suspend fun icon(id: AppId, sizePx: Int, tint: Int, background: Int): Bitmap? = installedApps.icon(id, sizePx, tint, background)
 

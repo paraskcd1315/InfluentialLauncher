@@ -6,12 +6,16 @@ package com.paraskcd.influentiallauncher.apps.domain.ports
 import android.graphics.Bitmap
 import android.graphics.Rect
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.IconStyle
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 interface InstalledApps {
     val apps: Flow<List<LauncherApp>>
+
+    val iconStyle: StateFlow<IconStyle>
 
     fun launch(id: AppId, origin: LaunchOrigin?): Boolean
 

@@ -14,6 +14,7 @@ import com.composables.icons.lucide.LayoutGrid
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Move
 import com.composables.icons.lucide.PinOff
+import com.composables.icons.lucide.Shapes
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
@@ -41,7 +42,8 @@ fun TaskbarAppSheet(
     onClose: (AppId) -> Unit,
     onForceStop: (AppId) -> Unit,
     onClearStorage: (LauncherApp) -> Unit,
-    onDataUsage: (LauncherApp) -> Unit
+    onDataUsage: (LauncherApp) -> Unit,
+    onIcon: (LauncherApp) -> Unit
 ) {
     val colors = InfTheme.colors
     InfSheetWindow(
@@ -65,6 +67,7 @@ fun TaskbarAppSheet(
                         run = { onToggleStart(id) }
                     )
                 )
+                add(InfAction(Lucide.Shapes, stringResource(R.string.taskbar_icon), colors.textPrimary) { onIcon(current) })
                 if (isOpen) {
                     add(InfAction(Lucide.X, stringResource(R.string.taskbar_close), colors.textPrimary) { onClose(id) })
                     add(InfAction(Lucide.Ban, stringResource(R.string.taskbar_force_stop), colors.textPrimary) { onForceStop(id) })

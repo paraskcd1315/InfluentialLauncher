@@ -21,6 +21,7 @@ import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDrag
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.AppDragPayload
 import com.paraskcd.influentiallauncher.homescreen.presentation.drag.DragSource
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
+import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.AppIconSheet.AppIconSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.ClearStorageSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.DataUsageSheet
 import com.paraskcd.influentiallauncher.taskbar.presentation.sheets.TaskbarAppSheet
@@ -43,13 +44,15 @@ fun TaskbarHost(
     val wiggling by viewModel.wiggling.collectAsStateWithLifecycle()
     val signals by viewModel.signals.collectAsStateWithLifecycle()
     val openPackages by viewModel.openPackages.collectAsStateWithLifecycle()
+    val iconStyle by viewModel.iconStyle.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
     val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
     val pinPx = with(LocalDensity.current) { TaskbarMetrics.pinIconSize.roundToPx() }
-    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
+    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground, iconStyle) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
     var menuApp by remember { mutableStateOf<LauncherApp?>(null) }
     var clearApp by remember { mutableStateOf<LauncherApp?>(null) }
     var dataApp by remember { mutableStateOf<LauncherApp?>(null) }
+    var iconApp by remember { mutableStateOf<LauncherApp?>(null) }
 
     TaskbarWindow(
         offset = rememberTaskbarOffset(),
@@ -92,8 +95,10 @@ fun TaskbarHost(
         onClose = viewModel::closeApp,
         onForceStop = viewModel::forceStop,
         onClearStorage = { menuApp = null; clearApp = it },
-        onDataUsage = { menuApp = null; dataApp = it }
+        onDataUsage = { menuApp = null; dataApp = it },
+        onIcon = { menuApp = null; iconApp = it }
     )
+    AppIconSheet(app = iconApp, onDismiss = { iconApp = null })
     ClearStorageSheet(
         target = clearApp?.id,
         label = clearApp?.label.orEmpty(),

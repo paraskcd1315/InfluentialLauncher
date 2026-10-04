@@ -14,6 +14,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Move
 import com.composables.icons.lucide.Pin
 import com.composables.icons.lucide.PinOff
+import com.composables.icons.lucide.Shapes
 import com.composables.icons.lucide.SquareMinus
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
@@ -42,6 +43,7 @@ fun HomeAppSheet(
     onForceStop: (AppId) -> Unit,
     onClearStorage: (LauncherApp) -> Unit,
     onDataUsage: (AppId) -> Unit,
+    onIcon: (LauncherApp) -> Unit,
     onDismiss: () -> Unit
 ) {
     val colors = InfTheme.colors
@@ -65,6 +67,7 @@ fun HomeAppSheet(
                     )
                 )
                 add(InfAction(Lucide.SquareMinus, stringResource(R.string.home_remove_confirm), colors.textPrimary) { onRemove(current) })
+                add(InfAction(Lucide.Shapes, stringResource(R.string.home_icon), colors.textPrimary) { onIcon(current) })
                 if (isOpen) {
                     add(InfAction(Lucide.X, stringResource(R.string.home_close), colors.textPrimary) { onClose(current.id) })
                     add(InfAction(Lucide.Ban, stringResource(R.string.home_force_stop), colors.textPrimary) { onForceStop(current.id) })

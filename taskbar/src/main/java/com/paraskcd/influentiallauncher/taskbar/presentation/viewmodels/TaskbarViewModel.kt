@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.IconStyle
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.domain.ports.InstalledApps
@@ -99,6 +100,8 @@ class TaskbarViewModel @Inject constructor(
     }
 
     suspend fun dataUsage(id: AppId): List<DayData> = appDataUsage.weekly(id.packageName)
+
+    val iconStyle: StateFlow<IconStyle> = installedApps.iconStyle
 
     suspend fun icon(id: AppId, sizePx: Int, tint: Int, background: Int): Bitmap? = installedApps.icon(id, sizePx, tint, background)
 

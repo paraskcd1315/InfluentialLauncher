@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.IconStyle
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
 import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.homescreen.domain.model.AppSignals
@@ -109,6 +110,8 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun launch(app: AppId, origin: LaunchOrigin?): Boolean = home.launch(app, origin)
+
+    val iconStyle: StateFlow<IconStyle> = home.iconStyle
 
     suspend fun icon(app: AppId, sizePx: Int, tint: Int, background: Int): Bitmap? = home.icon(app, sizePx, tint, background)
 

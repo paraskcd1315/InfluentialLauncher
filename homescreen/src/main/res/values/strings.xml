@@ -24,6 +24,12 @@
     <string name="home_clear_storage_confirm">Clear storage</string>
     <string name="home_clear_storage_cancel">Cancel</string>
     <string name="home_data_usage">Data usage</string>
+    <string name="home_icon">Icon</string>
+    <string name="home_icon_loading">Looking for icon packs…</string>
+    <string name="home_icon_no_packs">No icon packs are installed.</string>
+    <string name="home_icon_search">Search icons</string>
+    <string name="home_icon_clear">Clear search</string>
+    <string name="home_icon_default">Use the default icon</string>
     <string name="home_data_week">Last 7 days</string>
     <string name="home_data_mobile">Mobile</string>
     <string name="home_data_wifi">Wi-Fi</string>

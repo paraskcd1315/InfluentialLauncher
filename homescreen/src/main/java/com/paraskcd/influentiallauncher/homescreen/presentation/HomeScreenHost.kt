@@ -58,6 +58,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.designsystem.theme.LocalWallpaperInk
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
+import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.apps.infrastructure.LaunchOrigins
 import com.paraskcd.influentiallauncher.designsystem.theme.InfMotion
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
@@ -71,6 +72,7 @@ import com.paraskcd.influentiallauncher.homescreen.presentation.gestures.GridIns
 import com.paraskcd.influentiallauncher.homescreen.presentation.gestures.HomeGestures
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.DeletePageSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.ClearStorageSheet
+import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.AppIconSheet.AppIconSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.DataUsageSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.HomeAppSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.RemoveAppSheet
@@ -106,11 +108,13 @@ fun HomeScreenHost(
     val taskbarIds by viewModel.taskbarIds.collectAsStateWithLifecycle()
     val signals by viewModel.signals.collectAsStateWithLifecycle()
     val showLabels by viewModel.showLabels.collectAsStateWithLifecycle()
+    val iconStyle by viewModel.iconStyle.collectAsStateWithLifecycle()
+    var iconApp by remember { mutableStateOf<LauncherApp?>(null) }
     val current = state ?: return
     val pages = current.pages
     val tint = InfTheme.colors.brandText.toArgb()
     val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
-    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
+    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground, iconStyle) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
     val landscape = isLandscape()
@@ -302,8 +306,10 @@ fun HomeScreenHost(
         onForceStop = viewModel::forceStop,
         onClearStorage = viewModel::askClear,
         onDataUsage = { menu?.let(viewModel::openData) },
+        onIcon = { iconApp = it },
         onDismiss = viewModel::closeMenu
     )
+    AppIconSheet(app = iconApp, onDismiss = { iconApp = null })
     RemoveAppSheet(app = removing, onConfirm = viewModel::confirmRemove, onDismiss = viewModel::cancelRemove)
     ClearStorageSheet(
         target = clearing?.id,

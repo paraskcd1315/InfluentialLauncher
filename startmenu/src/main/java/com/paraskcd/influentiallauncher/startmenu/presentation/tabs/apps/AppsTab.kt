@@ -30,12 +30,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.apps.domain.model.AppId
 import com.paraskcd.influentiallauncher.apps.domain.model.LaunchOrigin
+import com.paraskcd.influentiallauncher.apps.domain.model.LauncherApp
 import com.paraskcd.influentiallauncher.designsystem.atoms.InfSectionHeader
 import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.theme.InfTheme
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.startmenu.R
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.apps.sheets.AppMenuSheet
+import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.AppIconSheet.AppIconSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.ClearStorageSheet
 import com.paraskcd.influentiallauncher.homescreen.presentation.sheets.DataUsageSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.shared.components.LetterIndexedBox
@@ -60,12 +62,14 @@ fun AppsTab(
     val signals by viewModel.signals.collectAsStateWithLifecycle()
     val openPackages by viewModel.openPackages.collectAsStateWithLifecycle()
     val showLabels by viewModel.showLabels.collectAsStateWithLifecycle()
+    val iconStyle by viewModel.iconStyle.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
     val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
-    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
+    val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground, iconStyle) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     var menuKey by remember { mutableStateOf<String?>(null) }
+    var iconApp by remember { mutableStateOf<LauncherApp?>(null) }
     var clearKey by remember { mutableStateOf<String?>(null) }
     var dataKey by remember { mutableStateOf<String?>(null) }
     val listTop = StartMenuMetrics.searchTop + DsMetrics.searchHeight + StartMenuMetrics.searchContentGap
@@ -188,8 +192,13 @@ fun AppsTab(
         onDataUsage = { id ->
             menuKey = null
             dataKey = id.key
+        },
+        onIcon = { entry ->
+            menuKey = null
+            iconApp = entry.app
         }
     )
+    AppIconSheet(app = iconApp, onDismiss = { iconApp = null })
     val clearEntry = clearKey?.let { key ->
         content?.let { current -> (current.pinned + current.sections.flatMap { it.apps }).firstOrNull { it.app.id.key == key } }
     }
