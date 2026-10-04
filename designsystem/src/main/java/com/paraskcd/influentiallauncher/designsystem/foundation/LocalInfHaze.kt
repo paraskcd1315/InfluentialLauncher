@@ -29,7 +29,7 @@ import dev.chrisbanes.haze.hazeSource
 @Stable
 class InfHazeArea {
     val state = HazeState()
-    internal val holes = mutableStateMapOf<Any, Rect>()
+    internal val holes = mutableStateMapOf<Any, Pair<Rect, Boolean>>()
     internal var origin by mutableStateOf(Offset.Zero)
 }
 
@@ -46,13 +46,13 @@ fun Modifier.infHazeSource(area: InfHazeArea): Modifier = this
             return@drawWithContent
         }
         val cut = Path()
-        area.holes.values.forEach { hole ->
+        area.holes.values.forEach { (hole, rounded) ->
             val local = hole.translate(-area.origin)
-            cut.addRoundRect(RoundRect(local, CornerRadius(local.height / 2f)))
+            cut.addRoundRect(RoundRect(local, if (rounded) CornerRadius(local.height / 2f) else CornerRadius.Zero))
         }
         clipPath(cut, ClipOp.Difference) { this@drawWithContent.drawContent() }
     }
     .hazeSource(area.state)
 
-internal fun Modifier.infHazeHole(area: InfHazeArea, key: Any): Modifier =
-    onGloballyPositioned { area.holes[key] = it.boundsInWindow() }
+internal fun Modifier.infHazeHole(area: InfHazeArea, key: Any, rounded: Boolean = true): Modifier =
+    onGloballyPositioned { area.holes[key] = it.boundsInWindow() to rounded }

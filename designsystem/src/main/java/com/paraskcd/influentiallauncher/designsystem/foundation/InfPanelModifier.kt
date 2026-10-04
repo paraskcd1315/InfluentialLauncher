@@ -31,13 +31,21 @@ fun Modifier.infPanelSurface(shape: Shape, blurred: Boolean): Modifier {
 }
 
 @Composable
-fun Modifier.infHazeSurface(shape: Shape, area: InfHazeArea, alpha: Float = 1f): Modifier {
+fun Modifier.infHazeSurface(shape: Shape, area: InfHazeArea, alpha: Float = 1f): Modifier =
+    this.infHazeBlur(area, alpha, rounded = true, shape = shape).infPanelEdge(shape)
+
+@Composable
+fun Modifier.infHazeBar(area: InfHazeArea, alpha: Float = 1f): Modifier =
+    this.infHazeBlur(area, alpha, rounded = false, shape = null)
+
+@Composable
+private fun Modifier.infHazeBlur(area: InfHazeArea, alpha: Float, rounded: Boolean, shape: Shape?): Modifier {
     val tint = panelBase().copy(alpha = InfGlass.hazeTintAlpha)
     val key = remember { Any() }
     DisposableEffect(area, key) { onDispose { area.holes.remove(key) } }
     return this
-        .infHazeHole(area, key)
-        .clip(shape)
+        .infHazeHole(area, key, rounded)
+        .then(if (shape != null) Modifier.clip(shape) else Modifier)
         .hazeBlur(
             input = HazeInput.Backdrop(area.state),
             style = HazeBlurStyle {
@@ -48,7 +56,6 @@ fun Modifier.infHazeSurface(shape: Shape, area: InfHazeArea, alpha: Float = 1f):
                 alpha(alpha)
             }
         )
-        .infPanelEdge(shape)
 }
 
 @Composable

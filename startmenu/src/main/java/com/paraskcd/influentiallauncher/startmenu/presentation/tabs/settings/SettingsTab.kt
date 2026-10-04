@@ -31,7 +31,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.ui.draw.drawBehind
+import com.paraskcd.influentiallauncher.designsystem.foundation.InfHazeArea
+import com.paraskcd.influentiallauncher.designsystem.foundation.infHazeBar
+import com.paraskcd.influentiallauncher.designsystem.foundation.infHazeSource
+import com.paraskcd.influentiallauncher.designsystem.foundation.rememberInfHazeArea
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -155,7 +158,9 @@ fun SettingsTab(
         val listState = rememberLazyListState()
         val density = LocalDensity.current
         var headerHeight by remember { mutableStateOf(0.dp) }
+        val haze = rememberInfHazeArea()
         Box(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.fillMaxSize().infHazeSource(haze)) {
             when (section) {
                 SettingsSection.Appearance -> SettingsList(listState, headerHeight) {
                     item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_home_screen)) }
@@ -190,7 +195,9 @@ fun SettingsTab(
                     })
                 }
             }
+            }
             SettingsHeader(
+                haze = haze,
                 scrolled = listState.canScrollBackward,
                 modifier = Modifier.onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
             ) {
@@ -245,7 +252,7 @@ private fun SettingsList(
 }
 
 @Composable
-private fun SettingsHeader(scrolled: Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+private fun SettingsHeader(haze: InfHazeArea, scrolled: Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val colors = InfTheme.colors
     val fill by animateFloatAsState(
         targetValue = if (scrolled) 1f else 0f,
@@ -255,7 +262,7 @@ private fun SettingsHeader(scrolled: Boolean, modifier: Modifier = Modifier, con
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .drawBehind { drawRect(colors.glassStrongBg.copy(alpha = colors.glassStrongBg.alpha * fill)) }
+            .infHazeBar(haze, alpha = fill)
     ) {
         content()
         Box(

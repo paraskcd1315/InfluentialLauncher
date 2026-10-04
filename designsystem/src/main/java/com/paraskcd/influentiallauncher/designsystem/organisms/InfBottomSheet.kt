@@ -34,6 +34,17 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.DsMetrics
 import com.paraskcd.influentiallauncher.designsystem.foundation.LocalInfBlurred
 import com.paraskcd.influentiallauncher.designsystem.foundation.SheetDrag
 import com.paraskcd.influentiallauncher.designsystem.foundation.infPanelSurface
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import com.paraskcd.influentiallauncher.designsystem.foundation.infHazeBar
+import com.paraskcd.influentiallauncher.designsystem.foundation.infHazeSource
+import com.paraskcd.influentiallauncher.designsystem.foundation.rememberInfHazeArea
 import com.paraskcd.influentiallauncher.designsystem.foundation.infParallaxLayer
 import com.paraskcd.influentiallauncher.designsystem.foundation.infSwipeUp
 import com.paraskcd.influentiallauncher.designsystem.theme.InfRadii
@@ -65,7 +76,7 @@ fun InfBottomSheet(
             .nestedScroll(drag.connection)
             .infSwipeUp(drag.swipe)
     ) {
-        Column(modifier = Modifier.infParallaxLayer().fillMaxWidth().heightIn(max = maxHeight)) {
+        val headerBlock: @Composable () -> Unit = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -119,20 +130,30 @@ fun InfBottomSheet(
                     .height(DsMetrics.hairlineThickness)
                     .background(colors.hairline)
             )
-            Column(
-                modifier = if (edgeToEdge) {
-                    Modifier
-                        .weight(1f, fill = false)
+        }
+        Column(modifier = Modifier.infParallaxLayer().fillMaxWidth().heightIn(max = maxHeight)) {
+            val haze = rememberInfHazeArea()
+            val density = LocalDensity.current
+            var headerHeight by remember { mutableStateOf(0.dp) }
+            Box(modifier = Modifier.weight(1f, fill = false).fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
                         .fillMaxWidth()
-                } else {
-                    Modifier
-                        .weight(1f, fill = false)
+                        .infHazeSource(haze)
+                        .verticalScroll(rememberScrollState())
+                        .padding(top = headerHeight)
+                        .then(if (edgeToEdge) Modifier else Modifier.padding(bottom = bottomInset).padding(InfSpacing.s5)),
+                    content = content
+                )
+                Column(
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = bottomInset)
-                        .padding(InfSpacing.s5)
-                },
-                content = content
-            )
+                        .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
+                        .infHazeBar(haze)
+                ) {
+                    headerBlock()
+                }
+            }
         }
     }
 }
