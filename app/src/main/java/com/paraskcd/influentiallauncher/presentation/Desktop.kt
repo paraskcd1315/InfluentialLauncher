@@ -437,7 +437,7 @@ fun Desktop(activity: ComponentActivity) {
         visible = !startShown && !barsHidden && !homeOverview,
         alpha = chromeAlpha,
         active = controlOpen && controlsReady,
-        onClick = { if (controlsReady) controlOpen = !controlOpen },
+        onClick = { if (controlsReady) controlOpen = !controlOpen else NotificationShade.expandSettings(activity) },
         fromTop = landscape,
         swipeUp = if (landscape) null else openStartBySwipe
     )
