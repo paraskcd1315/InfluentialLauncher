@@ -228,6 +228,7 @@ fun StartMenuHost(
                 StartMenuTab.Settings -> SettingsTab(
                     settings = settings,
                     onTabShown = viewModel::setTabShown,
+                    onSettings = viewModel::updateSettings,
                     trackersAvailable = timeTracking.available,
                     schedule = schedule,
                     onSchedule = timeTracking::updateSchedule,

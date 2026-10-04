@@ -46,7 +46,8 @@ fun AppTile(
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier,
     badge: Int = 0,
-    openTasks: Int = 0
+    openTasks: Int = 0,
+    showLabel: Boolean = true
 ) {
     val view = LocalView.current
     var iconBounds by remember { mutableStateOf<Rect?>(null) }
@@ -72,13 +73,15 @@ fun AppTile(
             )
             IconSignals(badge = badge, openTasks = openTasks)
         }
-        Text(
-            text = entry.app.label,
-            style = MaterialTheme.typography.labelMedium,
-            color = InfTheme.colors.textPrimary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center
-        )
+        if (showLabel) {
+            Text(
+                text = entry.app.label,
+                style = MaterialTheme.typography.labelMedium,
+                color = InfTheme.colors.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }

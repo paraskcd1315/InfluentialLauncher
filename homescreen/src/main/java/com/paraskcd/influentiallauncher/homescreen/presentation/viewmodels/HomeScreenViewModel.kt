@@ -18,6 +18,7 @@ import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreen
 import com.paraskcd.influentiallauncher.homescreen.domain.usecase.HomeScreenState
 import com.paraskcd.influentiallauncher.homescreen.presentation.state.VisualPage
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
+import com.paraskcd.influentiallauncher.settings.domain.ports.SettingsStore
 import com.paraskcd.influentiallauncher.tasks.domain.model.DayData
 import com.paraskcd.influentiallauncher.tasks.domain.ports.AppActions
 import com.paraskcd.influentiallauncher.tasks.domain.ports.AppDataUsage
@@ -42,8 +43,13 @@ class HomeScreenViewModel @Inject constructor(
     signalsSource: AppSignalsSource,
     private val openApps: OpenApps,
     private val appActions: AppActions,
-    private val appDataUsage: AppDataUsage
+    private val appDataUsage: AppDataUsage,
+    settingsStore: SettingsStore
 ) : ViewModel() {
+
+    val showLabels: StateFlow<Boolean> = settingsStore.settings
+        .map { it.showLabels }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), true)
 
     val signals: StateFlow<AppSignals> = signalsSource.signals
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), AppSignals.None)

@@ -48,6 +48,10 @@ class StartMenuViewModel @Inject constructor(
         }
     }
 
+    fun updateSettings(transform: (LauncherSettings) -> LauncherSettings) {
+        viewModelScope.launch { settingsStore.update(transform) }
+    }
+
     private companion object {
         const val StopTimeoutMs = 5_000L
     }

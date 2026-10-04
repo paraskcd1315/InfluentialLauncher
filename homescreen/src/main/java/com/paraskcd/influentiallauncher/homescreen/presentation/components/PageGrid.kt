@@ -43,7 +43,8 @@ fun PageGrid(
     wiggle: Float,
     onRemove: ((LauncherApp) -> Unit)?,
     modifier: Modifier = Modifier,
-    signals: AppSignals = AppSignals.None
+    signals: AppSignals = AppSignals.None,
+    showLabels: Boolean = true
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val density = LocalDensity.current
@@ -77,6 +78,7 @@ fun PageGrid(
                         onRemove = onRemove?.let { remove -> { remove(slot.app) } },
                         badge = signals.badgeOf(slot.app.id),
                         openTasks = signals.openOf(slot.app.id),
+                        showLabel = showLabels,
                         modifier = Modifier
                             .offset { position }
                             .size(cellWidth, cellHeight)

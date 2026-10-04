@@ -60,8 +60,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paraskcd.influentiallauncher.clock.presentation.ClockHeader
 import com.paraskcd.influentiallauncher.controlcenter.presentation.ControlCenterHost
 import com.paraskcd.influentiallauncher.glance.presentation.GlanceHost
@@ -76,6 +78,7 @@ import com.paraskcd.influentiallauncher.designsystem.foundation.LocalParallax
 import kotlin.math.roundToInt
 import com.paraskcd.influentiallauncher.presentation.model.DesktopAction
 import com.paraskcd.influentiallauncher.presentation.utils.DesktopMetrics
+import com.paraskcd.influentiallauncher.presentation.viewmodels.DesktopViewModel
 import com.paraskcd.influentiallauncher.startmenu.presentation.StartMenuHost
 import com.paraskcd.influentiallauncher.startmenu.presentation.StartSwipe
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
@@ -97,7 +100,9 @@ import kotlin.math.sign
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun Desktop(activity: ComponentActivity) {
+fun Desktop(activity: ComponentActivity, viewModel: DesktopViewModel = hiltViewModel()) {
+    val desktopSettings by viewModel.settings.collectAsStateWithLifecycle()
+    val headerShown = desktopSettings.showClock || desktopSettings.showGlance
     var startOpen by rememberSaveable { mutableStateOf(false) }
     var controlOpen by rememberSaveable { mutableStateOf(false) }
     var controlsReady by remember { mutableStateOf(false) }
@@ -386,9 +391,9 @@ fun Desktop(activity: ComponentActivity) {
                 }
         ) {
             CompositionLocalProvider(LocalWallpaperInk provides headerInk) {
-                Column {
-                    ClockHeader(sideInset = taskbarEdge)
-                    GlanceHost(horizontalInset = taskbarEdge)
+                Column(modifier = if (desktopSettings.showClock) Modifier else Modifier.padding(top = statusTop)) {
+                    if (desktopSettings.showClock) ClockHeader(sideInset = taskbarEdge)
+                    if (desktopSettings.showGlance) GlanceHost(horizontalInset = taskbarEdge)
                 }
             }
             HomeEditDone(
@@ -402,13 +407,17 @@ fun Desktop(activity: ComponentActivity) {
             onAppLaunched = appLaunched,
             onOverviewChange = { homeOverview = it },
             contentPadding = PaddingValues(
-                start = if (landscape) screenWidth * DesktopMetrics.landscapeHeaderFraction else taskbarEdge,
+                start = if (landscape && headerShown) screenWidth * DesktopMetrics.landscapeHeaderFraction else taskbarEdge,
                 end = if (landscape) aboveTaskbar else taskbarEdge
             ),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    top = if (landscape) landscapeGridMargin else headerHeight + DesktopMetrics.windowGap,
+                    top = when {
+                        landscape -> landscapeGridMargin
+                        headerShown -> headerHeight + DesktopMetrics.windowGap
+                        else -> statusTop + DesktopMetrics.windowGap
+                    },
                     bottom = if (landscape) landscapeGridMargin else aboveTaskbar + StatusBarLayout.height + DesktopMetrics.windowGap
                 )
                 .onGloballyPositioned { gridBounds = it.boundsInWindow() }

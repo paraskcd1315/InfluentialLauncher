@@ -33,6 +33,7 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.com
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.SettingsRemovableRow
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.sheets.DaysOffSheet
 import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.sheets.MonthHoursSheet
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.AppearanceToggles
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.DayOffRuns
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.ScheduleText
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.StartMenuMetrics
@@ -45,6 +46,7 @@ import java.time.LocalDate
 fun SettingsTab(
     settings: LauncherSettings,
     onTabShown: (StartMenuTab, Boolean) -> Unit,
+    onSettings: ((LauncherSettings) -> LauncherSettings) -> Unit,
     trackersAvailable: Boolean,
     schedule: WorkSchedule?,
     onSchedule: ((WorkSchedule) -> WorkSchedule) -> Unit,
@@ -56,6 +58,7 @@ fun SettingsTab(
     modifier: Modifier = Modifier
 ) {
     val toggles = TabToggles.of(settings)
+    val appearance = AppearanceToggles.of(settings)
     val held = schedule ?: WorkSchedule()
     var weeklyHours by remember { mutableStateOf(ScheduleText.hours(held.weeklyHours)) }
     var addingDays by remember { mutableStateOf(false) }
@@ -86,6 +89,15 @@ fun SettingsTab(
                     label = stringResource(toggle.labelRes),
                     caption = stringResource(R.string.startmenu_settings_caption),
                     trailing = { InfSwitch(checked = toggle.shown, onCheckedChange = { onTabShown(toggle.tab, it) }) }
+                )
+            }
+        }
+        item { InfSectionHeader(text = stringResource(R.string.startmenu_settings_appearance)) }
+        itemsIndexed(appearance, key = { _, toggle -> "appearance:${toggle.key}" }) { index, toggle ->
+            InfGroupedCard(index = index, count = appearance.size) {
+                InfSettingsRow(
+                    label = stringResource(toggle.labelRes),
+                    trailing = { InfSwitch(checked = toggle.on, onCheckedChange = { on -> onSettings { toggle.apply(it, on) } }) }
                 )
             }
         }

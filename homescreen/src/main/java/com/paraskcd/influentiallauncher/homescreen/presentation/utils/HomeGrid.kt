@@ -20,9 +20,12 @@ data class HomeGrid(val columns: Int, val rows: Int) {
             val preferred = preferred(landscape)
             if (area.width <= 0 || area.height <= 0) return preferred
             val (minWidth, minHeight) = with(density) { HomeMetrics.minCellWidth.toPx() to HomeMetrics.minCellHeight.toPx() }
+            val maxHeight = with(density) { HomeMetrics.maxCellHeight.toPx() }
+            val fitting = (area.height / minHeight).toInt()
+            val roomy = (area.height / maxHeight).toInt()
             return HomeGrid(
                 columns = (area.width / minWidth).toInt().coerceIn(1, preferred.columns),
-                rows = (area.height / minHeight).toInt().coerceIn(1, preferred.rows)
+                rows = maxOf(preferred.rows, roomy).coerceAtMost(fitting).coerceAtLeast(1)
             )
         }
     }

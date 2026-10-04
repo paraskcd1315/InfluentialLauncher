@@ -19,6 +19,7 @@ import com.paraskcd.influentiallauncher.tasks.domain.ports.AppDataUsage
 import com.paraskcd.influentiallauncher.tasks.domain.ports.OpenApps
 import com.paraskcd.influentiallauncher.pins.domain.model.PinTarget
 import com.paraskcd.influentiallauncher.pins.domain.usecase.PinnedApps
+import com.paraskcd.influentiallauncher.settings.domain.ports.SettingsStore
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.StartMenuContent
 import com.paraskcd.influentiallauncher.startmenu.presentation.utils.AppSections
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,8 +43,13 @@ class AppsViewModel @Inject constructor(
     signalsSource: AppSignalsSource,
     private val openApps: OpenApps,
     private val appActions: AppActions,
-    private val appDataUsage: AppDataUsage
+    private val appDataUsage: AppDataUsage,
+    settingsStore: SettingsStore
 ) : ViewModel() {
+
+    val showLabels: StateFlow<Boolean> = settingsStore.settings
+        .map { it.showLabels }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), true)
 
     val signals: StateFlow<AppSignals> = signalsSource.signals
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMs), AppSignals.None)

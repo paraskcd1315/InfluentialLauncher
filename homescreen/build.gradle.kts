@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":pins"))
     implementation(project(":notifications"))
     implementation(project(":tasks"))
+    implementation(project(":settings"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.datastore.preferences)

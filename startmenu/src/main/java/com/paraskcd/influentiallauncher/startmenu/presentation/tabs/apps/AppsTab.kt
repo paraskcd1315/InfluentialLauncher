@@ -59,6 +59,7 @@ fun AppsTab(
     val query by viewModel.query.collectAsStateWithLifecycle()
     val signals by viewModel.signals.collectAsStateWithLifecycle()
     val openPackages by viewModel.openPackages.collectAsStateWithLifecycle()
+    val showLabels by viewModel.showLabels.collectAsStateWithLifecycle()
     val tint = InfTheme.colors.brandText.toArgb()
     val iconBackground = InfTheme.colors.glassStrongBg.toArgb()
     val loadIcon: suspend (AppId, Int) -> Bitmap? = remember(tint, iconBackground) { { id, px -> viewModel.icon(id, px, tint, iconBackground) } }
@@ -134,7 +135,8 @@ fun AppsTab(
                                 onLaunch = launch,
                                 onLongPress = { menuKey = it.app.id.key },
                                 columns = gridColumns,
-                                signals = signals
+                                signals = signals,
+                                showLabels = showLabels
                             )
                         }
                     }
@@ -148,7 +150,8 @@ fun AppsTab(
                                 onLaunch = launch,
                                 onLongPress = { menuKey = it.app.id.key },
                                 columns = gridColumns,
-                                signals = signals
+                                signals = signals,
+                                showLabels = showLabels
                             )
                         }
                     }

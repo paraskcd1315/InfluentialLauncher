@@ -39,6 +39,10 @@
     <string name="startmenu_settings_calendar">Calendar tab</string>
     <string name="startmenu_settings_contacts">Contacts tab</string>
     <string name="startmenu_settings_caption">Show this tab in the Start menu</string>
+    <string name="startmenu_settings_appearance">Appearance</string>
+    <string name="startmenu_settings_labels">App names</string>
+    <string name="startmenu_settings_clock">Clock and date</string>
+    <string name="startmenu_settings_glance">Glance</string>
     <string name="startmenu_pick_date">Pick a date</string>
     <string name="startmenu_previous_year">Previous year</string>
     <string name="startmenu_next_year">Next year</string>

@@ -42,6 +42,9 @@ class DataStoreSettingsStore @Inject constructor(
             preferences[ShowApps] = next.showAppsTab
             preferences[ShowCalendar] = next.showCalendarTab
             preferences[ShowContacts] = next.showContactsTab
+            preferences[ShowLabels] = next.showLabels
+            preferences[ShowClock] = next.showClock
+            preferences[ShowGlance] = next.showGlance
         }
     }
 
@@ -50,7 +53,10 @@ class DataStoreSettingsStore @Inject constructor(
         return LauncherSettings(
             showAppsTab = this[ShowApps] ?: defaults.showAppsTab,
             showCalendarTab = this[ShowCalendar] ?: defaults.showCalendarTab,
-            showContactsTab = this[ShowContacts] ?: defaults.showContactsTab
+            showContactsTab = this[ShowContacts] ?: defaults.showContactsTab,
+            showLabels = this[ShowLabels] ?: defaults.showLabels,
+            showClock = this[ShowClock] ?: defaults.showClock,
+            showGlance = this[ShowGlance] ?: defaults.showGlance
         )
     }
 
@@ -59,5 +65,8 @@ class DataStoreSettingsStore @Inject constructor(
         val ShowApps = booleanPreferencesKey("show_apps_tab")
         val ShowCalendar = booleanPreferencesKey("show_calendar_tab")
         val ShowContacts = booleanPreferencesKey("show_contacts_tab")
+        val ShowLabels = booleanPreferencesKey("show_labels")
+        val ShowClock = booleanPreferencesKey("show_clock")
+        val ShowGlance = booleanPreferencesKey("show_glance")
     }
 }

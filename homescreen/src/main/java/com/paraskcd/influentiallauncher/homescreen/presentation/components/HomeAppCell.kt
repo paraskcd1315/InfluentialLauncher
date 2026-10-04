@@ -46,7 +46,8 @@ fun HomeAppCell(
     iconSize: Dp = HomeMetrics.iconSize,
     onRemove: (() -> Unit)? = null,
     badge: Int = 0,
-    openTasks: Int = 0
+    openTasks: Int = 0,
+    showLabel: Boolean = true
 ) {
     val ink = LocalWallpaperInk.current
     Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
@@ -83,16 +84,18 @@ fun HomeAppCell(
                     }
                 }
             }
-            Text(
-                text = app.label,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    shadow = Shadow(color = ink.shadow.copy(alpha = HomeMetrics.labelShadowAlpha), blurRadius = HomeMetrics.labelShadowBlur)
-                ),
-                color = ink.content,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
+            if (showLabel) {
+                Text(
+                    text = app.label,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        shadow = Shadow(color = ink.shadow.copy(alpha = HomeMetrics.labelShadowAlpha), blurRadius = HomeMetrics.labelShadowBlur)
+                    ),
+                    color = ink.content,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }

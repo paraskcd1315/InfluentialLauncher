@@ -24,7 +24,8 @@ fun AppGrid(
     onLongPress: (StartMenuApp) -> Unit,
     modifier: Modifier = Modifier,
     columns: Int = StartMenuMetrics.pinnedColumns,
-    signals: AppSignals = AppSignals.None
+    signals: AppSignals = AppSignals.None,
+    showLabels: Boolean = true
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         apps.chunked(columns).forEach { row ->
@@ -37,6 +38,7 @@ fun AppGrid(
                         onLongPress = { onLongPress(entry) },
                         badge = signals.badgeOf(entry.app.id),
                         openTasks = signals.openOf(entry.app.id),
+                        showLabel = showLabels,
                         modifier = Modifier.weight(1f)
                     )
                 }
