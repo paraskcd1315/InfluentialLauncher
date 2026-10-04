@@ -14,4 +14,7 @@ object SettingsMetrics {
     const val iconWellAlpha = 0.16f
     val titleSize = 15.sp
     val captionSize = 13.sp
+    val aboutIcon = 88.dp
+    val aboutSpacing = 8.dp
+    val aboutPadding = 24.dp
 }

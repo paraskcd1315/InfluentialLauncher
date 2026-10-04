@@ -4,6 +4,20 @@
 package com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings
 
 import androidx.activity.compose.PredictiveBackHandler
+import android.widget.Toast
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import com.composables.icons.lucide.ExternalLink
+import com.composables.icons.lucide.Lucide
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.AboutHero
+import com.paraskcd.influentiallauncher.startmenu.presentation.tabs.settings.components.OtherAppRow
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.AboutLinks
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.OtherApps
+import com.paraskcd.influentiallauncher.startmenu.presentation.utils.SettingsMetrics
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.SeekableTransitionState
 import androidx.compose.animation.core.rememberTransition
@@ -102,6 +116,8 @@ fun SettingsTab(
     modifier: Modifier = Modifier
 ) {
     var opened by rememberSaveable { mutableStateOf<SettingsSection?>(null) }
+    val context = LocalContext.current
+    val openFailed = stringResource(R.string.startmenu_about_open_failed)
     val held = schedule ?: WorkSchedule()
     var addingDays by remember { mutableStateOf(false) }
     var addingMonth by remember { mutableStateOf(false) }
@@ -163,6 +179,16 @@ fun SettingsTab(
                     onAddDays = { addingDays = true },
                     onAddMonth = { addingMonth = true }
                 )
+                SettingsSection.OtherApps -> SettingsList(listState, headerHeight) {
+                    itemsIndexed(OtherApps.all, key = { _, app -> app.packageName }) { index, app ->
+                        OtherAppRow(app = app, index = index, count = OtherApps.all.size, onOpen = { OtherApps.open(context, app) })
+                    }
+                }
+                SettingsSection.About -> SettingsList(listState, headerHeight) {
+                    aboutRows(onSource = {
+                        if (!OtherApps.openLink(context, AboutLinks.SOURCE)) Toast.makeText(context, openFailed, Toast.LENGTH_SHORT).show()
+                    })
+                }
             }
             SettingsHeader(
                 scrolled = listState.canScrollBackward,
@@ -255,6 +281,37 @@ private fun LazyListScope.toggleRows(
                 trailing = { InfSwitch(checked = toggle.on, onCheckedChange = { on -> onSettings { toggle.apply(it, on) } }) }
             )
         }
+    }
+}
+
+private fun LazyListScope.aboutRows(onSource: () -> Unit) {
+    item(key = "about:hero") { AboutHero() }
+    item { InfSectionHeader(text = stringResource(R.string.startmenu_about_links)) }
+    item(key = "about:source") {
+        InfGroupedCard(index = 0, count = 1) {
+            InfSettingsRow(
+                label = stringResource(R.string.startmenu_about_source),
+                caption = stringResource(R.string.startmenu_about_source_caption),
+                trailing = {
+                    Icon(
+                        imageVector = Lucide.ExternalLink,
+                        contentDescription = null,
+                        tint = InfTheme.colors.textTertiary,
+                        modifier = Modifier.size(SettingsMetrics.chevron)
+                    )
+                },
+                modifier = Modifier.clickable(onClick = onSource)
+            )
+        }
+    }
+    item(key = "about:developer") {
+        Text(
+            text = stringResource(R.string.startmenu_about_developer, stringResource(R.string.startmenu_about_developer_name)),
+            style = MaterialTheme.typography.labelMedium,
+            color = InfTheme.colors.textTertiary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(vertical = SettingsMetrics.aboutPadding)
+        )
     }
 }
 

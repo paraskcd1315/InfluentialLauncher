@@ -48,6 +48,22 @@
     <string name="startmenu_settings_shell_caption">Pairing for the control center and app actions</string>
     <string name="startmenu_settings_schedule_caption">Weekly hours, days off and holidays</string>
     <string name="startmenu_settings_icons">Icons</string>
+    <string name="startmenu_other_apps">Other apps</string>
+    <string name="startmenu_other_apps_caption">More apps by the same developer</string>
+    <string name="startmenu_other_spotlight" translatable="false">Spotlight Search</string>
+    <string name="startmenu_other_spotlight_caption">Search your apps, contacts and the web from one place</string>
+    <string name="startmenu_other_tvtracking" translatable="false">TV Tracking</string>
+    <string name="startmenu_other_tvtracking_caption">Track the shows and films you watch</string>
+    <string name="startmenu_about">About</string>
+    <string name="startmenu_about_caption">Version, source code and who made it</string>
+    <string name="startmenu_about_version" translatable="false">v%1$s (%2$d)</string>
+    <string name="startmenu_about_description">A desktop-style launcher with a taskbar, a Start menu and windows over your wallpaper.</string>
+    <string name="startmenu_about_links">Links</string>
+    <string name="startmenu_about_source">Source code</string>
+    <string name="startmenu_about_source_caption">View the project on GitHub</string>
+    <string name="startmenu_about_developer">Made by %1$s</string>
+    <string name="startmenu_about_developer_name" translatable="false">Paras Khanchandani</string>
+    <string name="startmenu_about_open_failed">Couldn\'t open the link</string>
     <string name="startmenu_settings_running_dots">Running dots and open bars</string>
     <string name="startmenu_settings_badges">Notification badges</string>
     <string name="startmenu_settings_start_button">Start button on the taskbar</string>
