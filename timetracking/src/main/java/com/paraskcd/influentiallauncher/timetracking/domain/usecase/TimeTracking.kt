@@ -18,6 +18,7 @@ import com.paraskcd.influentiallauncher.timetracking.domain.ports.ScheduleInbox
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.ScheduleCodec
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.TrackerClient
 import com.paraskcd.influentiallauncher.timetracking.domain.ports.TrackerStream
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,6 +26,9 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.debounce
@@ -37,6 +41,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.time.DayOfWeek
 import java.time.Duration
 import java.time.Instant
@@ -61,11 +66,18 @@ class TimeTracking @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val writes = MutableSharedFlow<Tracker>(extraBufferCapacity = WriteBuffer)
     private val contracted = setOf(Tracker.Toggl)
+    private val alwaysShown = setOf(Tracker.Toggl)
+    private val reachable = MutableStateFlow<Set<Tracker>>(emptySet())
     private var seen: TrackerCredentials? = null
 
     val available: Boolean = BuildConfig.PERSONAL_EDITION
 
     val credentials: Flow<TrackerCredentials> = store.credentials
+
+    val shown: Flow<List<Tracker>> = combine(store.credentials, reachable) { held, answered ->
+        if (!available) emptyList()
+        else Tracker.entries.filter { held.configured(it) && (it in alwaysShown || it in answered) }
+    }.distinctUntilChanged()
 
     val schedule: Flow<WorkSchedule?> = store.credentials
         .map { it.workSchedule }
@@ -192,7 +204,19 @@ class TimeTracking @Inject constructor(
         }
         if (!credentials.configured(tracker)) return unconfigured
         val client = byTracker[tracker] ?: return unconfigured
-        return block(client, credentials)
+        return try {
+            block(client, credentials).also { reachable.update { it + tracker } }
+        } catch (error: IOException) {
+            reachable.update { it - tracker }
+            throw error
+        }
+    }
+
+    suspend fun probe() {
+        val credentials = store.credentials.first()
+        Tracker.entries
+            .filter { it !in alwaysShown && credentials.configured(it) }
+            .forEach { tracker -> runCatching { running(tracker) }.onFailure { if (it is CancellationException) throw it } }
     }
 
     private companion object {

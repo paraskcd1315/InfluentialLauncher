@@ -34,6 +34,13 @@ class TimeTrackingViewModel @Inject constructor(
 
     val available: Boolean = tracking.available
 
+    val shown: StateFlow<List<Tracker>> = tracking.shown
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun probe() {
+        viewModelScope.launch { tracking.probe() }
+    }
+
     val credentials: StateFlow<TrackerCredentials> = tracking.credentials
         .stateIn(viewModelScope, SharingStarted.Eagerly, TrackerCredentials())
 

@@ -46,7 +46,6 @@ import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.Calend
 import com.paraskcd.influentiallauncher.startmenu.presentation.viewmodels.TimeTrackingViewModel
 import com.paraskcd.influentiallauncher.startmenu.presentation.windows.HeaderWindow
 import com.paraskcd.influentiallauncher.startmenu.presentation.model.TrackerWeek
-import com.paraskcd.influentiallauncher.timetracking.domain.model.Tracker
 import com.paraskcd.influentiallauncher.timetracking.domain.model.TrackerTotals
 import com.paraskcd.influentiallauncher.windowing.presentation.LocalWindowBlurred
 import java.time.Duration
@@ -78,11 +77,17 @@ fun CalendarTab(
         if (!open) detail = null
     }
     val trackersShown = timeTracking.available
+    val trackers by timeTracking.shown.collectAsStateWithLifecycle()
+    LaunchedEffect(open) {
+        if (open && trackersShown) timeTracking.probe()
+    }
+    LaunchedEffect(trackers, tracker) {
+        if (trackers.isNotEmpty() && tracker !in trackers) timeTracking.selectTracker(trackers.first())
+    }
     LaunchedEffect(open, tracker, date, credentials) {
         if (open && trackersShown) timeTracking.load(date)
     }
 
-    val trackers = Tracker.entries
     val current = trackerDay?.takeIf { it.tracker == tracker && it.date == date }
     val entries = current?.entries.orEmpty()
     val dayEvents = events.orEmpty()
@@ -107,7 +112,8 @@ fun CalendarTab(
     val gap = TimelineMetrics.sectionGap
     val stripShown = permission == PermissionState.Missing || allDay.isNotEmpty()
     val trackerTop = dateHeight + gap
-    val trackerBottom = if (trackersShown) trackerTop + trackerHeight else dateHeight
+    val switchShown = trackers.size > 1
+    val trackerBottom = if (switchShown) trackerTop + trackerHeight else dateHeight
     val stripTop = trackerBottom + gap
     val headerBottom = StartMenuMetrics.listTopPlain + (if (stripShown) stripTop + stripHeight else trackerBottom)
 
@@ -120,7 +126,7 @@ fun CalendarTab(
             onPick = { picking = date }
         )
     }
-    HeaderWindow(visible = open && trackersShown, placement = placement, offsetTop = trackerTop, onHeight = { trackerHeight = it }, onClose = onClose) {
+    HeaderWindow(visible = open && switchShown, placement = placement, offsetTop = trackerTop, onHeight = { trackerHeight = it }, onClose = onClose) {
         InfSegmented(
             labels = trackers.map { stringResource(TrackerLabels.nameOf(it)) },
             selected = trackers.indexOf(tracker),
